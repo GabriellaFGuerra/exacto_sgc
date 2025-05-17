@@ -1,79 +1,60 @@
 <?php
 include('connect.php');
-$cep = $_POST['cep'];
-$up = $_POST['up'];
+
+$cep = $_POST['cep'] ?? '';
+$up = $_POST['up'] ?? '';
+
 $sqlprocura = "SELECT * FROM end_enderecos
-			   LEFT JOIN (end_bairros 
-				   LEFT JOIN (end_municipios 
-						LEFT JOIN end_uf
-						ON end_uf.uf_id = end_municipios.mun_uf)
-				   ON end_municipios.mun_id = end_bairros.bai_municipio)
-			   ON end_bairros.bai_id = end_enderecos.end_bairro
-			   WHERE end_cep = '$cep'";
-$queryprocura = mysql_query($sqlprocura, $conexao);
-$rowsprocura = mysql_num_rows($queryprocura);
-if($up == 'uf')
-{
-	if($rowsprocura>0)
-	{
-		while($row = mysql_fetch_array($queryprocura) )
-		{
-			echo "<option value='".$row['uf_id']."' selected>".$row['uf_sigla']."</option>";
+               LEFT JOIN end_bairros ON end_bairros.bai_id = end_enderecos.end_bairro
+               LEFT JOIN end_municipios ON end_municipios.mun_id = end_bairros.bai_municipio
+               LEFT JOIN end_uf ON end_uf.uf_id = end_municipios.mun_uf
+               WHERE end_cep = :cep";
+
+$stmt = $pdo->prepare($sqlprocura);
+$stmt->bindParam(':cep', $cep, PDO::PARAM_STR);
+$stmt->execute();
+$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($up === 'uf') {
+	if ($resultados) {
+		foreach ($resultados as $row) {
+			echo "<option value='" . htmlspecialchars($row['uf_id']) . "' selected>" . htmlspecialchars($row['uf_sigla']) . "</option>";
 		}
-	}
-	else
-	{
+	} else {
 		echo "<option value=''>UF</option>";
-		$sql = " SELECT * FROM end_uf ORDER BY uf_sigla";
-		$query = mysql_query($sql,$conexao);
-		while($row = mysql_fetch_array($query) )
-		{
-			echo "<option value='".$row['uf_id']."'>".$row['uf_sigla']."</option>";
+		$stmt = $pdo->query("SELECT * FROM end_uf ORDER BY uf_sigla");
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+			echo "<option value='" . htmlspecialchars($row['uf_id']) . "'>" . htmlspecialchars($row['uf_sigla']) . "</option>";
 		}
 	}
 }
 
-if($up == 'municipio')
-{
-	if($rowsprocura>0)
-	{
-		while($row = mysql_fetch_array($queryprocura) )
-		{
-			echo "<option value='".$row['mun_id']."' selected>".$row['mun_nome']."</option>";
+if ($up === 'municipio') {
+	if ($resultados) {
+		foreach ($resultados as $row) {
+			echo "<option value='" . htmlspecialchars($row['mun_id']) . "' selected>" . htmlspecialchars($row['mun_nome']) . "</option>";
 		}
-	}
-	else
-	{
+	} else {
 		echo "<option value=''>Municípios</option>";
 	}
 }
 
-if($up == 'bairro')
-{
-	if($rowsprocura>0)
-	{
-		while($row = mysql_fetch_array($queryprocura) )
-		{
-			echo $row['bai_nome'];
+if ($up === 'bairro') {
+	if ($resultados) {
+		foreach ($resultados as $row) {
+			echo htmlspecialchars($row['bai_nome']);
 		}
-	}
-	else
-	{
+	} else {
 		echo "";
 	}
 }
 
-if($up == 'endereco')
-{
-	if($rowsprocura>0)
-	{
-		while($row = mysql_fetch_array($queryprocura) )
-		{
-			echo $row['end_endereco'];
+if ($up === 'endereco') {
+	if ($resultados) {
+		foreach ($resultados as $row) {
+			echo htmlspecialchars($row['end_endereco']);
 		}
-	}
-	else
-	{
+	} else {
 		echo "";
 	}
 }

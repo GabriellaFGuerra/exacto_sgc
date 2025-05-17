@@ -1,34 +1,36 @@
 <?php
 include('connect.php');
-$int_id = $_POST['int_id'];
-$departamento = $_POST['departamento'];
-if($departamento != "")
-{
-	if($int_id != '')
-	{
-		$sqlprocura = "SELECT * FROM `usuarios_internos` 
-					   WHERE int_departamento = '$departamento' AND int_id = $int_id
-					   ORDER BY int_nome ASC";
+
+$int_id = $_POST['int_id'] ?? '';
+$departamento = $_POST['departamento'] ?? '';
+
+if (!empty($departamento)) {
+	// Consulta segura com `Prepared Statements`
+	$sqlprocura = "SELECT * FROM usuarios_internos WHERE int_departamento = :departamento";
+
+	if (!empty($int_id)) {
+		$sqlprocura .= " AND int_id = :int_id";
 	}
-	else
-	{
-		$sqlprocura = "SELECT * FROM `usuarios_internos` 
-					   WHERE int_departamento = '$departamento' 
-					   ORDER BY int_nome ASC";
+
+	$sqlprocura .= " ORDER BY int_nome ASC";
+
+	$stmt = $pdo->prepare($sqlprocura);
+	$stmt->bindParam(':departamento', $departamento, PDO::PARAM_INT);
+
+	if (!empty($int_id)) {
+		$stmt->bindParam(':int_id', $int_id, PDO::PARAM_INT);
 	}
-}
-$queryprocura = mysql_query($sqlprocura, $conexao);
-$rowsprocura = mysql_num_rows($queryprocura);
-if($rowsprocura>0)
-{
-	echo "<option value=''>Selecione o Responsável</option>";
-	while($rowsprocura = mysql_fetch_array($queryprocura) )
-	{
-		echo "<option value='".$rowsprocura['int_id']."'>".$rowsprocura['int_nome']."</option>";
+
+	$stmt->execute();
+	$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+	if ($resultados) {
+		echo "<option value=''>Selecione o Responsável</option>";
+		foreach ($resultados as $row) {
+			echo "<option value='" . htmlspecialchars($row['int_id']) . "'>" . htmlspecialchars($row['int_nome']) . "</option>";
+		}
+	} else {
+		echo "<option value=''>Nome do Responsável</option>";
 	}
-}
-else
-{
-	echo "<option value=''>Nome do Responsável</option>";
 }
 ?>

@@ -1,45 +1,33 @@
 <?php
-//########## FUNCAO PROXIMO DIA UTIL ###########
-function getDayOfWeek($timestamp){
-  	$date = getdate($timestamp);
-    $diaSemana = $date['weekday'];
-    if(preg_match('/(sunday|domingo)/mi',$diaSemana))
-        $diaSemana = 'Domingo';
-    else if(preg_match('/(monday|segunda)/mi',$diaSemana))
-        $diaSemana = 'Segunda';
-    else if(preg_match('/(tuesday|terça)/mi',$diaSemana))
-        $diaSemana = 'Terça';
-    else if(preg_match('/(wednesday|quarta)/mi',$diaSemana))
-        $diaSemana = 'Quarta';
-    else if(preg_match('/(thursday|quinta)/mi',$diaSemana))
-        $diaSemana = 'Quinta';
-    else if(preg_match('/(friday|sexta)/mi',$diaSemana))
-        $diaSemana = 'Sexta';
-    else if(preg_match('/(saturday|sábado)/mi',$diaSemana))
-        $diaSemana = 'Sábado';
-         
-    return $diaSemana;
+//########## FUNÇÃO PRÓXIMO DIA ÚTIL ###########
+function getDayOfWeek(int $timestamp): string
+{
+    $diasSemana = [
+        'Sunday' => 'Domingo',
+        'Monday' => 'Segunda',
+        'Tuesday' => 'Terça',
+        'Wednesday' => 'Quarta',
+        'Thursday' => 'Quinta',
+        'Friday' => 'Sexta',
+        'Saturday' => 'Sábado'
+    ];
+
+    return $diasSemana[date('l', $timestamp)] ?? 'Indefinido';
 }
 
-function diaUtil($data){
-    while(true){
-        if(getDayOfWeek($data) == 'Sábado'){
- 
-            $data = $data + (86400 * 2);
-            return diaUtil($data);
-             
-        }else if(getDayOfWeek($data) == 'Domingo'){
-             
-            $data = $data + (86400 * 1);
-            return diaUtil($data);
-             
-        }
-		else
-		{
+function diaUtil(int $data): int
+{
+    while (true) {
+        $diaSemana = getDayOfWeek($data);
+
+        if ($diaSemana === 'Sábado') {
+            $data += 86400 * 2; // Avança dois dias
+        } elseif ($diaSemana === 'Domingo') {
+            $data += 86400; // Avança um dia
+        } else {
             return $data;
         }
-             
     }
 }
-//############# FIM FUNCAO PROXIMO DIA UTIL ###############
+//############# FIM FUNÇÃO PRÓXIMO DIA ÚTIL ###############
 ?>
