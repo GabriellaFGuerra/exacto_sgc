@@ -1,0 +1,70 @@
+@import url(http://fonts.googleapis.com/css?family=Dosis:500);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,600,700);
+@media print {
+/* GERAL */
+html				{ }
+body 				{ font-family: "Open Sans"; font-size:9px; color: #666; background:url(../imagens/bg.jpg) repeat !important; -webkit-print-color-adjust: exact; margin:0;}
+table				{ font-size:9px;}
+a					{ text-decoration:none; color:#81C566; !important; -webkit-print-color-adjust: exact;}
+a:visited			{ text-decoration:none;}
+a:hover				{ text-decoration:none; color:#0F72BD; !important; -webkit-print-color-adjust: exact;}
+.left				{ float:left;}
+.right				{ float:right;}
+.verde				{ color:#81C566 !important;}
+.vermelho			{ color:#FF0000 !important;}
+.laranja			{ color:#FF6600 !important;}
+.exibir				{ line-height:28px;}	
+.nofield			{ background:none; border: none; font-size:11px; color:#81C566; font-weight:bold; padding:4px 0 0 4px; width:auto;}
+.subtotal			{ font-size:14px; background:#AAA !important; color:#FFF; font-weight:700; -webkit-print-color-adjust: exact; }
+.total				{ font-size:14px; background:#999 !important; color:#FFF; font-weight:700;  -webkit-print-color-adjust: exact; }
+.filtro				{ float:right; margin:5px 0 10px 0;}
+.razao				{ font-size:9px;}
+.detalhe			{ font-size:12px; color:#777 !important;}
+/* INPUTS */
+select						{ font:11px "Open Sans"; border: 1px solid #AAA; -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px; background:#FFF; padding: 7px 18px 7px 8px; color:#333; -webkit-appearance: none; -moz-appearance: none; appearance: none; outline:none; background:url(../imagens/seta.png) no-repeat right #FFF;}
+input,textarea				{ font:11px "Open Sans"; border: 1px solid #AAA; -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px; background:#FFF; padding: 8px 12px; color:#333;}
+input,select, textarea:focus{ outline:none;}
+input[type=submit] 			{ display:none; background:#0F72BD !important; -webkit-print-color-adjust: exact; border:none; padding: 8px 15px; font-family:"Open Sans";font-size:11px; color:#FFF; -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;}
+input[type=button] 			{ display:none; background:#0F72BD !important; -webkit-print-color-adjust: exact; border:none; padding: 8px 15px; font-family:"Open Sans";font-size:11px; color:#FFF; -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;}
+input[type=button]:hover,
+input[type=submit]:hover 	{ background:#81C566 !important; -webkit-print-color-adjust: exact; border:none; padding: 8px 15px; font-family:"Open Sans";font-size:11px; color:#FFF; cursor:pointer; _cursor: hand; -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;}
+input[type=text]			{ outline:none;}
+input:disabled,textarea:disabled,select:disabled	{ border: 1px solid #CCC; color:#CACACA;}
+input:disabled::-webkit-input-placeholder,	textarea:disabled::-webkit-input-placeholder{ color:#CACACA;}
+input:disabled::-moz-input-placeholder,		textarea:disabled::-moz-input-placeholder	{ color:#CACACA;}
+input:disabled::-ms-input-placeholder,		textarea:disabled::-ms-input-placeholder	{ color:#CACACA;}
+
+
+/* PAINEL ADMINISTRATIVO */
+#mask 						{ display: none; background: #000;  position: fixed; left: 0; top: 0;  z-index: 10; width: 100%; height: 100%; opacity: 0.8; z-index: 999;}
+.janela						{ font-size: 15px; width:26%; height:12%; overflow:hidden; background-color:#EEE; padding: 30px 50px; border: 2px solid #ddd; position:fixed; text-align:center; top: 50%; left: 50%; right: 50%; /* Centralizar */ z-index: 99999; box-shadow: 0px 0px 20px #FFF; /* CSS3 */ -moz-box-shadow: 0px 0px 20px #FFF; /* Firefox */ -webkit-box-shadow: 0px 0px 20px #FFF; /* Safari, Chrome */ border-radius:10px; -moz-border-radius: 10px; /* Firefox */ -webkit-border-radius: 10px; /* Safari, Chrome */ }
+.titulo						{ font-family:"Dosis"; width:100%; margin:0 auto; font-size:20px; color:#0F72BD; text-align:left; border-bottom:1px dashed #BBB; padding:0 0 10px 10px; margin:20px 0 10px 0;}
+.titulo_tabela				{ font-size:11px; font-weight:600; border:0; color:#666; background:#EEE; !important; -webkit-print-color-adjust: exact;}
+.titulo_first				{ font-size:11px; font-weight:600; border:0; color:#666; background:#EEE;  !important; -webkit-print-color-adjust: exact;-moz-border-radius:2px 0px 0px 0px; -webkit-border-radius:2px 0px 0px 0px; border-radius:2px 0px 0px 0px;}
+.titulo_last				{ font-size:11px; font-weight:600; border:0; color:#666; background:#EEE; !important; -webkit-print-color-adjust: exact; -moz-border-radius:0px 2px 0px 0px; -webkit-border-radius:0px 2px 0px 0px; border-radius:0px 2px 0px 0px;}
+.titulo_tabela2				{ font-size:10px; font-weight:600; border:0; color:#999; background:#EEE; !important; -webkit-print-color-adjust: exact;}
+.titulo_first2				{ font-size:10px; font-weight:600; border:0; color:#999; background:#EEE;  !important; -webkit-print-color-adjust: exact;-moz-border-radius:2px 0px 0px 0px; -webkit-border-radius:2px 0px 0px 0px; border-radius:2px 0px 0px 0px;}
+.titulo_last2				{ font-size:10px; font-weight:600; border:0; color:#999; background:#EEE; !important; -webkit-print-color-adjust: exact; -moz-border-radius:0px 2px 0px 0px; -webkit-border-radius:0px 2px 0px 0px; border-radius:0px 2px 0px 0px;}
+.linhapar					{ background:#FAFAFA !important; -webkit-print-color-adjust: exact; }
+.linhaimpar					{ background:#FFFFFF !important; -webkit-print-color-adjust: exact; }
+.bordatabela				{ border: 1px solid #DADADA;  -moz-border-radius:2px 2px 0px 0px; -webkit-border-radius:2px 2px 0px 0px; border-radius:2px 2px 0px 0px;}
+.bordatabela2				{ border: 1px dotted #DADADA;  -moz-border-radius:2px 2px 0px 0px; -webkit-border-radius:2px 2px 0px 0px; border-radius:2px 2px 0px 0px;}
+.formtitulo					{ width:100%; margin:0 auto; text-align:left; font-size:20px;  color:#000; padding:10px 0px; margin:10px 0px; border-bottom:1px dashed #CFCFCF;}
+#botoes						{ width:15%; text-align:left; float:left; padding:0 0 18px 0px;}
+#relatorio input			{ width:195px; height:90px; font-size:14px; border: 1px dashed #CCC;  text-align:center; vertical-align:middle; margin:5px 10px;}
+.detalhe			{ font-size:9px; color:#777 !important;}
+.preto				{ color:#000000 !important;}
+.azul				{ color:#0099CC !important;}
+.laranja			{ color:#FF6600 !important;}
+.verde				{ color:#33CC99 !important;}
+.vermelho			{ color:#990000 !important;}
+
+/* FILTROS */
+input#fil_ext_de				{width: 80px;}
+input#fil_ext_ate				{width: 80px;}
+select#fil_ext_categoria		{width: 90px;}
+input#fil_cli_nome				{width: 170px;}
+input#fil_fat_de				{width: 70px;}
+input#fil_fat_ate				{width: 70px;}
+
+}
