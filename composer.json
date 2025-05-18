@@ -2,5 +2,8 @@
     "require-dev": {
         "squizlabs/php_codesniffer": "*",
         "phpcompatibility/php-compatibility": "^9.3"
+    },
+    "require": {
+        "mpdf/mpdf": "^8.2"
     }
 }

@@ -1,0 +1,51 @@
+[17-Oct-2018 18:45:14 America/New_York] PHP Parse error:  syntax error, unexpected '}' in /home/exactoad/public_html/sistema/admin/orcamento_imprimir.php on line 387
+[15-Mar-2019 09:30:44 America/New_York] PHP Parse error:  syntax error, unexpected 'document' (T_STRING), expecting ',' or ';' in /home/exactoad/public_html/sistema/admin/malote_gerenciar.php on line 942
+[15-Mar-2019 09:30:45 America/New_York] PHP Parse error:  syntax error, unexpected 'document' (T_STRING), expecting ',' or ';' in /home/exactoad/public_html/sistema/admin/malote_gerenciar.php on line 942
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/connect.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(): Failed opening '../css/style.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:14:30 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/funcoes-jquery.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/connect.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(): Failed opening '../css/style.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:14:36 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/funcoes-jquery.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../mod_includes/php/connect.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/connect.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 2
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../css/style.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(): Failed opening '../css/style.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 11
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(../mod_includes/php/funcoes-jquery.php): failed to open stream: No such file or directory in /home/sistemaexacto/public_html/admin/login.php on line 16
+[04-Jun-2019 11:20:01 America/New_York] PHP Warning:  include(): Failed opening '../mod_includes/php/funcoes-jquery.php' for inclusion (include_path='.:/usr/lib/php:/usr/local/lib/php') in /home/sistemaexacto/public_html/admin/login.php on line 16
+[06-Jun-2019 18:15:45 America/New_York] PHP Warning:  session_start(): Cannot send session cache limiter - headers already sent (output started at /home/sistemaexacto/public_html/admin/admin_usuarios.php:2) in /home/sistemaexacto/public_html/admin/admin_usuarios.php on line 3
+[06-Jun-2019 18:16:01 America/New_York] PHP Warning:  session_start(): Cannot send session cache limiter - headers already sent (output started at /home/sistemaexacto/public_html/admin/admin_usuarios.php:2) in /home/sistemaexacto/public_html/admin/admin_usuarios.php on line 3
+[06-Jun-2019 18:16:06 America/New_York] PHP Warning:  session_start(): Cannot send session cache limiter - headers already sent (output started at /home/sistemaexacto/public_html/admin/admin_usuarios.php:2) in /home/sistemaexacto/public_html/admin/admin_usuarios.php on line 3
+[06-Jun-2019 18:16:22 America/New_York] PHP Warning:  session_start(): Cannot send session cache limiter - headers already sent (output started at /home/sistemaexacto/public_html/admin/admin_usuarios.php:2) in /home/sistemaexacto/public_html/admin/admin_usuarios.php on line 3
+[06-Jun-2019 18:16:44 America/New_York] PHP Warning:  session_start(): Cannot send session cache limiter - headers already sent (output started at /home/sistemaexacto/public_html/admin/admin_usuarios.php:2) in /home/sistemaexacto/public_html/admin/admin_usuarios.php on line 3
+[05-Nov-2020 11:15:05 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:06 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:08 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:09 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:09 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:10 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:11 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:11 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:11 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:11 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:12 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:13 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:13 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:14 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:15 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300
+[05-Nov-2020 11:15:15 UTC] PHP Parse error:  syntax error, unexpected ';' in /home/sistemaexacto/public_html/admin/documento_gerenciar.php on line 300

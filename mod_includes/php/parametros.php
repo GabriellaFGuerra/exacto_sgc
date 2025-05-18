@@ -1,5 +1,5 @@
 <?php
-include('connect.php');
+session_start();
 
 $login = $_GET['login'] ?? '';
 $n = $_GET['n'] ?? '';

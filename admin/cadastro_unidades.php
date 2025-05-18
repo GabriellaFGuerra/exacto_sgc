@@ -1,0 +1,531 @@
+<?php
+session_start (); 
+$pagina_link = 'cadastro_clientes';
+include		('../mod_includes/php/connect.php');
+?>
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title><?php echo $titulo;?></title>
+<meta name="author" content="MogiComp">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../imagens/favicon.png">
+<?php include("../css/style.php"); ?>
+<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
+<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+<!-- TOOLBAR -->
+<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+<!-- TOOLBAR -->
+</head>
+<body>
+<?php	
+include		('../mod_includes/php/funcoes-jquery.php');
+require_once('../mod_includes/php/verificalogin.php');
+include		("../mod_topo/topo.php");
+require_once('../mod_includes/php/verificapermissao.php');
+
+?>
+
+<?php
+$cli_id = $_GET['cli_id'];
+$sql_nome_mod = "SELECT * FROM cadastro_clientes WHERE cli_id = $cli_id";
+$query_nome_mod = mysql_query($sql_nome_mod,$conexao);
+$nome_cliente = mysql_result($query_nome_mod, 0, 'cli_nome_razao');
+$page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_clientes".$autenticacao."'>Clientes</a>: $nome_cliente &raquo;  <a href='cadastro_unidades.php?pagina=cadastro_unidades&cli_id=$cli_id".$autenticacao."'>Unidades</a> ";
+if($action == "adicionar")
+{
+	$uni_nome_razao = $_POST['uni_nome_razao'];
+	$uni_cnpj = $_POST['uni_cnpj'];
+	$uni_cep = $_POST['uni_cep'];
+	$uni_uf = $_POST['uni_uf'];
+	$uni_municipio = $_POST['uni_municipio'];
+	$uni_bairro = $_POST['uni_bairro'];
+	$uni_endereco = $_POST['uni_endereco'];
+	$uni_numero = $_POST['uni_numero'];
+	$uni_comp = $_POST['uni_comp'];
+	$uni_responsavel = $_POST['uni_responsavel'];
+	$uni_telefone = $_POST['uni_telefone'];
+	$uni_celular = $_POST['uni_celular'];
+	$uni_email = $_POST['uni_email'];
+	$uni_status = $_POST['uni_status'];
+	$sql = "INSERT INTO cadastro_unidades (
+	uni_cliente,
+	uni_nome_razao,
+	uni_cnpj,
+	uni_cep,
+	uni_uf,
+	uni_municipio,
+	uni_bairro,
+	uni_endereco,
+	uni_numero,
+	uni_comp,
+	uni_responsavel,
+	uni_telefone,
+	uni_celular,
+	uni_email,
+	uni_status
+	) 
+	VALUES 
+	(
+	'$cli_id',
+	'$uni_nome_razao',
+	'$uni_cnpj',
+	'$uni_cep',
+	'$uni_uf',
+	'$uni_municipio',
+	'$uni_bairro',
+	'$uni_endereco',
+	'$uni_numero',
+	'$uni_comp',
+	'$uni_responsavel',
+	'$uni_telefone',
+	'$uni_celular',
+	'$uni_email',
+	'$uni_status'
+	)";
+	if(mysql_query($sql,$conexao))
+	{		
+	
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' class=\'close_janela\'>' );
+		</SCRIPT>
+			";
+	}
+	else
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
+		</SCRIPT>
+			"; 
+	}	
+}
+
+if($action == 'editar')
+{
+	$uni_id = $_GET['uni_id'];
+	$uni_nome_razao = $_POST['uni_nome_razao'];
+	$uni_cnpj = $_POST['uni_cnpj'];
+	$uni_cep = $_POST['uni_cep'];
+	$uni_uf = $_POST['uni_uf'];
+	$uni_municipio = $_POST['uni_municipio'];
+	$uni_bairro = $_POST['uni_bairro'];
+	$uni_endereco = $_POST['uni_endereco'];
+	$uni_numero = $_POST['uni_numero'];
+	$uni_comp = $_POST['uni_comp'];
+	$uni_responsavel = $_POST['uni_responsavel'];
+	$uni_telefone = $_POST['uni_telefone'];
+	$uni_celular = $_POST['uni_celular'];
+	$uni_email = $_POST['uni_email'];
+	$uni_status = $_POST['uni_status'];
+	
+	$sqlEnviaEdit = "UPDATE cadastro_unidades SET 
+					 uni_cliente = '$cli_id',
+					 uni_nome_razao = '$uni_nome_razao',
+					 uni_cnpj = '$uni_cnpj',
+					 uni_cep = '$uni_cep',
+					 uni_uf = '$uni_uf',
+					 uni_municipio = '$uni_municipio',
+					 uni_bairro = '$uni_bairro',
+					 uni_endereco = '$uni_endereco',
+					 uni_numero = '$uni_numero',
+					 uni_comp = '$uni_comp',
+					 uni_responsavel = '$uni_responsavel',
+					 uni_telefone = '$uni_telefone',
+					 uni_celular = '$uni_celular',
+					 uni_email = '$uni_email',
+					 uni_status = '$uni_status'
+					 WHERE uni_id = $uni_id ";
+	if(mysql_query($sqlEnviaEdit,$conexao))
+	{
+	
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' class=\'close_janela\'>' );
+		</SCRIPT>
+			";
+	}
+	else
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
+		</SCRIPT>
+		";
+	}
+}
+
+if($action == 'excluir')
+{
+	$uni_id = $_GET['uni_id'];
+	$sql = "DELETE FROM cadastro_unidades WHERE uni_id = '$uni_id'";
+				
+	if(mysql_query($sql,$conexao))
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br>'+
+			'<input value=\' OK \' type=\'button\' class=\'close_janela\'>' );
+		</SCRIPT>
+			";
+	}
+	else
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back(); >');
+		</SCRIPT>
+		";
+	}
+}
+if($action == 'ativar')
+{
+	$uni_id = $_GET['uni_id'];
+	$sql = "UPDATE cadastro_unidades SET uni_status = 1 WHERE uni_id = '$uni_id'";
+				
+	if(mysql_query($sql,$conexao))
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/ok.png> Ativação realizada com sucesso<br><br>'+
+			'<input value=\' OK \' type=\'button\' class=\'close_janela\'>' );
+		</SCRIPT>
+			";
+	}
+	else
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back(); >');
+		</SCRIPT>
+		";
+	}
+}
+if($action == 'desativar')
+{
+	$uni_id = $_GET['uni_id'];
+	$sql = "UPDATE cadastro_unidades SET uni_status = 0 WHERE uni_id = '$uni_id'";
+				
+	if(mysql_query($sql,$conexao))
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/ok.png> Desativação realizada com sucesso<br><br>'+
+			'<input value=\' OK \' type=\'button\' class=\'close_janela\'>' );
+		</SCRIPT>
+			";
+	}
+	else
+	{
+		echo "
+		<SCRIPT language='JavaScript'>
+			abreMask(
+			'<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br>'+
+			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back(); >');
+		</SCRIPT>
+		";
+	}
+}
+
+$num_por_pagina = 10;
+if(!$pag){$primeiro_registro = 0; $pag = 1;}
+else{$primeiro_registro = ($pag - 1) * $num_por_pagina;}
+$sql = "SELECT * FROM cadastro_unidades 
+		LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
+		WHERE cli_id = $cli_id
+		ORDER BY uni_nome_razao ASC
+		LIMIT $primeiro_registro, $num_por_pagina ";
+$cnt = "SELECT COUNT(*) FROM cadastro_unidades 
+		LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
+		WHERE cli_id = $cli_id";
+
+$query = mysql_query($sql,$conexao);
+$rows = mysql_num_rows($query);
+if($pagina == "cadastro_unidades")
+{
+	echo "
+	<div class='centro'>
+		<div class='titulo'> $page  </div>
+		<div id='botoes'><input value='Nova Unidade' type='button' onclick=javascript:window.location.href='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&cli_id=$cli_id".$autenticacao."'; /></div>
+		";
+		if ($rows > 0)
+		{
+			echo "
+			<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+				<tr>
+					<td class='titulo_tabela'>Razão Social</td>
+					<td class='titulo_tabela'>CNPJ</td>
+					<td class='titulo_tabela'>Responsável</td>
+					<td class='titulo_tabela'>Telefone</td>
+					<td class='titulo_tabela'>Celular</td>
+					<td class='titulo_tabela'>Email</td>
+					<td class='titulo_tabela'>Status</td>
+					<td class='titulo_tabela' align='center'>Gerenciar</td>
+				</tr>";
+				$c=0;
+				for($x = 0; $x < $rows ; $x++)
+				{
+					$uni_id = mysql_result($query, $x, 'uni_id');
+					$uni_nome_razao = mysql_result($query, $x, 'uni_nome_razao');
+					$uni_cnpj = mysql_result($query, $x, 'uni_cnpj');
+					$uni_responsavel = mysql_result($query, $x, 'uni_responsavel');
+					$uni_telefone = mysql_result($query, $x, 'uni_telefone');
+					$uni_celular = mysql_result($query, $x, 'uni_celular');
+					$uni_email = mysql_result($query, $x, 'uni_email');
+					$uni_status = mysql_result($query, $x, 'uni_status');
+					
+					if ($c == 0)
+					{
+					 $c1 = "linhaimpar";
+					 $c=1;
+					}
+					else
+					{
+					$c1 = "linhapar";
+					 $c=0;
+					} 
+					echo "
+					<script type='text/javascript'>
+						jQuery(document).ready(function($) {
+					
+							// Define any icon actions before calling the toolbar
+							$('.toolbar-icons a').on('click', function( event ) {
+								$(this).click();
+								
+							});
+							$('#normal-button-$uni_id').toolbar({content: '#user-options-$uni_id', position: 'top', hideOnClick: true});
+							$('#normal-button-bottom').toolbar({content: '#user-options', position: 'bottom'});
+							$('#normal-button-small').toolbar({content: '#user-options-small', position: 'top', hideOnClick: true});
+							$('#button-left').toolbar({content: '#user-options', position: 'left'});
+							$('#button-right').toolbar({content: '#user-options', position: 'right'});
+							$('#link-toolbar').toolbar({content: '#user-options', position: 'top' });
+						});
+					</script>
+					<div id='user-options-$uni_id' class='toolbar-icons' style='display: none;'>
+						";
+						if($uni_status == 1)
+						{
+							echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=desativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
+						}
+						else
+						{
+							echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=ativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
+						}
+						echo "
+						<a href='cadastro_unidades.php?pagina=editar_cadastro_unidades&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
+						<a onclick=\"
+							abreMask(
+								'Deseja realmente excluir a unidade <b>$uni_nome_razao</b>?<br><br>'+
+								'<input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'cadastro_unidades.php?pagina=cadastro_unidades&action=excluir&uni_id=$uni_id&cli_id=$cli_id$autenticacao\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+								'<input value=\' Não \' type=\'button\' class=\'close_janela\'>');
+							\">
+							<img border='0' src='../imagens/icon-excluir.png'></i>
+						</a>
+					</div>
+					";
+					echo "<tr class='$c1'>
+							  <td>$uni_nome_razao</td>
+							  <td>$uni_cnpj</td>
+							  <td>$uni_responsavel</td>
+							  <td>$uni_telefone</td>
+							  <td>$uni_celular</td>
+							  <td>$uni_email</td>
+							  <td align=center>";
+							  if($uni_status == 1)
+							  {
+								echo "<img border='0' src='../imagens/icon-ativo.png' width='15' height='15'>";
+							  }
+							  else
+							  {
+								echo "<img border='0' src='../imagens/icon-inativo.png' width='15' height='15'>";
+							  }
+							  echo "
+							  </td>
+							  <td align=center><div id='normal-button-$uni_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
+						  </tr>";
+				}
+				echo "</table>";
+				$variavel = "&pagina=cadastro_unidades".$autenticacao."";
+				include("../mod_includes/php/paginacao.php");
+		}
+		else
+		{
+			echo "<br><br><br>Não há nenhuma unidade cadastrada.";
+		}
+		echo "
+		<div class='titulo'>  </div>				
+	</div>";
+}
+if($pagina == 'adicionar_cadastro_unidades')
+{
+	echo "	
+	<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&action=adicionar&cli_id=$cli_id$autenticacao'>
+	<div class='centro'>
+		<div class='titulo'> $page &raquo; Adicionar  </div>
+		<table align='center' cellspacing='0' width='580'>
+			<tr>
+				<td align='left'>
+					<input name='uni_nome_razao' id='uni_nome_razao' placeholder='Razão Social'>
+					<p>
+					<div style='display:table; width:100%'>
+					<input name='uni_cnpj' id='uni_cnpj' placeholder='CNPJ' maxlength='18' onkeypress='mascaraCNPJ(this); return SomenteNumero(event);' class='left'>
+					<div id='uni_cnpj_erro' class='left'>&nbsp;</div>
+					</div>
+					<p>
+					<div class='formtitulo'>Endereço</div>
+					<input name='uni_cep' id='uni_cep' placeholder='CEP' maxlength='9' onkeypress='mascaraCEP(this); return SomenteNumero(event);' />
+					<select name='uni_uf' id='uni_uf'>
+						<option value=''>UF</option>
+						"; 
+						$sql = " SELECT * FROM end_uf ORDER BY uf_sigla";
+						$query = mysql_query($sql,$conexao);
+						while($row = mysql_fetch_array($query) )
+						{
+							echo "<option value='".$row['uf_id']."'>".$row['uf_sigla']."</option>";
+						}
+						echo "
+					</select>
+					<select name='uni_municipio' id='uni_municipio'>
+						<option value=''>Município</option>
+					</select>
+					<input name='uni_bairro' id='uni_bairro' placeholder='Bairro' />
+					<p>
+					<input name='uni_endereco' id='uni_endereco' placeholder='Endereço' />
+					<input name='uni_numero' id='uni_numero' placeholder='Número' />
+					<input name='uni_comp' id='uni_comp' placeholder='Complemento' />
+					<p>
+					<div class='formtitulo'>Dados de Contato</div>
+					<input name='uni_responsavel' id='uni_responsavel' placeholder='Responsável'>
+					<p>
+					<input name='uni_telefone' id='uni_telefone' placeholder='Telefone (c/ DDD)' onkeypress='mascaraTELEFONE(this); return SomenteNumeroCEL(this,event);'>
+					<input name='uni_celular' id='uni_celular' placeholder='Celular (c/ DDD)' onkeypress='mascaraTELEFONE(this); return SomenteNumeroCEL(this,event);'>
+					<p>
+					<input name='uni_email' id='uni_email' placeholder='Email'>
+					<p>
+					<input type='radio' name='uni_status' value='1' checked> Ativo &nbsp;&nbsp;&nbsp;
+					<input type='radio' name='uni_status' value='0'> Inativo<br>
+					<p>
+					<center>
+					<div id='erro' align='center'>&nbsp;</div>
+					<input type='button' id='bt_cadastro_unidades' value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp; 
+					<input type='button' id='botao_cancelar' onclick=javascript:window.location.href='cadastro_unidades.php?pagina=cadastro_unidades&cli_id=$cli_id".$autenticacao."'; value='Cancelar'/></center>
+					</center>
+				</td>
+			</tr>
+		</table>
+		<div class='titulo'> </div>
+	</div>
+	</form>
+	";
+}
+
+if($pagina == 'editar_cadastro_unidades')
+{
+	$uni_id = $_GET['uni_id'];
+	$sqledit = "SELECT * FROM cadastro_unidades 
+				LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
+				LEFT JOIN end_uf ON end_uf.uf_id = cadastro_unidades.uni_uf
+				LEFT JOIN end_municipios ON end_municipios.mun_id = cadastro_unidades.uni_municipio
+				WHERE uni_id = '$uni_id'";
+	$queryedit = mysql_query($sqledit,$conexao);
+	$rowsedit = mysql_num_rows($queryedit);
+
+	if($rowsedit > 0)
+	{
+		$uni_nome_razao = mysql_result($queryedit, 0, 'uni_nome_razao');
+		$uni_cnpj = mysql_result($queryedit, 0, 'uni_cnpj');
+		$uni_cep = mysql_result($queryedit, 0, 'uni_cep');
+		$uni_uf = mysql_result($queryedit, 0, 'uni_uf');
+		$uf_sigla = mysql_result($queryedit, 0, 'uf_sigla');
+		$uni_municipio = mysql_result($queryedit, 0, 'uni_municipio');
+		$mun_nome = mysql_result($queryedit, 0, 'mun_nome');
+		$uni_bairro = mysql_result($queryedit, 0, 'uni_bairro');
+		$uni_endereco = mysql_result($queryedit, 0, 'uni_endereco');
+		$uni_numero = mysql_result($queryedit, 0, 'uni_numero');
+		$uni_comp = mysql_result($queryedit, 0, 'uni_comp');
+		$uni_responsavel = mysql_result($queryedit, 0, 'uni_responsavel');
+		$uni_telefone = mysql_result($queryedit, 0, 'uni_telefone');
+		$uni_celular = mysql_result($queryedit, 0, 'uni_celular');
+		$uni_email = mysql_result($queryedit, 0, 'uni_email');
+		$uni_status = mysql_result($queryedit, 0, 'uni_status');
+		echo "
+		<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=cadastro_unidades&action=editar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'>
+		<div class='centro'>
+			<div class='titulo'> $page &raquo; Editar: $uni_nome </div>
+			<table align='center' cellspacing='0'>
+				<tr>
+					<td align='left'>
+						<input type='hidden' name='uni_id' id='uni_id' value='$uni_id' placeholder='ID'>
+						<input name='uni_nome_razao' id='uni_nome_razao' value='$uni_nome_razao' placeholder='Razão Social'>
+						<p>
+						<div style='display:table; width:100%'>
+						<input name='uni_cnpj' id='uni_cnpj' value='$uni_cnpj' placeholder='CNPJ' maxlength='18' onkeypress='mascaraCNPJ(this); return SomenteNumero(event);' class='left'>
+						<div id='uni_cnpj_erro' class='left'>&nbsp;</div>
+						</div>
+						<p>
+						<div class='formtitulo'>Endereço</div>
+						<input name='uni_cep' id='uni_cep' value='$uni_cep' placeholder='CEP' maxlength='9' onkeypress='mascaraCEP(this); return SomenteNumero(event);' />
+						<select name='uni_uf' id='uni_uf'>
+							<option value='$uni_uf'>$uf_sigla</option>
+							"; 
+							$sql = " SELECT * FROM end_uf ORDER BY uf_sigla";
+							$query = mysql_query($sql,$conexao);
+							while($row = mysql_fetch_array($query) )
+							{
+								echo "<option value='".$row['uf_id']."'>".$row['uf_sigla']."</option>";
+							}
+							echo "
+						</select>
+						<select name='uni_municipio' id='uni_municipio'>
+							<option value='$uni_municipio'>$mun_nome</option>
+						</select>
+						<input name='uni_bairro' id='uni_bairro' value='$uni_bairro'  placeholder='Bairro' />
+						<p>
+						<input name='uni_endereco' id='uni_endereco' value='$uni_endereco' placeholder='Endereço' />
+						<input name='uni_numero' id='uni_numero' value='$uni_numero' placeholder='Número' />
+						<input name='uni_comp' id='uni_comp' value='$uni_comp' placeholder='Complemento' />
+						<p>
+						<div class='formtitulo'>Dados de Contato</div>
+						<input name='uni_responsavel' id='uni_responsavel' value='$uni_responsavel' placeholder='Responsável'>
+						<p>
+						<input name='uni_telefone' id='uni_telefone' value='$uni_telefone' placeholder='Telefone (c/ DDD)' onkeypress='mascaraTELEFONE(this); return SomenteNumeroCEL(this,event);'>
+						<input name='uni_celular' id='uni_celular' value='$uni_celular' placeholder='Celular (c/ DDD)' onkeypress='mascaraTELEFONE(this); return SomenteNumeroCEL(this,event);'>
+						<p>
+						<input name='uni_email' id='uni_email' value='$uni_email' placeholder='Email'>
+						<p>
+						<center>
+						<div id='erro' align='center'>&nbsp;</div>
+						<input type='button' id='bt_cadastro_unidades' value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp; 
+						<input type='button' id='botao_cancelar' onclick=javascript:window.location.href='cadastro_unidades.php?pagina=cadastro_unidades&cli_id=$cli_id$autenticacao'; value='Cancelar'/></center>
+						</center>
+					</td>
+				</tr>
+			</table>
+			<div class='titulo'>   </div>
+		</div>
+		</form>
+		";
+	}
+}	
+include('../mod_rodape/rodape.php');
+?>
+</body>
+</html>
