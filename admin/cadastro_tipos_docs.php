@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_tipos_docs';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para exibir mensagens com JavaScript
 function showMessage($img, $msg, $button = "<input value=' Ok ' type='button' class='close_janela'>")
@@ -58,40 +58,44 @@ if ($action === 'excluir') {
 
 // Cabeçalho HTML
 ?>
-<!DOCTYPE html> <html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-br">
 
 <head>
 	<title>
 		<?= $titulo ?>
 	</title>
 	<meta name="author" content="MogiComp">
-		<meta charset="utf-8" />
-		<link rel="shortcut icon" href="../imagens/favicon.png">
-		<?php include '../css/style.php'; ?>
-		<script src="../mod_includes/js/funcoes.js"></script>
-		<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-		<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-		<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-		<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script> </head> <body> <?php
-		include '../mod_includes/php/funcoes-jquery.php';
-		require_once '../mod_includes/php/verificalogin.php';
-		include '../mod_topo/topo.php';
-		require_once '../mod_includes/php/verificapermissao.php';
+	<meta charset="utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include '../css/style.php'; ?>
+	<script src="../mod_includes/js/funcoes.js"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+</head>
 
-		$pageBreadcrumb = "Cadastros &raquo; <a href='cadastro_tipos_docs.php?pagina=cadastro_tipos_docs$autenticacao'>Tipos de Documento</a>";
+<body> <?php
+include '../mod_includes/php/funcoes-jquery.php';
+require_once '../mod_includes/php/verificalogin.php';
+include '../mod_topo/topo.php';
+require_once '../mod_includes/php/verificapermissao.php';
 
-		if ($pagina === 'cadastro_tipos_docs') {
-			// Paginação
-			$stmtTotal = $pdo->query('SELECT COUNT(*) FROM cadastro_tipos_docs');
-			$totalRegistros = (int) $stmtTotal->fetchColumn();
+$pageBreadcrumb = "Cadastros &raquo; <a href='cadastro_tipos_docs.php?pagina=cadastro_tipos_docs$autenticacao'>Tipos de Documento</a>";
 
-			$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_docs ORDER BY tpd_nome ASC LIMIT :offset, :limit');
-			$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-			$stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
-			$stmt->execute();
-			$docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($pagina === 'cadastro_tipos_docs') {
+	// Paginação
+	$stmtTotal = $pdo->query('SELECT COUNT(*) FROM cadastro_tipos_docs');
+	$totalRegistros = (int) $stmtTotal->fetchColumn();
 
-			echo "
+	$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_docs ORDER BY tpd_nome ASC LIMIT :offset, :limit');
+	$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+	$stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
+	$stmt->execute();
+	$docs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+	echo "
 	<div class='centro'>
 		<div class='titulo'> $pageBreadcrumb </div>
 		<div id='botoes'>
@@ -99,18 +103,18 @@ if ($action === 'excluir') {
 		</div>
 	";
 
-			if ($totalRegistros > 0) {
-				echo "
+	if ($totalRegistros > 0) {
+		echo "
 		<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
 			<tr>
 				<td class='titulo_tabela'>Documento</td>
 				<td class='titulo_tabela' align='center'>Gerenciar</td>
 			</tr>";
-				foreach ($docs as $index => $doc) {
-					$tpd_id = $doc['tpd_id'];
-					$tpd_nome = htmlspecialchars($doc['tpd_nome']);
-					$rowClass = $index % 2 === 0 ? 'linhaimpar' : 'linhapar';
-					echo "
+		foreach ($docs as $index => $doc) {
+			$tpd_id = $doc['tpd_id'];
+			$tpd_nome = htmlspecialchars($doc['tpd_nome']);
+			$rowClass = $index % 2 === 0 ? 'linhaimpar' : 'linhapar';
+			echo "
 			<script>
 				$(function() {
 					$('#normal-button-$tpd_id').toolbar({content: '#user-options-$tpd_id', position: 'top', hideOnClick: true});
@@ -131,22 +135,22 @@ if ($action === 'excluir') {
 				<td>$tpd_nome</td>
 				<td align='center'><div id='normal-button-$tpd_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
 			</tr>";
-				}
-				echo '</table>';
-
-				// Paginação
-				$totalPaginas = ceil($totalRegistros / $itensPorPagina);
-				$variavel = "&pagina=cadastro_tipos_docs$autenticacao";
-				include '../mod_includes/php/paginacao.php';
-
-			} else {
-				echo '<br><br><br>Não há nenhum tipo de documento cadastrado.';
-			}
-			echo "<div class='titulo'></div></div>";
 		}
+		echo '</table>';
 
-		if ($pagina === 'adicionar_cadastro_tipos_docs') {
-			echo "
+		// Paginação
+		$totalPaginas = ceil($totalRegistros / $itensPorPagina);
+		$variavel = "&pagina=cadastro_tipos_docs$autenticacao";
+		include '../mod_includes/php/paginacao.php';
+
+	} else {
+		echo '<br><br><br>Não há nenhum tipo de documento cadastrado.';
+	}
+	echo "<div class='titulo'></div></div>";
+}
+
+if ($pagina === 'adicionar_cadastro_tipos_docs') {
+	echo "
 	<form name='form_cadastro_tipos_docs' id='form_cadastro_tipos_docs' enctype='multipart/form-data' method='post' action='cadastro_tipos_docs.php?pagina=cadastro_tipos_docs&action=adicionar$autenticacao'>
 	<div class='centro'>
 		<div class='titulo'> $pageBreadcrumb &raquo; Adicionar </div>
@@ -167,17 +171,17 @@ if ($action === 'excluir') {
 	</div>
 	</form>
 	";
-		}
+}
 
-		if ($pagina === 'editar_cadastro_tipos_docs') {
-			$tpd_id = (int) ($_GET['tpd_id'] ?? 0);
-			$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_docs WHERE tpd_id = :tpd_id');
-			$stmt->execute(['tpd_id' => $tpd_id]);
-			$doc = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($pagina === 'editar_cadastro_tipos_docs') {
+	$tpd_id = (int) ($_GET['tpd_id'] ?? 0);
+	$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_docs WHERE tpd_id = :tpd_id');
+	$stmt->execute(['tpd_id' => $tpd_id]);
+	$doc = $stmt->fetch(PDO::FETCH_ASSOC);
 
-			if ($doc) {
-				$tpd_nome = htmlspecialchars($doc['tpd_nome']);
-				echo "
+	if ($doc) {
+		$tpd_nome = htmlspecialchars($doc['tpd_nome']);
+		echo "
 		<form name='form_cadastro_tipos_docs' id='form_cadastro_tipos_docs' enctype='multipart/form-data' method='post' action='cadastro_tipos_docs.php?pagina=cadastro_tipos_docs&action=editar&tpd_id=$tpd_id$autenticacao'>
 		<div class='centro'>
 			<div class='titulo'> $pageBreadcrumb &raquo; Editar: $tpd_nome </div>
@@ -198,10 +202,11 @@ if ($action === 'excluir') {
 		</div>
 		</form>
 		";
-			}
-		}
+	}
+}
 
-		include '../mod_rodape/rodape.php';
-		?>
+include '../mod_rodape/rodape.php';
+?>
 </body>
+
 </html>

@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'relatorio_malotes';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para montar filtros SQL
 function montarFiltros(&$parametros)
@@ -263,7 +263,8 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 															<td><?= htmlspecialchars($item['mai_num_cheque']) ?></td>
 															<td>R$ <?= number_format($item['mai_valor'], 2, ',', '.') ?></td>
 															<td align='center'>
-																<?= date('d/m/Y', strtotime($item['mai_data_vencimento'])) ?></td>
+																<?= date('d/m/Y', strtotime($item['mai_data_vencimento'])) ?>
+															</td>
 															<td align='center'>
 																<?= $item['mai_baixado'] == 1 ? "<span class='verde'>Sim</span>" : "<span class='vermelho'>Não</span>" ?>
 															</td>

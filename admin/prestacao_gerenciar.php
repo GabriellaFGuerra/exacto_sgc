@@ -1,7 +1,7 @@
 <?php
 session_start();
 $paginaAtual = 'prestacao_gerenciar';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 require_once '../mod_includes/php/verificalogin.php';
 require_once '../mod_includes/php/verificapermissao.php';

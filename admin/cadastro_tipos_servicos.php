@@ -1,13 +1,14 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_tipos_servicos';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 function renderHeader($titulo = '')
 {
 	?>
 	<!DOCTYPE html>
 	<html xmlns="http://www.w3.org/1999/xhtml">
+
 	<head>
 		<title><?= htmlspecialchars($titulo) ?></title>
 		<meta name="author" content="MogiComp">
@@ -20,8 +21,9 @@ function renderHeader($titulo = '')
 		<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
 		<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 	</head>
+
 	<body>
-	<?php
+		<?php
 }
 
 function renderFooter()
@@ -44,7 +46,8 @@ function redirectBackWithError($msg)
 function getPagination($total, $perPage, $currentPage, $baseUrl)
 {
 	$totalPages = ceil($total / $perPage);
-	if ($totalPages <= 1) return '';
+	if ($totalPages <= 1)
+		return '';
 
 	$pagination = "<div class='pagination'>";
 	for ($i = 1; $i <= $totalPages; $i++) {
@@ -65,7 +68,7 @@ require_once '../mod_includes/php/verificapermissao.php';
 $pageTitle = "Cadastros &raquo; <a href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos$autenticacao'>Tipos de Serviço</a>";
 $action = $_GET['action'] ?? '';
 $pagina = $_GET['pagina'] ?? '';
-$pag = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
+$pag = isset($_GET['pag']) ? (int) $_GET['pag'] : 1;
 $numPorPagina = 20;
 $primeiroRegistro = ($pag - 1) * $numPorPagina;
 
@@ -128,27 +131,32 @@ if ($pagina === 'cadastro_tipos_servicos') {
 			$tps_nome = htmlspecialchars($servico['tps_nome']);
 			$rowClass = $index % 2 == 0 ? 'linhaimpar' : 'linhapar';
 			?>
-			<script type='text/javascript'>
-				jQuery(document).ready(function($) {
-					$('#normal-button-<?= $tps_id ?>').toolbar({content: '#user-options-<?= $tps_id ?>', position: 'top', hideOnClick: true});
-				});
-			</script>
-			<div id='user-options-<?= $tps_id ?>' class='toolbar-icons' style='display: none;'>
-				<a href='cadastro_tipos_servicos.php?pagina=editar_cadastro_tipos_servicos&tps_id=<?= $tps_id . $autenticacao ?>'><img border='0' src='../imagens/icon-editar.png'></a>
-				<a onclick="
+				<script type='text/javascript'>
+					jQuery(document).ready(function ($) {
+						$('#normal-button-<?= $tps_id ?>').toolbar({ content: '#user-options-<?= $tps_id ?>', position: 'top', hideOnClick: true });
+					});
+				</script>
+				<div id='user-options-<?= $tps_id ?>' class='toolbar-icons' style='display: none;'>
+					<a
+						href='cadastro_tipos_servicos.php?pagina=editar_cadastro_tipos_servicos&tps_id=<?= $tps_id . $autenticacao ?>'><img
+							border='0' src='../imagens/icon-editar.png'></a>
+					<a onclick="
 					abreMask(
 						'Deseja realmente excluir o tipo de serviço <b><?= addslashes($tps_nome) ?></b>?<br><br>'+
 						'<input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=excluir&tps_id=<?= $tps_id . $autenticacao ?>\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<input value=\' Não \' type=\'button\' class=\'close_janela\'' );
 					">
-					<img border='0' src='../imagens/icon-excluir.png'>
-				</a>
-			</div>
-			<tr class='<?= $rowClass ?>'>
-				<td><?= $tps_nome ?></td>
-				<td align=center><div id='normal-button-<?= $tps_id ?>' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
-			</tr>
-			<?php
+						<img border='0' src='../imagens/icon-excluir.png'>
+					</a>
+				</div>
+				<tr class='<?= $rowClass ?>'>
+					<td><?= $tps_nome ?></td>
+					<td align=center>
+						<div id='normal-button-<?= $tps_id ?>' class='settings-button'><img src='../imagens/icon-cog-small.png' />
+						</div>
+					</td>
+				</tr>
+				<?php
 		}
 		echo '</table>';
 		$baseUrl = "cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos$autenticacao";
@@ -161,26 +169,31 @@ if ($pagina === 'cadastro_tipos_servicos') {
 
 if ($pagina === 'adicionar_cadastro_tipos_servicos') {
 	?>
-	<form name='form_cadastro_tipos_servicos' id='form_cadastro_tipos_servicos' enctype='multipart/form-data' method='post' action='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=adicionar<?= $autenticacao ?>'>
-		<div class='centro'>
-			<div class='titulo'> <?= $pageTitle ?> &raquo; Adicionar </div>
-			<table align='center' cellspacing='0' width='500'>
-				<tr>
-					<td align='center'>
-						<input name='tps_nome' id='tps_nome' placeholder='Nome do Serviço'>
-						<p>
-						<center>
-						<div id='erro' align='center'>&nbsp;</div>
-						<input type='submit' id='bt_cadastro_tipos_servicos' value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp; 
-						<input type='button' id='botao_cancelar' onclick="window.location.href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos<?= $autenticacao ?>';" value='Cancelar'/>
-						</center>
-					</td>
-				</tr>
-			</table>
-			<div class='titulo'></div>
-		</div>
-	</form>
-	<?php
+		<form name='form_cadastro_tipos_servicos' id='form_cadastro_tipos_servicos' enctype='multipart/form-data'
+			method='post'
+			action='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=adicionar<?= $autenticacao ?>'>
+			<div class='centro'>
+				<div class='titulo'> <?= $pageTitle ?> &raquo; Adicionar </div>
+				<table align='center' cellspacing='0' width='500'>
+					<tr>
+						<td align='center'>
+							<input name='tps_nome' id='tps_nome' placeholder='Nome do Serviço'>
+							<p>
+								<center>
+									<div id='erro' align='center'>&nbsp;</div>
+									<input type='submit' id='bt_cadastro_tipos_servicos'
+										value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp;
+									<input type='button' id='botao_cancelar'
+										onclick="window.location.href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos<?= $autenticacao ?>';"
+										value='Cancelar' />
+								</center>
+						</td>
+					</tr>
+				</table>
+				<div class='titulo'></div>
+			</div>
+		</form>
+		<?php
 }
 
 if ($pagina === 'editar_cadastro_tipos_servicos') {
@@ -192,26 +205,31 @@ if ($pagina === 'editar_cadastro_tipos_servicos') {
 	if ($servico) {
 		$tps_nome = htmlspecialchars($servico['tps_nome']);
 		?>
-		<form name='form_cadastro_tipos_servicos' id='form_cadastro_tipos_servicos' enctype='multipart/form-data' method='post' action='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=editar&tps_id=<?= $tps_id . $autenticacao ?>'>
-			<div class='centro'>
-				<div class='titulo'> <?= $pageTitle ?> &raquo; Editar: <?= $tps_nome ?> </div>
-				<table align='center' cellspacing='0'>
-					<tr>
-						<td align='left'>
-							<input name='tps_nome' id='tps_nome' value="<?= $tps_nome ?>" placeholder='Nome do Serviço'>
-							<p>
-							<center>
-							<div id='erro' align='center'>&nbsp;</div>
-							<input type='submit' id='bt_cadastro_tipos_servicos' value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp; 
-							<input type='button' id='botao_cancelar' onclick="window.location.href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos<?= $autenticacao ?>';" value='Cancelar'/>
-							</center>
-						</td>
-					</tr>
-				</table>
-				<div class='titulo'></div>
-			</div>
-		</form>
-		<?php
+			<form name='form_cadastro_tipos_servicos' id='form_cadastro_tipos_servicos' enctype='multipart/form-data'
+				method='post'
+				action='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=editar&tps_id=<?= $tps_id . $autenticacao ?>'>
+				<div class='centro'>
+					<div class='titulo'> <?= $pageTitle ?> &raquo; Editar: <?= $tps_nome ?> </div>
+					<table align='center' cellspacing='0'>
+						<tr>
+							<td align='left'>
+								<input name='tps_nome' id='tps_nome' value="<?= $tps_nome ?>" placeholder='Nome do Serviço'>
+								<p>
+									<center>
+										<div id='erro' align='center'>&nbsp;</div>
+										<input type='submit' id='bt_cadastro_tipos_servicos'
+											value='Salvar' />&nbsp;&nbsp;&nbsp;&nbsp;
+										<input type='button' id='botao_cancelar'
+											onclick="window.location.href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos<?= $autenticacao ?>';"
+											value='Cancelar' />
+									</center>
+							</td>
+						</tr>
+					</table>
+					<div class='titulo'></div>
+				</div>
+			</form>
+			<?php
 	}
 }
 

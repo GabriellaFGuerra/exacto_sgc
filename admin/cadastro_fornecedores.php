@@ -1,22 +1,26 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_fornecedores';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
-function getInput($key, $default = '', $method = 'REQUEST') {
+function getInput($key, $default = '', $method = 'REQUEST')
+{
 	$source = $method === 'POST' ? $_POST : ($_GET + $_POST);
 	return $source[$key] ?? $default;
 }
 
-function formatDateToDb($date) {
+function formatDateToDb($date)
+{
 	return $date ? implode("-", array_reverse(explode("/", $date))) : null;
 }
 
-function formatDateToBr($date) {
+function formatDateToBr($date)
+{
 	return $date ? date('d/m/Y', strtotime($date)) : '';
 }
 
-function renderMessage($type, $message) {
+function renderMessage($type, $message)
+{
 	$icon = $type === 'success' ? 'ok.png' : 'x.png';
 	$button = "<input value=' Ok ' type='button' class='close_janela'>";
 	if ($type !== 'success') {
@@ -25,7 +29,8 @@ function renderMessage($type, $message) {
 	echo "<script>abreMask('<img src=../imagens/$icon> $message<br><br>$button');</script>";
 }
 
-function handleAddFornecedor($pdo) {
+function handleAddFornecedor($pdo)
+{
 	$data = [
 		'for_nome_razao' => getInput('for_nome_razao'),
 		'for_cnpj' => getInput('for_cnpj'),
@@ -77,7 +82,8 @@ function handleAddFornecedor($pdo) {
 	}
 }
 
-function handleEditFornecedor($pdo) {
+function handleEditFornecedor($pdo)
+{
 	$for_id = getInput('for_id');
 	$data = [
 		'for_nome_razao' => getInput('for_nome_razao'),
@@ -145,7 +151,8 @@ function handleEditFornecedor($pdo) {
 	}
 }
 
-function handleServicosFornecedor($pdo, $fornecedorId, $isEdit = false) {
+function handleServicosFornecedor($pdo, $fornecedorId, $isEdit = false)
+{
 	try {
 		$sql_itens = "SELECT tps_id FROM cadastro_tipos_servicos";
 		$itens = $pdo->query($sql_itens)->fetchAll(PDO::FETCH_COLUMN);
@@ -166,7 +173,8 @@ function handleServicosFornecedor($pdo, $fornecedorId, $isEdit = false) {
 	}
 }
 
-function handleDeleteFornecedor($pdo) {
+function handleDeleteFornecedor($pdo)
+{
 	$for_id = getInput('for_id');
 	$sql = "DELETE FROM cadastro_fornecedores WHERE for_id = ?";
 	$stmt = $pdo->prepare($sql);
@@ -177,7 +185,8 @@ function handleDeleteFornecedor($pdo) {
 	}
 }
 
-function handleStatusFornecedor($pdo, $status) {
+function handleStatusFornecedor($pdo, $status)
+{
 	$for_id = getInput('for_id');
 	$sql = "UPDATE cadastro_fornecedores SET for_status = ? WHERE for_id = ?";
 	$stmt = $pdo->prepare($sql);
@@ -189,17 +198,20 @@ function handleStatusFornecedor($pdo, $status) {
 	}
 }
 
-function getServicos($pdo) {
+function getServicos($pdo)
+{
 	return $pdo->query("SELECT * FROM cadastro_tipos_servicos ORDER BY tps_nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getServicosFornecedor($pdo, $for_id) {
+function getServicosFornecedor($pdo, $for_id)
+{
 	$stmt = $pdo->prepare("SELECT fse_servico FROM cadastro_fornecedores_servicos WHERE fse_fornecedor = ?");
 	$stmt->execute([$for_id]);
 	return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function renderForm($pdo, $action, $for_id = null) {
+function renderForm($pdo, $action, $for_id = null)
+{
 	$dados = [];
 	if ($action === 'editar' && $for_id) {
 		$stmt = $pdo->prepare("SELECT * FROM cadastro_fornecedores WHERE for_id = ?");
@@ -246,138 +258,144 @@ function renderForm($pdo, $action, $for_id = null) {
 	$servicos_fornecedor = $action === 'editar' && $for_id ? getServicosFornecedor($pdo, $for_id) : [];
 	$servicos = getServicos($pdo);
 	?>
-<form method='post' action='cadastro_fornecedores.php?pagina=cadastro_fornecedores'>
-    <input type='hidden' name='action' value='<?php echo $action; ?>'>
-    <?php if ($action === 'editar') echo "<input type='hidden' name='for_id' value='" . htmlspecialchars($for_id) . "'>"; ?>
-    <table class="formulario">
-        <tr>
-            <td>Nome/Razão Social:</td>
-            <td><input type="text" name="for_nome_razao" value="<?php echo htmlspecialchars($for_nome_razao); ?>"
-                    required></td>
-        </tr>
-        <tr>
-            <td>CNPJ:</td>
-            <td><input type="text" name="for_cnpj" value="<?php echo htmlspecialchars($for_cnpj); ?>"></td>
-        </tr>
-        <tr>
-            <td>Autônomo:</td>
-            <td>
-                <select name="for_autonomo">
-                    <option value="0" <?php if ($for_autonomo == '0') echo 'selected'; ?>>Não</option>
-                    <option value="1" <?php if ($for_autonomo == '1') echo 'selected'; ?>>Sim</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>Nome da Mãe:</td>
-            <td><input type="text" name="for_nome_mae" value="<?php echo htmlspecialchars($for_nome_mae); ?>"></td>
-        </tr>
-        <tr>
-            <td>Data de Nascimento:</td>
-            <td><input type="text" name="for_data_nasc" value="<?php echo htmlspecialchars($for_data_nasc); ?>"></td>
-        </tr>
-        <tr>
-            <td>RG:</td>
-            <td><input type="text" name="for_rg" value="<?php echo htmlspecialchars($for_rg); ?>"></td>
-        </tr>
-        <tr>
-            <td>CPF:</td>
-            <td><input type="text" name="for_cpf" value="<?php echo htmlspecialchars($for_cpf); ?>"></td>
-        </tr>
-        <tr>
-            <td>PIS:</td>
-            <td><input type="text" name="for_pis" value="<?php echo htmlspecialchars($for_pis); ?>"></td>
-        </tr>
-        <tr>
-            <td>CEP:</td>
-            <td><input type="text" name="for_cep" value="<?php echo htmlspecialchars($for_cep); ?>"></td>
-        </tr>
-        <tr>
-            <td>UF:</td>
-            <td><input type="text" name="for_uf" value="<?php echo htmlspecialchars($for_uf); ?>"></td>
-        </tr>
-        <tr>
-            <td>Município:</td>
-            <td><input type="text" name="for_municipio" value="<?php echo htmlspecialchars($for_municipio); ?>"></td>
-        </tr>
-        <tr>
-            <td>Bairro:</td>
-            <td><input type="text" name="for_bairro" value="<?php echo htmlspecialchars($for_bairro); ?>"></td>
-        </tr>
-        <tr>
-            <td>Endereço:</td>
-            <td><input type="text" name="for_endereco" value="<?php echo htmlspecialchars($for_endereco); ?>"></td>
-        </tr>
-        <tr>
-            <td>Número:</td>
-            <td><input type="text" name="for_numero" value="<?php echo htmlspecialchars($for_numero); ?>"></td>
-        </tr>
-        <tr>
-            <td>Complemento:</td>
-            <td><input type="text" name="for_comp" value="<?php echo htmlspecialchars($for_comp); ?>"></td>
-        </tr>
-        <tr>
-            <td>Telefone:</td>
-            <td><input type="text" name="for_telefone" value="<?php echo htmlspecialchars($for_telefone); ?>"></td>
-        </tr>
-        <tr>
-            <td>Telefone 2:</td>
-            <td><input type="text" name="for_telefone2" value="<?php echo htmlspecialchars($for_telefone2); ?>"></td>
-        </tr>
-        <tr>
-            <td>Telefone 3:</td>
-            <td><input type="text" name="for_telefone3" value="<?php echo htmlspecialchars($for_telefone3); ?>"></td>
-        </tr>
-        <tr>
-            <td>Email:</td>
-            <td><input type="email" name="for_email" value="<?php echo htmlspecialchars($for_email); ?>"></td>
-        </tr>
-        <tr>
-            <td>Banco:</td>
-            <td><input type="text" name="for_banco" value="<?php echo htmlspecialchars($for_banco); ?>"></td>
-        </tr>
-        <tr>
-            <td>Agência:</td>
-            <td><input type="text" name="for_agencia" value="<?php echo htmlspecialchars($for_agencia); ?>"></td>
-        </tr>
-        <tr>
-            <td>Conta Corrente:</td>
-            <td><input type="text" name="for_cc" value="<?php echo htmlspecialchars($for_cc); ?>"></td>
-        </tr>
-        <tr>
-            <td>Status:</td>
-            <td>
-                <select name="for_status">
-                    <option value="1" <?php if ($for_status == '1') echo 'selected'; ?>>Ativo</option>
-                    <option value="0" <?php if ($for_status == '0') echo 'selected'; ?>>Inativo</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>Observações:</td>
-            <td><textarea name="for_observacoes"><?php echo htmlspecialchars($for_observacoes); ?></textarea></td>
-        </tr>
-        <tr>
-            <td>Serviços Prestados:</td>
-            <td>
-                <?php foreach ($servicos as $servico): 
+	<form method='post' action='cadastro_fornecedores.php?pagina=cadastro_fornecedores'>
+		<input type='hidden' name='action' value='<?php echo $action; ?>'>
+		<?php if ($action === 'editar')
+			echo "<input type='hidden' name='for_id' value='" . htmlspecialchars($for_id) . "'>"; ?>
+		<table class="formulario">
+			<tr>
+				<td>Nome/Razão Social:</td>
+				<td><input type="text" name="for_nome_razao" value="<?php echo htmlspecialchars($for_nome_razao); ?>"
+						required></td>
+			</tr>
+			<tr>
+				<td>CNPJ:</td>
+				<td><input type="text" name="for_cnpj" value="<?php echo htmlspecialchars($for_cnpj); ?>"></td>
+			</tr>
+			<tr>
+				<td>Autônomo:</td>
+				<td>
+					<select name="for_autonomo">
+						<option value="0" <?php if ($for_autonomo == '0')
+							echo 'selected'; ?>>Não</option>
+						<option value="1" <?php if ($for_autonomo == '1')
+							echo 'selected'; ?>>Sim</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Nome da Mãe:</td>
+				<td><input type="text" name="for_nome_mae" value="<?php echo htmlspecialchars($for_nome_mae); ?>"></td>
+			</tr>
+			<tr>
+				<td>Data de Nascimento:</td>
+				<td><input type="text" name="for_data_nasc" value="<?php echo htmlspecialchars($for_data_nasc); ?>"></td>
+			</tr>
+			<tr>
+				<td>RG:</td>
+				<td><input type="text" name="for_rg" value="<?php echo htmlspecialchars($for_rg); ?>"></td>
+			</tr>
+			<tr>
+				<td>CPF:</td>
+				<td><input type="text" name="for_cpf" value="<?php echo htmlspecialchars($for_cpf); ?>"></td>
+			</tr>
+			<tr>
+				<td>PIS:</td>
+				<td><input type="text" name="for_pis" value="<?php echo htmlspecialchars($for_pis); ?>"></td>
+			</tr>
+			<tr>
+				<td>CEP:</td>
+				<td><input type="text" name="for_cep" value="<?php echo htmlspecialchars($for_cep); ?>"></td>
+			</tr>
+			<tr>
+				<td>UF:</td>
+				<td><input type="text" name="for_uf" value="<?php echo htmlspecialchars($for_uf); ?>"></td>
+			</tr>
+			<tr>
+				<td>Município:</td>
+				<td><input type="text" name="for_municipio" value="<?php echo htmlspecialchars($for_municipio); ?>"></td>
+			</tr>
+			<tr>
+				<td>Bairro:</td>
+				<td><input type="text" name="for_bairro" value="<?php echo htmlspecialchars($for_bairro); ?>"></td>
+			</tr>
+			<tr>
+				<td>Endereço:</td>
+				<td><input type="text" name="for_endereco" value="<?php echo htmlspecialchars($for_endereco); ?>"></td>
+			</tr>
+			<tr>
+				<td>Número:</td>
+				<td><input type="text" name="for_numero" value="<?php echo htmlspecialchars($for_numero); ?>"></td>
+			</tr>
+			<tr>
+				<td>Complemento:</td>
+				<td><input type="text" name="for_comp" value="<?php echo htmlspecialchars($for_comp); ?>"></td>
+			</tr>
+			<tr>
+				<td>Telefone:</td>
+				<td><input type="text" name="for_telefone" value="<?php echo htmlspecialchars($for_telefone); ?>"></td>
+			</tr>
+			<tr>
+				<td>Telefone 2:</td>
+				<td><input type="text" name="for_telefone2" value="<?php echo htmlspecialchars($for_telefone2); ?>"></td>
+			</tr>
+			<tr>
+				<td>Telefone 3:</td>
+				<td><input type="text" name="for_telefone3" value="<?php echo htmlspecialchars($for_telefone3); ?>"></td>
+			</tr>
+			<tr>
+				<td>Email:</td>
+				<td><input type="email" name="for_email" value="<?php echo htmlspecialchars($for_email); ?>"></td>
+			</tr>
+			<tr>
+				<td>Banco:</td>
+				<td><input type="text" name="for_banco" value="<?php echo htmlspecialchars($for_banco); ?>"></td>
+			</tr>
+			<tr>
+				<td>Agência:</td>
+				<td><input type="text" name="for_agencia" value="<?php echo htmlspecialchars($for_agencia); ?>"></td>
+			</tr>
+			<tr>
+				<td>Conta Corrente:</td>
+				<td><input type="text" name="for_cc" value="<?php echo htmlspecialchars($for_cc); ?>"></td>
+			</tr>
+			<tr>
+				<td>Status:</td>
+				<td>
+					<select name="for_status">
+						<option value="1" <?php if ($for_status == '1')
+							echo 'selected'; ?>>Ativo</option>
+						<option value="0" <?php if ($for_status == '0')
+							echo 'selected'; ?>>Inativo</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>Observações:</td>
+				<td><textarea name="for_observacoes"><?php echo htmlspecialchars($for_observacoes); ?></textarea></td>
+			</tr>
+			<tr>
+				<td>Serviços Prestados:</td>
+				<td>
+					<?php foreach ($servicos as $servico):
 						$checked = in_array($servico['tps_id'], $servicos_fornecedor) ? 'checked' : '';
 						echo "<label><input type='checkbox' name='item_check_{$servico['tps_id']}' value='{$servico['tps_id']}' $checked> {$servico['tps_nome']}</label><br>";
 					endforeach; ?>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="text-align:center;">
-                <input type="submit" value="Salvar">
-                <a href="cadastro_fornecedores.php?pagina=cadastro_fornecedores" class="botao">Cancelar</a>
-            </td>
-        </tr>
-    </table>
-</form>
-<?php
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" style="text-align:center;">
+					<input type="submit" value="Salvar">
+					<a href="cadastro_fornecedores.php?pagina=cadastro_fornecedores" class="botao">Cancelar</a>
+				</td>
+			</tr>
+		</table>
+	</form>
+	<?php
 }
 
-function renderList($pdo, $pag, $num_por_pagina) {
+function renderList($pdo, $pag, $num_por_pagina)
+{
 	$fil_nome = getInput('fil_nome');
 	$fil_for_cnpj = str_replace([".", "-"], "", getInput('fil_for_cnpj'));
 	$fil_tipo_servico = getInput('fil_tipo_servico');
@@ -420,24 +438,24 @@ function renderList($pdo, $pag, $num_por_pagina) {
 
 	// Filtros
 	?>
-<form method="get" action="cadastro_fornecedores.php">
-    <input type="hidden" name="pagina" value="cadastro_fornecedores">
-    <input type="text" name="fil_nome" placeholder="Nome/Razão Social"
-        value="<?php echo htmlspecialchars($fil_nome); ?>">
-    <input type="text" name="fil_for_cnpj" placeholder="CNPJ"
-        value="<?php echo htmlspecialchars(getInput('fil_for_cnpj')); ?>">
-    <select name="fil_tipo_servico">
-        <option value="">Tipo de Serviço Prestado</option>
-        <?php foreach (getServicos($pdo) as $servico): ?>
-        <option value="<?php echo $servico['tps_id']; ?>"
-            <?php if ($fil_tipo_servico == $servico['tps_id']) echo 'selected'; ?>>
-            <?php echo $servico['tps_nome']; ?>
-        </option>
-        <?php endforeach; ?>
-    </select>
-    <input type="submit" value="Filtrar">
-</form>
-<?php
+	<form method="get" action="cadastro_fornecedores.php">
+		<input type="hidden" name="pagina" value="cadastro_fornecedores">
+		<input type="text" name="fil_nome" placeholder="Nome/Razão Social"
+			value="<?php echo htmlspecialchars($fil_nome); ?>">
+		<input type="text" name="fil_for_cnpj" placeholder="CNPJ"
+			value="<?php echo htmlspecialchars(getInput('fil_for_cnpj')); ?>">
+		<select name="fil_tipo_servico">
+			<option value="">Tipo de Serviço Prestado</option>
+			<?php foreach (getServicos($pdo) as $servico): ?>
+				<option value="<?php echo $servico['tps_id']; ?>" <?php if ($fil_tipo_servico == $servico['tps_id'])
+					   echo 'selected'; ?>>
+					<?php echo $servico['tps_nome']; ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<input type="submit" value="Filtrar">
+	</form>
+	<?php
 
 	// Tabela
 	echo "<table class='tabela'>";
@@ -492,7 +510,7 @@ require_once '../mod_includes/php/verificapermissao.php';
 
 $pagina = getInput('pagina');
 $action = getInput('action');
-$pag = (int)getInput('pag', 1);
+$pag = (int) getInput('pag', 1);
 $num_por_pagina = 10;
 
 echo "<div class='titulo'>Cadastros &raquo; <a href='cadastro_fornecedores.php?pagina=cadastro_fornecedores'>Fornecedores</a></div>";

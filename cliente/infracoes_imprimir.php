@@ -3,22 +3,9 @@ session_start();
 error_reporting(0);
 date_default_timezone_set('America/Sao_Paulo');
 
-$host = "localhost";
-$user = "sistemae_admin";
-$senha = "infomogi123";
-$dbname = "sistemae_sistema";
+require_once '../mod_includes/php/connect.php';
 
-// Conexão usando PDO
-try {
-	$pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $senha, [
-		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-	]);
-} catch (PDOException $e) {
-	die('Erro ao conectar ao banco de dados: ' . $e->getMessage());
-}
-
-// Definição dos meses
+// Meses
 $meses = [
 	'01' => 'Janeiro',
 	'02' => 'Fevereiro',
@@ -34,28 +21,37 @@ $meses = [
 	'12' => 'Dezembro'
 ];
 
+// Parâmetros de entrada
 $login = $_GET['login'] ?? '';
 $n = $_GET['n'] ?? '';
-$autenticacao = "&login=" . urlencode($login) . "&n=" . urlencode($n);
-$pagina = $_GET['pagina'] ?? '';
-$inf_id = $_GET['inf_id'] ?? '';
+$pagina = isset($_GET['pagina']) ? max(1, (int) $_GET['pagina']) : 1;
+$infId = $_GET['inf_id'] ?? '';
+$clienteId = $_SESSION['cliente_id'] ?? null;
+
+// Paginação
+$itensPorPagina = 1; // Ajuste conforme necessário
+$offset = ($pagina - 1) * $itensPorPagina;
 
 // Consulta segura
 $sql = "SELECT * FROM infracoes_gerenciar 
-        LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
-        WHERE inf_id = :inf_id AND inf_cliente = :cliente_id";
+		LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
+		WHERE inf_id = :inf_id AND inf_cliente = :cliente_id
+		LIMIT :limit OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
-$stmt->bindParam(':inf_id', $inf_id, PDO::PARAM_INT);
-$stmt->bindParam(':cliente_id', $_SESSION['cliente_id'], PDO::PARAM_INT);
+$stmt->bindValue(':inf_id', $infId, PDO::PARAM_INT);
+$stmt->bindValue(':cliente_id', $clienteId, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $registro = $stmt->fetch();
 
 if ($registro) {
-	$inf_data = date("d/m/Y", strtotime($registro['inf_data']));
+	$infData = date('d/m/Y', strtotime($registro['inf_data']));
 }
 
-ob_start(); // Inicia o buffer de saída
+// Buffer de saída
+ob_start();
 ?>
 
 <style>
@@ -65,7 +61,7 @@ ob_start(); // Inicia o buffer de saída
 		font-size: 18px;
 		color: #999;
 		text-align: left;
-		padding: 10px 10px;
+		padding: 10px;
 	}
 
 	.laudo {
@@ -102,38 +98,36 @@ ob_start(); // Inicia o buffer de saída
 			<div class="laudo">
 				<table class="laudo" align="center" cellspacing="0" cellpadding="5" width="1000">
 					<tr>
-						<td colspan="3" class="titulo_tabela">Cidade e Data:
-							<?php echo htmlspecialchars($registro['inf_cidade'] ?? '') . ', ' . htmlspecialchars($inf_data ?? ''); ?>
+						<td colspan="3" class="titulo_tabela">
+							Cidade e Data:
+							<?= htmlspecialchars($registro['inf_cidade'] ?? '') . ', ' . htmlspecialchars($infData ?? '') ?>
 						</td>
 					</tr>
 					<tr>
-						<td><b>Proprietário:</b> <?php echo htmlspecialchars($registro['inf_proprietario'] ?? ''); ?>
-						</td>
-						<td><b>Unidade:</b> <?php echo htmlspecialchars($registro['inf_apto'] ?? ''); ?></td>
-						<td><b>Bloco:</b> <?php echo htmlspecialchars($registro['inf_bloco'] ?? ''); ?></td>
+						<td><b>Proprietário:</b> <?= htmlspecialchars($registro['inf_proprietario'] ?? '') ?></td>
+						<td><b>Unidade:</b> <?= htmlspecialchars($registro['inf_apto'] ?? '') ?></td>
+						<td><b>Bloco:</b> <?= htmlspecialchars($registro['inf_bloco'] ?? '') ?></td>
 					</tr>
 					<tr>
-						<td colspan="3"><b>Endereço:</b>
-							<?php echo htmlspecialchars($registro['inf_endereco'] ?? ''); ?></td>
+						<td colspan="3"><b>Endereço:</b> <?= htmlspecialchars($registro['inf_endereco'] ?? '') ?></td>
 					</tr>
 					<tr>
-						<td colspan="3"><b>Email:</b> <?php echo htmlspecialchars($registro['inf_email'] ?? ''); ?></td>
+						<td colspan="3"><b>Email:</b> <?= htmlspecialchars($registro['inf_email'] ?? '') ?></td>
 					</tr>
 					<tr>
 						<td colspan="3"><b>Descrição da Irregularidade:</b>
-							<?php echo htmlspecialchars($registro['inf_desc_irregularidade'] ?? ''); ?></td>
+							<?= htmlspecialchars($registro['inf_desc_irregularidade'] ?? '') ?></td>
 					</tr>
 					<tr>
-						<td colspan="3"><b>Assunto:</b> <?php echo htmlspecialchars($registro['inf_assunto'] ?? ''); ?>
-						</td>
+						<td colspan="3"><b>Assunto:</b> <?= htmlspecialchars($registro['inf_assunto'] ?? '') ?></td>
 					</tr>
 					<tr>
 						<td colspan="3"><b>Descrição do Artigo:</b>
-							<?php echo htmlspecialchars($registro['inf_desc_artigo'] ?? ''); ?></td>
+							<?= htmlspecialchars($registro['inf_desc_artigo'] ?? '') ?></td>
 					</tr>
 					<tr>
 						<td colspan="3"><b>Notificação Disciplinar:</b>
-							<?php echo htmlspecialchars($registro['inf_desc_notificacao'] ?? ''); ?></td>
+							<?= htmlspecialchars($registro['inf_desc_notificacao'] ?? '') ?></td>
 					</tr>
 				</table>
 			</div>
@@ -144,15 +138,23 @@ ob_start(); // Inicia o buffer de saída
 <?php
 $html = ob_get_clean();
 
-// Geração do PDF usando a versão mais recente do mPDF
+// Geração do PDF com mPDF
 require_once __DIR__ . '/vendor/autoload.php';
 use Mpdf\Mpdf;
 
 $mpdf = new Mpdf();
 $mpdf->SetTitle('Exacto Adm | Imprimir Prestação de Contas');
-$mpdf->SetHTMLHeader('<div class="topo2"><img src="' . htmlspecialchars($registro['cli_foto'] ?? '') . '" height="100"></div><div class="topo2">' . htmlspecialchars($registro['inf_tipo'] ?? '') . '<br><span class="cliente">' . htmlspecialchars($registro['cli_nome_razao'] ?? '') . '</span></div><div class="topo2"><br>Nº ' . str_pad(htmlspecialchars($registro['inf_id'] ?? ''), 3, "0", STR_PAD_LEFT) . '/' . htmlspecialchars($registro['inf_ano'] ?? '') . '</div>');
-$mpdf->SetHTMLFooter('<div class="rodape"><br>Atenciosamente,<br>' . htmlspecialchars($registro['cli_nome_razao'] ?? '') . '</div>');
+$mpdf->SetHTMLHeader(
+	'<div class="topo2"><img src="' . htmlspecialchars($registro['cli_foto'] ?? '') . '" height="100"></div>' .
+	'<div class="topo2">' . htmlspecialchars($registro['inf_tipo'] ?? '') . '<br><span class="cliente">' . htmlspecialchars($registro['cli_nome_razao'] ?? '') . '</span></div>' .
+	'<div class="topo2"><br>Nº ' . str_pad(htmlspecialchars($registro['inf_id'] ?? ''), 3, "0", STR_PAD_LEFT) . '/' . htmlspecialchars($registro['inf_ano'] ?? '') . '</div>'
+);
+$mpdf->SetHTMLFooter(
+	'<div class="rodape"><br>Atenciosamente,<br>' . htmlspecialchars($registro['cli_nome_razao'] ?? '') . '</div>'
+);
 $mpdf->WriteHTML($html);
-$mpdf->Output('Orçamento_' . str_pad(htmlspecialchars($registro['inf_id'] ?? ''), 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$mpdf->Output(
+	'Orcamento_' . str_pad(htmlspecialchars($registro['inf_id'] ?? ''), 6, '0', STR_PAD_LEFT) . '.pdf',
+	'I'
+);
 exit();
-?>

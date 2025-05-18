@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'admin_usuarios';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 define('USERS_PER_PAGE', 10);
 

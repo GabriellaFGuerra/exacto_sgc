@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 /**
  * Obtém o endereço IP do usuário.

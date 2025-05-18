@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 function renderTable($headers, $rows, $rowRenderer)
 {
@@ -72,31 +72,31 @@ $titulo ??= '';
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title><?= htmlspecialchars($titulo) ?></title>
-    <meta name="author" content="MogiComp">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include '../css/style.php'; ?>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<title><?= htmlspecialchars($titulo) ?></title>
+	<meta name="author" content="MogiComp">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include '../css/style.php'; ?>
+	<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 </head>
 
 <body>
-    <?php
+	<?php
 	include '../mod_includes/php/funcoes-jquery.php';
 	require_once '../mod_includes/php/verificalogin.php';
 	include '../mod_topo/topo.php';
 	?>
 
-    <div class="centro">
-        <div class="titulo">Bem vindo ao SGO - Sistema de Gerenciamento de Orçamentos</div>
-        <table width="100%"></table>
-        </table>
-        <tr>
-            <td align="justify" valign="top">
-                <!-- Últimas ações dos clientes -->
-                <div class="quadro_home">
-                    <div class="formtitulo">Últimas ações dos clientes</div>
-                    <?php
+	<div class="centro">
+		<div class="titulo">Bem vindo ao SGO - Sistema de Gerenciamento de Orçamentos</div>
+		<table width="100%"></table>
+		</table>
+		<tr>
+			<td align="justify" valign="top">
+				<!-- Últimas ações dos clientes -->
+				<div class="quadro_home">
+					<div class="formtitulo">Últimas ações dos clientes</div>
+					<?php
 					$notificacoes = fetchRows($pdo, "SELECT * FROM notificacoes ORDER BY not_id DESC LIMIT 10");
 					renderTable(
 						[
@@ -111,12 +111,12 @@ $titulo ??= '';
 								</tr>"
 					);
 					?>
-                </div>
-                <br>
-                <!-- Orçamentos Pendentes -->
-                <div class="quadro_home">
-                    <div class="formtitulo">Orçamentos Pendentes</div>
-                    <?php
+				</div>
+				<br>
+				<!-- Orçamentos Pendentes -->
+				<div class="quadro_home">
+					<div class="formtitulo">Orçamentos Pendentes</div>
+					<?php
 					$orcamentosPendentes = fetchRows(
 						$pdo,
 						"SELECT * FROM orcamento_gerenciar 
@@ -162,12 +162,12 @@ $titulo ??= '';
 						}
 					);
 					?>
-                </div>
-                <br>
-                <!-- Orçamentos calculados e ainda não aprovados -->
-                <div class="quadro_home">
-                    <div class="formtitulo">Orçamentos calculados e ainda não aprovados</div>
-                    <?php
+				</div>
+				<br>
+				<!-- Orçamentos calculados e ainda não aprovados -->
+				<div class="quadro_home">
+					<div class="formtitulo">Orçamentos calculados e ainda não aprovados</div>
+					<?php
 					$orcamentosCalculados = fetchRows(
 						$pdo,
 						"SELECT * FROM orcamento_gerenciar 
@@ -215,12 +215,12 @@ $titulo ??= '';
 						}
 					);
 					?>
-                </div>
-                <br>
-                <!-- Documentos à vencer nos próximos 30 dias -->
-                <div class="quadro_home">
-                    <div class="formtitulo">Documentos à vencer nos próximos 30 dias</div>
-                    <?php
+				</div>
+				<br>
+				<!-- Documentos à vencer nos próximos 30 dias -->
+				<div class="quadro_home">
+					<div class="formtitulo">Documentos à vencer nos próximos 30 dias</div>
+					<?php
 					$hoje = date('Y-m-d');
 					$hoje30 = date('Y-m-d', strtotime('+30 days'));
 					$documentosVencer = fetchRows(
@@ -278,12 +278,12 @@ $titulo ??= '';
 						}
 					);
 					?>
-                </div>
-                <br>
-                <!-- Malotes com documentos à vencer -->
-                <div class="quadro_home">
-                    <div class="formtitulo">Malotes com documentos à vencer</div>
-                    <?php
+				</div>
+				<br>
+				<!-- Malotes com documentos à vencer -->
+				<div class="quadro_home">
+					<div class="formtitulo">Malotes com documentos à vencer</div>
+					<?php
 					$hoje1 = date('Y-m-d', strtotime('+1 days'));
 					$malotesVencer = fetchRows(
 						$pdo,
@@ -330,13 +330,13 @@ $titulo ??= '';
 						}
 					);
 					?>
-                </div>
-            </td>
-        </tr>
-        </table>
-        <div class="titulo"></div>
-    </div>
-    <?php include '../mod_rodape/rodape.php'; ?>
+				</div>
+			</td>
+		</tr>
+		</table>
+		<div class="titulo"></div>
+	</div>
+	<?php include '../mod_rodape/rodape.php'; ?>
 </body>
 
 </html>

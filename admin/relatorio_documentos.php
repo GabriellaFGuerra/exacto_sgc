@@ -2,7 +2,7 @@
 session_start();
 $pagina_link = 'relatorio_documentos';
 
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para formatar datas do formato Y-m-d para d/m/Y
 function formatarData($data)

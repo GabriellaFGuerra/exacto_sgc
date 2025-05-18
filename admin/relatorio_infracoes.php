@@ -2,12 +2,12 @@
 session_start();
 $pagina_link = 'relatorio_infracoes';
 
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para obter parâmetros da requisição
 function obterParametro($chave, $padrao = '')
 {
-	return $_REQUEST[$chave] ?? $padrao;
+    return $_REQUEST[$chave] ?? $padrao;
 }
 
 // Parâmetros de filtro
@@ -31,57 +31,57 @@ $filtros = [];
 $parametros = [];
 
 if ($nomeCliente !== '') {
-	$filtros[] = 'cli_nome_razao LIKE :nomeCliente';
-	$parametros[':nomeCliente'] = "%$nomeCliente%";
+    $filtros[] = 'cli_nome_razao LIKE :nomeCliente';
+    $parametros[':nomeCliente'] = "%$nomeCliente%";
 }
 if ($proprietario !== '') {
-	$filtros[] = 'inf_proprietario LIKE :proprietario';
-	$parametros[':proprietario'] = "%$proprietario%";
+    $filtros[] = 'inf_proprietario LIKE :proprietario';
+    $parametros[':proprietario'] = "%$proprietario%";
 }
 if ($assunto !== '') {
-	$filtros[] = 'inf_assunto LIKE :assunto';
-	$parametros[':assunto'] = "%$assunto%";
+    $filtros[] = 'inf_assunto LIKE :assunto';
+    $parametros[':assunto'] = "%$assunto%";
 }
 if ($bloco !== '') {
-	$filtros[] = 'inf_bloco LIKE :bloco';
-	$parametros[':bloco'] = "%$bloco%";
+    $filtros[] = 'inf_bloco LIKE :bloco';
+    $parametros[':bloco'] = "%$bloco%";
 }
 if ($apartamento !== '') {
-	$filtros[] = 'inf_apto LIKE :apartamento';
-	$parametros[':apartamento'] = "%$apartamento%";
+    $filtros[] = 'inf_apto LIKE :apartamento';
+    $parametros[':apartamento'] = "%$apartamento%";
 }
 if ($tipoInfracao !== '') {
-	$filtros[] = 'inf_tipo = :tipoInfracao';
-	$parametros[':tipoInfracao'] = $tipoInfracao;
-	$tipoInfracaoLabel = $tipoInfracao;
+    $filtros[] = 'inf_tipo = :tipoInfracao';
+    $parametros[':tipoInfracao'] = $tipoInfracao;
+    $tipoInfracaoLabel = $tipoInfracao;
 } else {
-	$tipoInfracaoLabel = 'Tipo de infrações';
+    $tipoInfracaoLabel = 'Tipo de infrações';
 }
 
 // Conversão das datas para o formato do banco
 $dataInicio = '';
 $dataFim = '';
 if ($dataInicioFiltro !== '') {
-	$dataInicio = implode('-', array_reverse(explode('/', $dataInicioFiltro)));
+    $dataInicio = implode('-', array_reverse(explode('/', $dataInicioFiltro)));
 }
 if ($dataFimFiltro !== '') {
-	$dataFim = implode('-', array_reverse(explode('/', $dataFimFiltro)));
+    $dataFim = implode('-', array_reverse(explode('/', $dataFimFiltro)));
 }
 if ($dataInicio !== '' && $dataFim !== '') {
-	$filtros[] = 'inf_data BETWEEN :dataInicio AND :dataFim';
-	$parametros[':dataInicio'] = $dataInicio;
-	$parametros[':dataFim'] = $dataFim;
+    $filtros[] = 'inf_data BETWEEN :dataInicio AND :dataFim';
+    $parametros[':dataInicio'] = $dataInicio;
+    $parametros[':dataFim'] = $dataFim;
 } elseif ($dataInicio !== '') {
-	$filtros[] = 'inf_data >= :dataInicio';
-	$parametros[':dataInicio'] = $dataInicio;
+    $filtros[] = 'inf_data >= :dataInicio';
+    $parametros[':dataInicio'] = $dataInicio;
 } elseif ($dataFim !== '') {
-	$filtros[] = 'inf_data <= :dataFim';
-	$parametros[':dataFim'] = $dataFim;
+    $filtros[] = 'inf_data <= :dataFim';
+    $parametros[':dataFim'] = $dataFim;
 }
 
 // Se filtro não foi enviado, não retorna nada
 if ($filtroAtivo === '') {
-	$filtros[] = '1 = 0';
+    $filtros[] = '1 = 0';
 }
 
 $whereSql = $filtros ? implode(' AND ', $filtros) : '1=1';
@@ -109,7 +109,7 @@ $sql = "
 ";
 $stmt = $conexao->prepare($sql);
 foreach ($parametros as $chave => $valor) {
-	$stmt->bindValue($chave, $valor);
+    $stmt->bindValue($chave, $valor);
 }
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->bindValue(':limite', $registrosPorPagina, PDO::PARAM_INT);
@@ -175,50 +175,50 @@ require_once '../mod_includes/php/verificapermissao.php';
         </div>
         <div class="contentPrint" id="imprimir">
             <?php if ($totalRegistros > 0): ?>
-            <br>
-            <img src="<?php echo $logo ?? ''; ?>" border="0" valign="middle" class="logo" />
-            <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-                <tr>
-                    <td class="titulo_tabela">N.</td>
-                    <td class="titulo_tabela">Tipo</td>
-                    <td class="titulo_tabela">Assunto</td>
-                    <td class="titulo_tabela">Cliente</td>
-                    <td class="titulo_tabela">Proprietário</td>
-                    <td class="titulo_tabela" align="center">Bloco/Apto</td>
-                    <td class="titulo_tabela" align="center">Data</td>
-                </tr>
-                <?php foreach ($registros as $indice => $registro): ?>
-                <?php
-						$classeLinha = $indice % 2 == 0 ? 'linhaimpar' : 'linhapar';
-						$dataFormatada = $registro['inf_data'] ? implode('/', array_reverse(explode('-', $registro['inf_data']))) : '';
-						?>
-                <tr class="<?php echo $classeLinha; ?>">
-                    <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
-                    </td>
-                    <td><?php echo $registro['inf_tipo']; ?></td>
-                    <td><?php echo $registro['inf_assunto']; ?></td>
-                    <td><?php echo $registro['cli_nome_razao']; ?></td>
-                    <td><?php echo $registro['inf_proprietario']; ?></td>
-                    <td align="center"><?php echo $registro['inf_bloco'] . '/' . $registro['inf_apto']; ?></td>
-                    <td align="center"><?php echo $dataFormatada; ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-            <!-- Paginação -->
-            <div style="text-align:center; margin-top:20px;">
-                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                <?php if ($i == $paginaAtual): ?>
-                <strong><?php echo $i; ?></strong>
-                <?php else: ?>
-                <a
-                    href="?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
-                <?php endif; ?>
-                <?php if ($i < $totalPaginas)
-							echo ' | '; ?>
-                <?php endfor; ?>
-            </div>
+                <br>
+                <img src="<?php echo $logo ?? ''; ?>" border="0" valign="middle" class="logo" />
+                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                    <tr>
+                        <td class="titulo_tabela">N.</td>
+                        <td class="titulo_tabela">Tipo</td>
+                        <td class="titulo_tabela">Assunto</td>
+                        <td class="titulo_tabela">Cliente</td>
+                        <td class="titulo_tabela">Proprietário</td>
+                        <td class="titulo_tabela" align="center">Bloco/Apto</td>
+                        <td class="titulo_tabela" align="center">Data</td>
+                    </tr>
+                    <?php foreach ($registros as $indice => $registro): ?>
+                        <?php
+                        $classeLinha = $indice % 2 == 0 ? 'linhaimpar' : 'linhapar';
+                        $dataFormatada = $registro['inf_data'] ? implode('/', array_reverse(explode('-', $registro['inf_data']))) : '';
+                        ?>
+                        <tr class="<?php echo $classeLinha; ?>">
+                            <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
+                            </td>
+                            <td><?php echo $registro['inf_tipo']; ?></td>
+                            <td><?php echo $registro['inf_assunto']; ?></td>
+                            <td><?php echo $registro['cli_nome_razao']; ?></td>
+                            <td><?php echo $registro['inf_proprietario']; ?></td>
+                            <td align="center"><?php echo $registro['inf_bloco'] . '/' . $registro['inf_apto']; ?></td>
+                            <td align="center"><?php echo $dataFormatada; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <!-- Paginação -->
+                <div style="text-align:center; margin-top:20px;">
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                        <?php if ($i == $paginaAtual): ?>
+                            <strong><?php echo $i; ?></strong>
+                        <?php else: ?>
+                            <a
+                                href="?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                        <?php endif; ?>
+                        <?php if ($i < $totalPaginas)
+                            echo ' | '; ?>
+                    <?php endfor; ?>
+                </div>
             <?php else: ?>
-            <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+                <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
             <?php endif; ?>
             <div class="titulo"></div>
         </div>

@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'admin_modulos';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 $page = "Administradores &raquo; <a href='admin_modulos.php?pagina=admin_modulos" . $autenticacao . "'>Módulos</a>";
 
@@ -77,16 +77,16 @@ switch ($action) {
 <html lang="pt">
 
 <head>
-    <title><?php echo htmlspecialchars($titulo ?? '', ENT_QUOTES, 'UTF-8'); ?></title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/funcoes.js"></script>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<title><?php echo htmlspecialchars($titulo ?? '', ENT_QUOTES, 'UTF-8'); ?></title>
+	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include '../css/style.php'; ?>
+	<script src="../mod_includes/js/funcoes.js"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 </head>
 
 <body>
-    <?php
+	<?php
 	include '../mod_includes/php/funcoes-jquery.php';
 	require_once '../mod_includes/php/verificalogin.php';
 	include '../mod_topo/topo.php';

@@ -1,7 +1,7 @@
 <?php
 session_start();
 $paginaAtual = 'infracoes_gerenciar';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 require_once '../mod_includes/php/verificalogin.php';
 require_once '../mod_includes/php/verificapermissao.php';
@@ -292,38 +292,38 @@ $infracoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 
 <head>
-    <title>Infrações</title>
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include "../css/style.php"; ?>
-    <script src="../mod_includes/js/funcoes.js"></script>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
-    <script src="../mod_includes/js/tinymce/tinymce.min.js"></script>
-    <script src="../mod_includes/js/placeholder/plugin.js"></script>
-    <script>
-    tinymce.init({
-        selector: 'textarea',
-        plugins: "placeholder image jbimages imagetools advlist link table textcolor media paste",
-        toolbar: "undo redo fontsizeselect format bold italic forecolor backcolor alignleft aligncenter alignright alignjustify bullist numlist outdent indent table link media image jbimages",
-        imagetools_toolbar: "rotateleft rotateright | flipv fliph | editimage imageoptions",
-        paste_data_images: true,
-        media_live_embeds: true,
-        relative_urls: false,
-        elements: 'nourlconvert',
-        convert_urls: false,
-        paste_auto_cleanup_on_paste: true,
-        paste_remove_styles: true,
-        paste_remove_styles_if_webkit: true,
-        paste_as_text: true
-    });
-    </script>
+	<title>Infrações</title>
+	<meta charset="utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include "../css/style.php"; ?>
+	<script src="../mod_includes/js/funcoes.js"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+	<script src="../mod_includes/js/tinymce/tinymce.min.js"></script>
+	<script src="../mod_includes/js/placeholder/plugin.js"></script>
+	<script>
+		tinymce.init({
+			selector: 'textarea',
+			plugins: "placeholder image jbimages imagetools advlist link table textcolor media paste",
+			toolbar: "undo redo fontsizeselect format bold italic forecolor backcolor alignleft aligncenter alignright alignjustify bullist numlist outdent indent table link media image jbimages",
+			imagetools_toolbar: "rotateleft rotateright | flipv fliph | editimage imageoptions",
+			paste_data_images: true,
+			media_live_embeds: true,
+			relative_urls: false,
+			elements: 'nourlconvert',
+			convert_urls: false,
+			paste_auto_cleanup_on_paste: true,
+			paste_remove_styles: true,
+			paste_remove_styles_if_webkit: true,
+			paste_as_text: true
+		});
+	</script>
 </head>
 
 <body>
-    <?php
+	<?php
 	include '../mod_includes/php/funcoes-jquery.php';
 
 	// Página principal

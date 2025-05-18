@@ -1,49 +1,77 @@
 <?php
 session_start();
-include('../mod_includes/php/connect.php');
+require_once '../mod_includes/php/connect.php';
 
-if ($_GET['action'] === "adicionar") {
-	$cli_id = $_POST['cli_id'] ?? null;
-	$orc_tipo_servico_cliente = $_POST['orc_tipo_servico_cliente'] ?? '';
-	$orc_observacoes = $_POST['orc_observacoes'] ?? '';
-
-	// Consulta segura do cliente
-	$sql_unidade = "SELECT cli_nome_razao FROM cadastro_clientes WHERE cli_id = :cli_id";
-	$stmt = $pdo->prepare($sql_unidade);
-	$stmt->bindParam(':cli_id', $cli_id, PDO::PARAM_INT);
+function obterCliente($pdo, $cliId)
+{
+	$sql = "SELECT cli_nome_razao FROM cadastro_clientes WHERE cli_id = :cli_id";
+	$stmt = $pdo->prepare($sql);
+	$stmt->bindParam(':cli_id', $cliId, PDO::PARAM_INT);
 	$stmt->execute();
-	$cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+	return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
-	if ($cliente) {
-		$sql = "INSERT INTO orcamento_gerenciar (orc_cliente, orc_tipo_servico_cliente, orc_observacoes) 
-                VALUES (:cli_id, :orc_tipo_servico_cliente, :orc_observacoes)";
+function cadastrarOrcamento($pdo, $cliId, $tipoServico, $observacoes)
+{
+	$sql = "INSERT INTO orcamento_gerenciar (orc_cliente, orc_tipo_servico_cliente, orc_observacoes) 
+			VALUES (:cli_id, :tipo_servico, :observacoes)";
+	$stmt = $pdo->prepare($sql);
+	$stmt->bindParam(':cli_id', $cliId, PDO::PARAM_INT);
+	$stmt->bindParam(':tipo_servico', $tipoServico, PDO::PARAM_STR);
+	$stmt->bindParam(':observacoes', $observacoes, PDO::PARAM_STR);
+	$stmt->execute();
+	return $pdo->lastInsertId();
+}
 
-		$stmt = $pdo->prepare($sql);
-		$stmt->bindParam(':cli_id', $cli_id, PDO::PARAM_INT);
-		$stmt->bindParam(':orc_tipo_servico_cliente', $orc_tipo_servico_cliente, PDO::PARAM_STR);
-		$stmt->bindParam(':orc_observacoes', $orc_observacoes, PDO::PARAM_STR);
+function cadastrarStatusOrcamento($pdo, $orcamentoId)
+{
+	$sql = "INSERT INTO cadastro_status_orcamento (sto_orcamento, sto_status, sto_observacao) 
+			VALUES (:orcamento_id, 1, 'Abertura de orçamento')";
+	$stmt = $pdo->prepare($sql);
+	$stmt->bindParam(':orcamento_id', $orcamentoId, PDO::PARAM_INT);
+	$stmt->execute();
+}
 
-		if ($stmt->execute()) {
-			$ultimo_id = $pdo->lastInsertId();
-			$sql_status = "INSERT INTO cadastro_status_orcamento (sto_orcamento, sto_status, sto_observacao) 
-                           VALUES (:ultimo_id, 1, 'Abertura de orçamento')";
+function exibirMensagem($mensagem, $sucesso = true)
+{
+	$icone = $sucesso ? 'ok.png' : 'x.png';
+	$acao = $sucesso
+		? "<input value=' Ok ' type='button' class='close_janela'>"
+		: "<input value=' Ok ' type='button' onclick='javascript:window.history.back();'>";
+	echo "<script>
+		abreMask('<img src=../imagens/{$icone}> {$mensagem}<br><br>{$acao}');
+	</script>";
+}
 
-			$stmt_status = $pdo->prepare($sql_status);
-			$stmt_status->bindParam(':ultimo_id', $ultimo_id, PDO::PARAM_INT);
-			$stmt_status->execute();
+if (isset($_GET['action']) && $_GET['action'] === 'adicionar') {
+	$cliId = $_POST['cli_id'] ?? null;
+	$tipoServico = trim($_POST['orc_tipo_servico_cliente'] ?? '');
+	$observacoes = trim($_POST['orc_observacoes'] ?? '');
 
-			include("../mail/envia_email_novo_orcamento.php");
+	if ($cliId && $tipoServico) {
+		$cliente = obterCliente($pdo, $cliId);
 
-			echo "<SCRIPT>
-                    abreMask('<img src=../imagens/ok.png> Orçamento cadastrado com sucesso.<br>Aguarde o breve atendimento da nossa equipe e acompanhe o andamento do seu orçamento.<br><br>
-                    <input value=\' Ok \' type=\'button\' class=\'close_janela\'>');
-                  </SCRIPT>";
+		if ($cliente) {
+			try {
+				$pdo->beginTransaction();
+				$orcamentoId = cadastrarOrcamento($pdo, $cliId, $tipoServico, $observacoes);
+				cadastrarStatusOrcamento($pdo, $orcamentoId);
+				$pdo->commit();
+
+				include '../mail/envia_email_novo_orcamento.php';
+
+				exibirMensagem(
+					'Orçamento cadastrado com sucesso.<br>Aguarde o breve atendimento da nossa equipe e acompanhe o andamento do seu orçamento.'
+				);
+			} catch (Exception $e) {
+				$pdo->rollBack();
+				exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.', false);
+			}
 		} else {
-			echo "<SCRIPT>
-                    abreMask('<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br>
-                    <input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
-                  </SCRIPT>";
+			exibirMensagem('Cliente não encontrado.', false);
 		}
+	} else {
+		exibirMensagem('Preencha todos os campos obrigatórios.', false);
 	}
 }
 ?>
@@ -52,23 +80,22 @@ if ($_GET['action'] === "adicionar") {
 <html lang="pt">
 
 <head>
-	<title><?php echo htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8'); ?></title>
+	<title>Novo Orçamento</title>
 	<meta charset="UTF-8">
 	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include("../css/style.php"); ?>
+	<?php include '../css/style.php'; ?>
 	<script src="../mod_includes/js/funcoes.js"></script>
 	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 </head>
 
 <body>
 	<?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogincliente.php');
-	include("../mod_topo_cliente/topo.php");
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogincliente.php';
+	include '../mod_topo_cliente/topo.php';
 
-	if ($_GET['pagina'] === 'novo_orcamento') {
+	if (isset($_GET['pagina']) && $_GET['pagina'] === 'novo_orcamento'):
 		?>
-
 		<form name="form_cadastro_orcamentos" id="form_cadastro_orcamentos" method="post"
 			action="novo_orcamento.php?pagina=novo_orcamento&action=adicionar">
 			<div class="centro">
@@ -79,11 +106,10 @@ if ($_GET['action'] === "adicionar") {
 							<input type="hidden" name="cli_id"
 								value="<?php echo htmlspecialchars($_SESSION['cliente_id']); ?>">
 							<input name="orc_tipo_servico_cliente"
-								placeholder="Digite o serviço que deseja solicitar orçamento">
+								placeholder="Digite o serviço que deseja solicitar orçamento" required>
 							<p>
 								<textarea name="orc_observacoes"
 									placeholder="Observações, detalhar o máximo possível."></textarea>
-								<br><br>
 							<p>
 								<center>
 									<div id="erro">&nbsp;</div>
@@ -92,14 +118,11 @@ if ($_GET['action'] === "adicionar") {
 						</td>
 					</tr>
 				</table>
-				<div class="titulo"></div>
 			</div>
 		</form>
-
 		<?php
-	}
-
-	include('../mod_rodape/rodape.php');
+	endif;
+	include '../mod_rodape/rodape.php';
 	?>
 </body>
 

@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'chamado_consultar';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para buscar dados do chamado
 function buscarChamado($pdo, $chamado_id)

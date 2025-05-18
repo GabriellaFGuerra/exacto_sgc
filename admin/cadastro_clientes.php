@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_clientes';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 function getPost($key, $default = '')
 {

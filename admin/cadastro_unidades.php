@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_clientes';
-include '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/connect.php';
 
 // Função para obter input de forma segura
 function getInput($key, $default = null, $method = 'POST')
@@ -39,7 +39,8 @@ function getUfOptions($pdo, $selected = '')
 // Função para buscar nome do município
 function getMunicipioOption($pdo, $mun_id)
 {
-	if (!$mun_id) return "<option value=''>Município</option>";
+	if (!$mun_id)
+		return "<option value=''>Município</option>";
 	$stmt = $pdo->prepare('SELECT mun_nome FROM end_municipios WHERE mun_id = ?');
 	$stmt->execute([$mun_id]);
 	$mun_nome = $stmt->fetchColumn();
@@ -50,7 +51,7 @@ function getMunicipioOption($pdo, $mun_id)
 $cli_id = getInput('cli_id', null, 'GET');
 $action = getInput('action', null, 'GET');
 $pagina = getInput('pagina', null, 'GET');
-$pag = (int)getInput('pag', 1, 'GET');
+$pag = (int) getInput('pag', 1, 'GET');
 $autenticacao = $_GET['autenticacao'] ?? '';
 $titulo = 'Cadastro de Unidades';
 
@@ -61,6 +62,7 @@ $page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_client
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
 	<title><?= htmlspecialchars($titulo) ?></title>
 	<meta name="author" content="MogiComp">
@@ -73,116 +75,141 @@ $page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_client
 	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
 	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
+
 <body>
-<?php
-include '../mod_includes/php/funcoes-jquery.php';
-require_once '../mod_includes/php/verificalogin.php';
-include '../mod_topo/topo.php';
-require_once '../mod_includes/php/verificapermissao.php';
+	<?php
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include '../mod_topo/topo.php';
+	require_once '../mod_includes/php/verificapermissao.php';
 
-// CRUD Actions
-if ($action === 'adicionar') {
-	$fields = [
-		'uni_nome_razao', 'uni_cnpj', 'uni_cep', 'uni_uf', 'uni_municipio', 'uni_bairro',
-		'uni_endereco', 'uni_numero', 'uni_comp', 'uni_responsavel', 'uni_telefone',
-		'uni_celular', 'uni_email', 'uni_status'
-	];
-	$data = [];
-	foreach ($fields as $f) $data[$f] = getInput($f);
+	// CRUD Actions
+	if ($action === 'adicionar') {
+		$fields = [
+			'uni_nome_razao',
+			'uni_cnpj',
+			'uni_cep',
+			'uni_uf',
+			'uni_municipio',
+			'uni_bairro',
+			'uni_endereco',
+			'uni_numero',
+			'uni_comp',
+			'uni_responsavel',
+			'uni_telefone',
+			'uni_celular',
+			'uni_email',
+			'uni_status'
+		];
+		$data = [];
+		foreach ($fields as $f)
+			$data[$f] = getInput($f);
 
-	$sql = 'INSERT INTO cadastro_unidades (
+		$sql = 'INSERT INTO cadastro_unidades (
 		uni_cliente, uni_nome_razao, uni_cnpj, uni_cep, uni_uf, uni_municipio, uni_bairro,
 		uni_endereco, uni_numero, uni_comp, uni_responsavel, uni_telefone, uni_celular, uni_email, uni_status
 	) VALUES (
 		:cli_id, :uni_nome_razao, :uni_cnpj, :uni_cep, :uni_uf, :uni_municipio, :uni_bairro,
 		:uni_endereco, :uni_numero, :uni_comp, :uni_responsavel, :uni_telefone, :uni_celular, :uni_email, :uni_status
 	)';
-	$stmt = $pdo->prepare($sql);
-	$params = array_merge(['cli_id' => $cli_id], $data);
-	if ($stmt->execute($params)) {
-		showModalMessage('ok', 'Cadastro efetuado com sucesso.');
-	} else {
-		showModalMessage('x', 'Erro ao efetuar cadastro, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		$stmt = $pdo->prepare($sql);
+		$params = array_merge(['cli_id' => $cli_id], $data);
+		if ($stmt->execute($params)) {
+			showModalMessage('ok', 'Cadastro efetuado com sucesso.');
+		} else {
+			showModalMessage('x', 'Erro ao efetuar cadastro, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		}
 	}
-}
 
-if ($action === 'editar') {
-	$uni_id = getInput('uni_id', null, 'GET');
-	$fields = [
-		'uni_nome_razao', 'uni_cnpj', 'uni_cep', 'uni_uf', 'uni_municipio', 'uni_bairro',
-		'uni_endereco', 'uni_numero', 'uni_comp', 'uni_responsavel', 'uni_telefone',
-		'uni_celular', 'uni_email', 'uni_status'
-	];
-	$data = [];
-	foreach ($fields as $f) $data[$f] = getInput($f);
+	if ($action === 'editar') {
+		$uni_id = getInput('uni_id', null, 'GET');
+		$fields = [
+			'uni_nome_razao',
+			'uni_cnpj',
+			'uni_cep',
+			'uni_uf',
+			'uni_municipio',
+			'uni_bairro',
+			'uni_endereco',
+			'uni_numero',
+			'uni_comp',
+			'uni_responsavel',
+			'uni_telefone',
+			'uni_celular',
+			'uni_email',
+			'uni_status'
+		];
+		$data = [];
+		foreach ($fields as $f)
+			$data[$f] = getInput($f);
 
-	$sql = 'UPDATE cadastro_unidades SET 
+		$sql = 'UPDATE cadastro_unidades SET 
 		uni_cliente = :cli_id, uni_nome_razao = :uni_nome_razao, uni_cnpj = :uni_cnpj, uni_cep = :uni_cep,
 		uni_uf = :uni_uf, uni_municipio = :uni_municipio, uni_bairro = :uni_bairro, uni_endereco = :uni_endereco,
 		uni_numero = :uni_numero, uni_comp = :uni_comp, uni_responsavel = :uni_responsavel, uni_telefone = :uni_telefone,
 		uni_celular = :uni_celular, uni_email = :uni_email, uni_status = :uni_status
 		WHERE uni_id = :uni_id';
-	$stmt = $pdo->prepare($sql);
-	$params = array_merge(['cli_id' => $cli_id, 'uni_id' => $uni_id], $data);
-	if ($stmt->execute($params)) {
-		showModalMessage('ok', 'Dados alterados com sucesso.');
-	} else {
-		showModalMessage('x', 'Erro ao alterar dados, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		$stmt = $pdo->prepare($sql);
+		$params = array_merge(['cli_id' => $cli_id, 'uni_id' => $uni_id], $data);
+		if ($stmt->execute($params)) {
+			showModalMessage('ok', 'Dados alterados com sucesso.');
+		} else {
+			showModalMessage('x', 'Erro ao alterar dados, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		}
 	}
-}
 
-if ($action === 'excluir') {
-	$uni_id = getInput('uni_id', null, 'GET');
-	$stmt = $pdo->prepare('DELETE FROM cadastro_unidades WHERE uni_id = ?');
-	if ($stmt->execute([$uni_id])) {
-		showModalMessage('ok', 'Exclusão realizada com sucesso');
-	} else {
-		showModalMessage('x', 'Este item não pode ser excluído pois está relacionado com alguma tabela.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+	if ($action === 'excluir') {
+		$uni_id = getInput('uni_id', null, 'GET');
+		$stmt = $pdo->prepare('DELETE FROM cadastro_unidades WHERE uni_id = ?');
+		if ($stmt->execute([$uni_id])) {
+			showModalMessage('ok', 'Exclusão realizada com sucesso');
+		} else {
+			showModalMessage('x', 'Este item não pode ser excluído pois está relacionado com alguma tabela.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		}
 	}
-}
 
-if ($action === 'ativar' || $action === 'desativar') {
-	$uni_id = getInput('uni_id', null, 'GET');
-	$status = $action === 'ativar' ? 1 : 0;
-	$stmt = $pdo->prepare('UPDATE cadastro_unidades SET uni_status = ? WHERE uni_id = ?');
-	if ($stmt->execute([$status, $uni_id])) {
-		$msg = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
-		showModalMessage('ok', $msg);
-	} else {
-		showModalMessage('x', 'Erro ao alterar dados, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+	if ($action === 'ativar' || $action === 'desativar') {
+		$uni_id = getInput('uni_id', null, 'GET');
+		$status = $action === 'ativar' ? 1 : 0;
+		$stmt = $pdo->prepare('UPDATE cadastro_unidades SET uni_status = ? WHERE uni_id = ?');
+		if ($stmt->execute([$status, $uni_id])) {
+			$msg = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
+			showModalMessage('ok', $msg);
+		} else {
+			showModalMessage('x', 'Erro ao alterar dados, por favor tente novamente.', "<input value=' Ok ' type='button' onclick='window.history.back();'>");
+		}
 	}
-}
 
-// Paginação
-$num_por_pagina = 10;
-$primeiro_registro = ($pag - 1) * $num_por_pagina;
+	// Paginação
+	$num_por_pagina = 10;
+	$primeiro_registro = ($pag - 1) * $num_por_pagina;
 
-// Listagem de unidades
-if ($pagina === 'cadastro_unidades') {
-	// Contagem total para paginação
-	$stmtCount = $pdo->prepare('SELECT COUNT(*) FROM cadastro_unidades WHERE uni_cliente = :cli_id');
-	$stmtCount->execute(['cli_id' => $cli_id]);
-	$total_registros = $stmtCount->fetchColumn();
+	// Listagem de unidades
+	if ($pagina === 'cadastro_unidades') {
+		// Contagem total para paginação
+		$stmtCount = $pdo->prepare('SELECT COUNT(*) FROM cadastro_unidades WHERE uni_cliente = :cli_id');
+		$stmtCount->execute(['cli_id' => $cli_id]);
+		$total_registros = $stmtCount->fetchColumn();
 
-	$sql = 'SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao
+		$sql = 'SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao
 		FROM cadastro_unidades 
 		LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
 		WHERE cadastro_unidades.uni_cliente = :cli_id
 		ORDER BY uni_nome_razao ASC
 		LIMIT :offset, :limit';
-	$stmt = $pdo->prepare($sql);
-	$stmt->bindValue(':cli_id', $cli_id, PDO::PARAM_INT);
-	$stmt->bindValue(':offset', $primeiro_registro, PDO::PARAM_INT);
-	$stmt->bindValue(':limit', $num_por_pagina, PDO::PARAM_INT);
-	$stmt->execute();
-	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		$stmt = $pdo->prepare($sql);
+		$stmt->bindValue(':cli_id', $cli_id, PDO::PARAM_INT);
+		$stmt->bindValue(':offset', $primeiro_registro, PDO::PARAM_INT);
+		$stmt->bindValue(':limit', $num_por_pagina, PDO::PARAM_INT);
+		$stmt->execute();
+		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	echo "<div class='centro'>
+		echo "<div class='centro'>
 		<div class='titulo'> $page  </div>
 		<div id='botoes'><input value='Nova Unidade' type='button' onclick=\"window.location.href='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&cli_id=$cli_id$autenticacao'\" /></div>";
 
-	if ($rows) {
-		echo "<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+		if ($rows) {
+			echo "<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
 		<tr>
 			<td class='titulo_tabela'>Razão Social</td>
 			<td class='titulo_tabela'>CNPJ</td>
@@ -193,31 +220,31 @@ if ($pagina === 'cadastro_unidades') {
 			<td class='titulo_tabela'>Status</td>
 			<td class='titulo_tabela' align='center'>Gerenciar</td>
 		</tr>";
-		$c = 0;
-		foreach ($rows as $row) {
-			$uni_id = $row['uni_id'];
-			$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
-			$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
-			$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
-			$uni_telefone = htmlspecialchars($row['uni_telefone']);
-			$uni_celular = htmlspecialchars($row['uni_celular']);
-			$uni_email = htmlspecialchars($row['uni_email']);
-			$uni_status = $row['uni_status'];
-			$c1 = $c++ % 2 == 0 ? 'linhaimpar' : 'linhapar';
+			$c = 0;
+			foreach ($rows as $row) {
+				$uni_id = $row['uni_id'];
+				$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
+				$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
+				$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
+				$uni_telefone = htmlspecialchars($row['uni_telefone']);
+				$uni_celular = htmlspecialchars($row['uni_celular']);
+				$uni_email = htmlspecialchars($row['uni_email']);
+				$uni_status = $row['uni_status'];
+				$c1 = $c++ % 2 == 0 ? 'linhaimpar' : 'linhapar';
 
-			echo "
+				echo "
 			<script>
 			jQuery(function($) {
 				$('#normal-button-$uni_id').toolbar({content: '#user-options-$uni_id', position: 'top', hideOnClick: true});
 			});
 			</script>
 			<div id='user-options-$uni_id' class='toolbar-icons' style='display: none;'>";
-			if ($uni_status == 1) {
-				echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=desativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
-			} else {
-				echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=ativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
-			}
-			echo "
+				if ($uni_status == 1) {
+					echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=desativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
+				} else {
+					echo "<a href='cadastro_unidades.php?pagina=cadastro_unidades&action=ativar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-ativa-desativa.png'></a>";
+				}
+				echo "
 				<a href='cadastro_unidades.php?pagina=editar_cadastro_unidades&uni_id=$uni_id&cli_id=$cli_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
 				<a onclick=\"
 					abreMask(
@@ -236,35 +263,35 @@ if ($pagina === 'cadastro_unidades') {
 				<td>$uni_celular</td>
 				<td>$uni_email</td>
 				<td align=center>";
-			echo $uni_status == 1
-				? "<img border='0' src='../imagens/icon-ativo.png' width='15' height='15'>"
-				: "<img border='0' src='../imagens/icon-inativo.png' width='15' height='15'>";
-			echo "</td>
+				echo $uni_status == 1
+					? "<img border='0' src='../imagens/icon-ativo.png' width='15' height='15'>"
+					: "<img border='0' src='../imagens/icon-inativo.png' width='15' height='15'>";
+				echo "</td>
 				<td align=center><div id='normal-button-$uni_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
 			</tr>";
-		}
-		echo "</table>";
-
-		// Paginação
-		$total_paginas = ceil($total_registros / $num_por_pagina);
-		$variavel = "&pagina=cadastro_unidades$autenticacao";
-		if ($total_paginas > 1) {
-			echo "<div class='paginacao'>";
-			for ($i = 1; $i <= $total_paginas; $i++) {
-				$active = $i == $pag ? "style='font-weight:bold;'" : '';
-				echo "<a href='cadastro_unidades.php?pag=$i&cli_id=$cli_id$variavel' $active>$i</a> ";
 			}
-			echo "</div>";
-		}
-	} else {
-		echo "<br><br><br>Não há nenhuma unidade cadastrada.";
-	}
-	echo "<div class='titulo'>  </div></div>";
-}
+			echo "</table>";
 
-// Formulário de adição
-if ($pagina === 'adicionar_cadastro_unidades') {
-	echo "<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&action=adicionar&cli_id=$cli_id$autenticacao'>
+			// Paginação
+			$total_paginas = ceil($total_registros / $num_por_pagina);
+			$variavel = "&pagina=cadastro_unidades$autenticacao";
+			if ($total_paginas > 1) {
+				echo "<div class='paginacao'>";
+				for ($i = 1; $i <= $total_paginas; $i++) {
+					$active = $i == $pag ? "style='font-weight:bold;'" : '';
+					echo "<a href='cadastro_unidades.php?pag=$i&cli_id=$cli_id$variavel' $active>$i</a> ";
+				}
+				echo "</div>";
+			}
+		} else {
+			echo "<br><br><br>Não há nenhuma unidade cadastrada.";
+		}
+		echo "<div class='titulo'>  </div></div>";
+	}
+
+	// Formulário de adição
+	if ($pagina === 'adicionar_cadastro_unidades') {
+		echo "<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&action=adicionar&cli_id=$cli_id$autenticacao'>
 	<div class='centro'>
 		<div class='titulo'> $page &raquo; Adicionar  </div>
 		<table align='center' cellspacing='0' width='580'>
@@ -309,37 +336,37 @@ if ($pagina === 'adicionar_cadastro_unidades') {
 		<div class='titulo'> </div>
 	</div>
 	</form>";
-}
+	}
 
-// Formulário de edição
-if ($pagina === 'editar_cadastro_unidades') {
-	$uni_id = getInput('uni_id', null, 'GET');
-	$stmt = $pdo->prepare('SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao, end_uf.uf_sigla, end_municipios.mun_nome
+	// Formulário de edição
+	if ($pagina === 'editar_cadastro_unidades') {
+		$uni_id = getInput('uni_id', null, 'GET');
+		$stmt = $pdo->prepare('SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao, end_uf.uf_sigla, end_municipios.mun_nome
 		FROM cadastro_unidades
 		LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
 		LEFT JOIN end_uf ON end_uf.uf_id = cadastro_unidades.uni_uf
 		LEFT JOIN end_municipios ON end_municipios.mun_id = cadastro_unidades.uni_municipio
 		WHERE uni_id = ?');
-	$stmt->execute([$uni_id]);
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		$stmt->execute([$uni_id]);
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-	if ($row) {
-		$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
-		$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
-		$uni_cep = htmlspecialchars($row['uni_cep']);
-		$uni_uf = $row['uni_uf'];
-		$uni_municipio = $row['uni_municipio'];
-		$uni_bairro = htmlspecialchars($row['uni_bairro']);
-		$uni_endereco = htmlspecialchars($row['uni_endereco']);
-		$uni_numero = htmlspecialchars($row['uni_numero']);
-		$uni_comp = htmlspecialchars($row['uni_comp']);
-		$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
-		$uni_telefone = htmlspecialchars($row['uni_telefone']);
-		$uni_celular = htmlspecialchars($row['uni_celular']);
-		$uni_email = htmlspecialchars($row['uni_email']);
-		$uni_status = $row['uni_status'];
+		if ($row) {
+			$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
+			$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
+			$uni_cep = htmlspecialchars($row['uni_cep']);
+			$uni_uf = $row['uni_uf'];
+			$uni_municipio = $row['uni_municipio'];
+			$uni_bairro = htmlspecialchars($row['uni_bairro']);
+			$uni_endereco = htmlspecialchars($row['uni_endereco']);
+			$uni_numero = htmlspecialchars($row['uni_numero']);
+			$uni_comp = htmlspecialchars($row['uni_comp']);
+			$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
+			$uni_telefone = htmlspecialchars($row['uni_telefone']);
+			$uni_celular = htmlspecialchars($row['uni_celular']);
+			$uni_email = htmlspecialchars($row['uni_email']);
+			$uni_status = $row['uni_status'];
 
-		echo "<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=cadastro_unidades&action=editar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'>
+			echo "<form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post' action='cadastro_unidades.php?pagina=cadastro_unidades&action=editar&uni_id=$uni_id&cli_id=$cli_id$autenticacao'>
 		<div class='centro'>
 			<div class='titulo'> $page &raquo; Editar: $uni_nome_razao </div>
 			<table align='center' cellspacing='0'>
@@ -382,10 +409,11 @@ if ($pagina === 'editar_cadastro_unidades') {
 			<div class='titulo'>   </div>
 		</div>
 		</form>";
+		}
 	}
-}
 
-include '../mod_rodape/rodape.php';
-?>
+	include '../mod_rodape/rodape.php';
+	?>
 </body>
+
 </html>
