@@ -1,30 +1,31 @@
 <?php
 session_start();
 $pagina_link = 'relatorio_documentos';
-include('../mod_includes/php/connect.php');
+
+include '../mod_includes/php/connect.php';
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title><?php echo $titulo ?? ''; ?></title>
-    <meta name="author" content="MogiComp">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include("../css/style.php"); ?>
-    <script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+	<title><?= $titulo ?? '' ?></title>
+	<meta name="author" content="MogiComp">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include "../css/style.php"; ?>
+	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
 
 <body>
-    <?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+	<?php
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include "../mod_topo/topo.php";
+	require_once '../mod_includes/php/verificapermissao.php';
 
 	$page = "Relatórios &raquo; <a href='relatorio_documentos.php?pagina=relatorio_documentos$autenticacao'>Documentos</a>";
 
@@ -90,14 +91,14 @@ include('../mod_includes/php/connect.php');
 	$filtro_query = $filtro === '' ? "1=0" : "1=1";
 
 	$sql = "
-	SELECT documento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_tipos_docs.tpd_nome, cadastro_tipos_servicos.tps_nome
-	FROM documento_gerenciar
-	LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
-	LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-	LEFT JOIN orcamento_gerenciar ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
-	LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
-	WHERE $nome_query AND $tipo_documento_query AND $data_query AND $vencido_query AND $periodicidade_query AND $filtro_query
-	ORDER BY doc_data_cadastro DESC
+SELECT documento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_tipos_docs.tpd_nome, cadastro_tipos_servicos.tps_nome
+FROM documento_gerenciar
+LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
+LEFT JOIN orcamento_gerenciar ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
+WHERE $nome_query AND $tipo_documento_query AND $data_query AND $vencido_query AND $periodicidade_query AND $filtro_query
+ORDER BY doc_data_cadastro DESC
 ";
 
 	$params = [];
@@ -193,14 +194,14 @@ include('../mod_includes/php/connect.php');
 				$c1 = $c % 2 == 0 ? "linhaimpar" : "linhapar";
 				$c++;
 				echo "<tr class='$c1'>
-					  <td>$tpd_nome</td>
-					  <td>$cli_nome_razao</td>
-					  <td>$doc_id ($tps_nome)</td>
-					  <td align=center>$doc_data_emissao</td>
-					  <td align=center>$doc_periodicidade_n</td>
-					  <td align=center>$doc_data_vencimento</td>
-					  <td align='center'>$doc_data_cadastro<br><span class='detalhe'>$doc_hora_cadastro</span></td>
-				  </tr>";
+				  <td>$tpd_nome</td>
+				  <td>$cli_nome_razao</td>
+				  <td>$doc_id ($tps_nome)</td>
+				  <td align=center>$doc_data_emissao</td>
+				  <td align=center>$doc_periodicidade_n</td>
+				  <td align=center>$doc_data_vencimento</td>
+				  <td align='center'>$doc_data_cadastro<br><span class='detalhe'>$doc_hora_cadastro</span></td>
+			  </tr>";
 			}
 			echo "</table>";
 		} else {
@@ -212,10 +213,10 @@ include('../mod_includes/php/connect.php');
 	</div>";
 	}
 
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="../mod_includes/js/elementPrint.js"></script>
+	<script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
+	<script src="../mod_includes/js/elementPrint.js"></script>
 </body>
 
 </html>

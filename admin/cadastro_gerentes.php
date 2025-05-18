@@ -1,18 +1,19 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_gerentes';
-require_once('../mod_includes/php/connect.php');
-require_once('../mod_includes/php/verificalogin.php');
-require_once('../mod_includes/php/verificapermissao.php');
-require_once('../mod_includes/php/funcoes-jquery.php');
-require_once('../mod_topo/topo.php');
+
+require_once '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/verificalogin.php';
+require_once '../mod_includes/php/verificapermissao.php';
+require_once '../mod_includes/php/funcoes-jquery.php';
+require_once '../mod_topo/topo.php';
 
 $titulo = $titulo ?? 'Cadastro de Gerentes';
 $page = "Cadastros &raquo; <a href='cadastro_gerentes.php?pagina=cadastro_gerentes$autenticacao'>Gerentes</a>";
 
 function abreMaskMsg($img, $msg, $okBtn = true, $backBtn = false)
 {
-	$btn = $okBtn ? "<input value=' Ok ' type='button' class='close_janela'>" : "";
+	$btn = $okBtn ? "<input value=' Ok ' type='button' class='close_janela'>" : '';
 	if ($backBtn) {
 		$btn = "<input value=' Ok ' type='button' onclick=javascript:window.history.back();>";
 	}
@@ -32,9 +33,9 @@ $pag = $_GET['pag'] ?? $_POST['pag'] ?? 1;
 $autenticacao = $autenticacao ?? '';
 $fil_nome = $_REQUEST['fil_nome'] ?? '';
 
-if ($action === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'adicionar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$ger_nome = $_POST['ger_nome'] ?? '';
-	$stmt = $pdo->prepare("INSERT INTO cadastro_gerentes (ger_nome) VALUES (:ger_nome)");
+	$stmt = $pdo->prepare('INSERT INTO cadastro_gerentes (ger_nome) VALUES (:ger_nome)');
 	if ($stmt->execute([':ger_nome' => $ger_nome])) {
 		echo abreMaskMsg('ok', 'Cadastro efetuado com sucesso.');
 	} else {
@@ -45,7 +46,7 @@ if ($action === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$ger_id = $_GET['ger_id'] ?? $_POST['ger_id'] ?? '';
 	$ger_nome = $_POST['ger_nome'] ?? '';
-	$stmt = $pdo->prepare("UPDATE cadastro_gerentes SET ger_nome = :ger_nome WHERE ger_id = :ger_id");
+	$stmt = $pdo->prepare('UPDATE cadastro_gerentes SET ger_nome = :ger_nome WHERE ger_id = :ger_id');
 	if ($stmt->execute([':ger_nome' => $ger_nome, ':ger_id' => $ger_id])) {
 		echo abreMaskMsg('ok', 'Dados alterados com sucesso.');
 	} else {
@@ -55,7 +56,7 @@ if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'excluir') {
 	$ger_id = $_GET['ger_id'] ?? '';
-	$stmt = $pdo->prepare("DELETE FROM cadastro_gerentes WHERE ger_id = :ger_id");
+	$stmt = $pdo->prepare('DELETE FROM cadastro_gerentes WHERE ger_id = :ger_id');
 	if ($stmt->execute([':ger_id' => $ger_id])) {
 		echo abreMaskMsg('ok', 'Exclusão realizada com sucesso');
 	} else {
@@ -66,10 +67,10 @@ if ($action === 'excluir') {
 // Filtro e paginação
 $num_por_pagina = 10;
 $primeiro_registro = ($pag - 1) * $num_por_pagina;
-$nome_query = $fil_nome !== '' ? "ger_nome LIKE :fil_nome" : "1=1";
+$nome_query = $fil_nome !== '' ? 'ger_nome LIKE :fil_nome' : '1=1';
 $params = $fil_nome !== '' ? [':fil_nome' => "%$fil_nome%"] : [];
 
-if ($pagina === "cadastro_gerentes") {
+if ($pagina === 'cadastro_gerentes') {
 	// Listagem
 	$sql = "SELECT * FROM cadastro_gerentes WHERE $nome_query ORDER BY ger_nome ASC LIMIT $primeiro_registro, $num_por_pagina";
 	$stmt = $pdo->prepare($sql);
@@ -89,8 +90,8 @@ if ($pagina === "cadastro_gerentes") {
 		<meta name='author' content='MogiComp'>
 		<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
 		<link rel='shortcut icon' href='../imagens/favicon.png'>
-		";
-	include("../css/style.php");
+	";
+	include '../css/style.php';
 	echo "
 		<script src='../mod_includes/js/funcoes.js'></script>
 		<script src='../mod_includes/js/jquery-1.8.3.min.js'></script>
@@ -122,7 +123,7 @@ if ($pagina === "cadastro_gerentes") {
 		foreach ($gerentes as $gerente) {
 			$ger_id = $gerente['ger_id'];
 			$ger_nome = htmlspecialchars($gerente['ger_nome']);
-			$c1 = $c++ % 2 == 0 ? "linhaimpar" : "linhapar";
+			$c1 = $c++ % 2 == 0 ? 'linhaimpar' : 'linhapar';
 			echo "
 			<script>
 				jQuery(function($) {
@@ -147,15 +148,15 @@ if ($pagina === "cadastro_gerentes") {
 			</tr>
 			";
 		}
-		echo "</table>";
+		echo '</table>';
 		$variavel = "&pagina=cadastro_gerentes$autenticacao";
-		include("../mod_includes/php/paginacao.php");
+		include '../mod_includes/php/paginacao.php';
 	} else {
-		echo "<br><br><br>Não há nenhum gerente cadastrado.";
+		echo '<br><br><br>Não há nenhum gerente cadastrado.';
 	}
 	echo "<div class='titulo'></div></div>";
-	include('../mod_rodape/rodape.php');
-	echo "</body></html>";
+	include '../mod_rodape/rodape.php';
+	echo '</body></html>';
 	exit;
 }
 
@@ -166,8 +167,8 @@ if ($pagina === 'adicionar_cadastro_gerentes') {
 	<head>
 		<title>$titulo</title>
 		<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-		";
-	include("../css/style.php");
+	";
+	include '../css/style.php';
 	echo "
 	</head>
 	<body>
@@ -191,14 +192,14 @@ if ($pagina === 'adicionar_cadastro_gerentes') {
 	</div>
 	</form>
 	";
-	include('../mod_rodape/rodape.php');
-	echo "</body></html>";
+	include '../mod_rodape/rodape.php';
+	echo '</body></html>';
 	exit;
 }
 
 if ($pagina === 'editar_cadastro_gerentes') {
 	$ger_id = $_GET['ger_id'] ?? '';
-	$stmt = $pdo->prepare("SELECT * FROM cadastro_gerentes WHERE ger_id = :ger_id");
+	$stmt = $pdo->prepare('SELECT * FROM cadastro_gerentes WHERE ger_id = :ger_id');
 	$stmt->execute([':ger_id' => $ger_id]);
 	$gerente = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -210,8 +211,8 @@ if ($pagina === 'editar_cadastro_gerentes') {
 		<head>
 			<title>$titulo</title>
 			<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-			";
-		include("../css/style.php");
+		";
+		include '../css/style.php';
 		echo "
 		</head>
 		<body>
@@ -236,8 +237,8 @@ if ($pagina === 'editar_cadastro_gerentes') {
 		</div>
 		</form>
 		";
-		include('../mod_rodape/rodape.php');
-		echo "</body></html>";
+		include '../mod_rodape/rodape.php';
+		echo '</body></html>';
 	}
 	exit;
 }

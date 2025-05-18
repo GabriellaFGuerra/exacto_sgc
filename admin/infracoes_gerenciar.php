@@ -1,11 +1,11 @@
 <?php
 session_start();
 $pagina_link = 'infracoes_gerenciar';
-include('../mod_includes/php/connect.php'); // $pdo deve estar disponível aqui
+include '../mod_includes/php/connect.php';
 
-require_once('../mod_includes/php/verificalogin.php');
-require_once('../mod_includes/php/verificapermissao.php');
-include('../mod_topo/topo.php');
+require_once '../mod_includes/php/verificalogin.php';
+require_once '../mod_includes/php/verificapermissao.php';
+include '../mod_topo/topo.php';
 
 function abreMask($msg)
 {
@@ -28,9 +28,8 @@ function formatDateToDB($date)
 	if (!$date)
 		return null;
 	$parts = explode('/', $date);
-	if (count($parts) === 3) {
+	if (count($parts) === 3)
 		return "{$parts[2]}-{$parts[1]}-{$parts[0]}";
-	}
 	return $date;
 }
 
@@ -39,9 +38,8 @@ function formatDateToBR($date)
 	if (!$date)
 		return '';
 	$parts = explode('-', $date);
-	if (count($parts) === 3) {
+	if (count($parts) === 3)
 		return "{$parts[2]}/{$parts[1]}/{$parts[0]}";
-	}
 	return $date;
 }
 
@@ -70,9 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$inf_desc_artigo = $_POST['inf_desc_artigo'] ?? '';
 		$inf_desc_notificacao = $_POST['inf_desc_notificacao'] ?? '';
 
-		$stmt = $pdo->prepare("INSERT INTO infracoes_gerenciar (
-			inf_cliente, inf_tipo, inf_ano, inf_cidade, inf_data, inf_proprietario, inf_apto, inf_bloco, inf_endereco, inf_email, inf_desc_irregularidade, inf_assunto, inf_desc_artigo, inf_desc_notificacao
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		$stmt = $pdo->prepare(
+			"INSERT INTO infracoes_gerenciar (
+				inf_cliente, inf_tipo, inf_ano, inf_cidade, inf_data, inf_proprietario, inf_apto, inf_bloco, inf_endereco, inf_email, inf_desc_irregularidade, inf_assunto, inf_desc_artigo, inf_desc_notificacao
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		);
 		$ok = $stmt->execute([
 			$inf_cliente,
 			$inf_tipo,
@@ -112,9 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$inf_desc_artigo = $_POST['inf_desc_artigo'] ?? '';
 		$inf_desc_notificacao = $_POST['inf_desc_notificacao'] ?? '';
 
-		$stmt = $pdo->prepare("UPDATE infracoes_gerenciar SET
-			inf_tipo = ?, inf_cidade = ?, inf_data = ?, inf_proprietario = ?, inf_apto = ?, inf_bloco = ?, inf_endereco = ?, inf_email = ?, inf_desc_irregularidade = ?, inf_assunto = ?, inf_desc_artigo = ?, inf_desc_notificacao = ?
-			WHERE inf_id = ?");
+		$stmt = $pdo->prepare(
+			"UPDATE infracoes_gerenciar SET
+				inf_tipo = ?, inf_cidade = ?, inf_data = ?, inf_proprietario = ?, inf_apto = ?, inf_bloco = ?, inf_endereco = ?, inf_email = ?, inf_desc_irregularidade = ?, inf_assunto = ?, inf_desc_artigo = ?, inf_desc_notificacao = ?
+				WHERE inf_id = ?"
+		);
 		$ok = $stmt->execute([
 			$inf_tipo,
 			$inf_cidade,
@@ -144,7 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$rec_descricao = $_POST['rec_descricao'] ?? '';
 		$rec_status = $_POST['rec_status'] ?? '';
 
-		$stmt = $pdo->prepare("INSERT INTO recurso_gerenciar (rec_infracao, rec_assunto, rec_descricao, rec_status) VALUES (?, ?, ?, ?)");
+		$stmt = $pdo->prepare(
+			"INSERT INTO recurso_gerenciar (rec_infracao, rec_assunto, rec_descricao, rec_status) VALUES (?, ?, ?, ?)"
+		);
 		$ok = $stmt->execute([$rec_infracao, $rec_assunto, $rec_descricao, $rec_status]);
 		$ultimo_id = $pdo->lastInsertId();
 
@@ -231,30 +235,24 @@ $fil_inf_tipo = $_REQUEST['fil_inf_tipo'] ?? '';
 $where = [];
 $params = [$_SESSION['usuario_id']];
 
-if ($fil_nome) {
+if ($fil_nome)
 	$where[] = "cli_nome_razao LIKE ?";
-	$params[] = "%$fil_nome%";
-}
-if ($fil_bloco) {
+$params[] = "%$fil_nome%";
+if ($fil_bloco)
 	$where[] = "inf_bloco LIKE ?";
-	$params[] = "%$fil_bloco%";
-}
-if ($fil_assunto) {
+$params[] = "%$fil_bloco%";
+if ($fil_assunto)
 	$where[] = "inf_assunto LIKE ?";
-	$params[] = "%$fil_assunto%";
-}
-if ($fil_apto) {
+$params[] = "%$fil_assunto%";
+if ($fil_apto)
 	$where[] = "inf_apto LIKE ?";
-	$params[] = "%$fil_apto%";
-}
-if ($fil_proprietario) {
+$params[] = "%$fil_apto%";
+if ($fil_proprietario)
 	$where[] = "inf_proprietario LIKE ?";
-	$params[] = "%$fil_proprietario%";
-}
-if ($fil_inf_tipo) {
+$params[] = "%$fil_proprietario%";
+if ($fil_inf_tipo)
 	$where[] = "inf_tipo = ?";
-	$params[] = $fil_inf_tipo;
-}
+$params[] = $fil_inf_tipo;
 
 $where_sql = $where ? implode(' AND ', $where) : '1=1';
 
@@ -271,7 +269,6 @@ $sql = "SELECT infracoes_gerenciar.*, cli_nome_razao, rec_id
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -280,7 +277,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	<title>Infrações</title>
 	<meta charset="utf-8" />
 	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include("../css/style.php"); ?>
+	<?php include "../css/style.php"; ?>
 	<script src="../mod_includes/js/funcoes.js"></script>
 	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
@@ -309,48 +306,48 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
 	<?php
-	include('../mod_includes/php/funcoes-jquery.php');
+	include '../mod_includes/php/funcoes-jquery.php';
 
 	// Página principal
 	if ($pagina === "infracoes_gerenciar") {
 		echo "<div class='centro'>
-		<div class='titulo'> $page  </div>
-		<div id='botoes'><input value='Nova Infração' type='button' onclick=\"window.location.href='infracoes_gerenciar.php?pagina=adicionar_infracoes_gerenciar$autenticacao';\" /></div>
-		<div class='filtro'>
-			<form name='form_filtro' id='form_filtro' method='post' action='infracoes_gerenciar.php?pagina=infracoes_gerenciar$autenticacao'>
-				<input name='fil_nome' value='$fil_nome' placeholder='Cliente'>
-				<input name='fil_bloco' value='$fil_bloco' placeholder='Bloco/Quadra'>
-				<input name='fil_apto' value='$fil_apto' placeholder='Apto.'>
-				<input name='fil_proprietario' value='$fil_proprietario' placeholder='Proprietário'>
-				<input name='fil_assunto' value='$fil_assunto' placeholder='Assunto'>
-				<select name='fil_inf_tipo'>
-					<option value='$fil_inf_tipo'>" . ($fil_inf_tipo ?: "Tipo de Infração") . "</option>
-					<option value='Notificação de advertência por infração disciplinar'>Notificação de advertência por infração disciplinar</option>
-					<option value='Multa por Infração Interna'>Multa por Infração Interna</option>
-					<option value='Notificação de ressarcimento'>Notificação de ressarcimento</option>
-					<option value='Comunicação interna'>Comunicação interna</option>
-					<option value=''>Todos</option>
-				</select>
-				<input type='submit' value='Filtrar'>
-			</form>
-		</div>";
+	<div class='titulo'> $page  </div>
+	<div id='botoes'><input value='Nova Infração' type='button' onclick=\"window.location.href='infracoes_gerenciar.php?pagina=adicionar_infracoes_gerenciar$autenticacao';\" /></div>
+	<div class='filtro'>
+		<form name='form_filtro' id='form_filtro' method='post' action='infracoes_gerenciar.php?pagina=infracoes_gerenciar$autenticacao'>
+			<input name='fil_nome' value='$fil_nome' placeholder='Cliente'>
+			<input name='fil_bloco' value='$fil_bloco' placeholder='Bloco/Quadra'>
+			<input name='fil_apto' value='$fil_apto' placeholder='Apto.'>
+			<input name='fil_proprietario' value='$fil_proprietario' placeholder='Proprietário'>
+			<input name='fil_assunto' value='$fil_assunto' placeholder='Assunto'>
+			<select name='fil_inf_tipo'>
+				<option value='$fil_inf_tipo'>" . ($fil_inf_tipo ?: "Tipo de Infração") . "</option>
+				<option value='Notificação de advertência por infração disciplinar'>Notificação de advertência por infração disciplinar</option>
+				<option value='Multa por Infração Interna'>Multa por Infração Interna</option>
+				<option value='Notificação de ressarcimento'>Notificação de ressarcimento</option>
+				<option value='Comunicação interna'>Comunicação interna</option>
+				<option value=''>Todos</option>
+			</select>
+			<input type='submit' value='Filtrar'>
+		</form>
+	</div>";
 
 		if ($rows) {
 			echo "<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-			<tr>
-				<td class='titulo_tabela'>N.</td>
-				<td class='titulo_tabela'>Cliente</td>
-				<td class='titulo_tabela'>Tipo</td>
-				<td class='titulo_tabela'>Assunto</td>
-				<td class='titulo_tabela'>Proprietário</td>
-				<td class='titulo_tabela'>Bloco/Quadra/Ap</td>
-				<td class='titulo_tabela'>Data</td>
-				<td class='titulo_tabela' align='center'>Gerar advertência/multa</td>
-				<td class='titulo_tabela' align='center'>Gerar protocolo</td>
-				<td class='titulo_tabela' align='center'>Comprovante</td>
-				<td class='titulo_tabela' align='center'>Recurso</td>
-				<td class='titulo_tabela' align='center'>Gerenciar</td>
-			</tr>";
+		<tr>
+			<td class='titulo_tabela'>N.</td>
+			<td class='titulo_tabela'>Cliente</td>
+			<td class='titulo_tabela'>Tipo</td>
+			<td class='titulo_tabela'>Assunto</td>
+			<td class='titulo_tabela'>Proprietário</td>
+			<td class='titulo_tabela'>Bloco/Quadra/Ap</td>
+			<td class='titulo_tabela'>Data</td>
+			<td class='titulo_tabela' align='center'>Gerar advertência/multa</td>
+			<td class='titulo_tabela' align='center'>Gerar protocolo</td>
+			<td class='titulo_tabela' align='center'>Comprovante</td>
+			<td class='titulo_tabela' align='center'>Recurso</td>
+			<td class='titulo_tabela' align='center'>Gerenciar</td>
+		</tr>";
 			$c = 0;
 			foreach ($rows as $row) {
 				$c1 = $c++ % 2 ? "linhapar" : "linhaimpar";
@@ -367,31 +364,30 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 				$rec_id = $row['rec_id'] ?? '';
 
 				echo "<tr class='$c1'>
-				<td>" . str_pad($inf_id, 3, "0", STR_PAD_LEFT) . "/$inf_ano</td>
-				<td>$cli_nome_razao</td>
-				<td>$inf_tipo</td>
-				<td>$inf_assunto</td>
-				<td>$inf_proprietario</td>
-				<td>$inf_bloco/$inf_apto</td>
-				<td>$inf_data</td>
-				<td align='center'><a href='infracoes_imprimir.php?inf_id=$inf_id&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
-				<td align='center'><a href='infracoes_protocolo_imprimir.php?inf_id=$inf_id&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
-				<td align='center'>";
-				if ($inf_comprovante) {
+			<td>" . str_pad($inf_id, 3, "0", STR_PAD_LEFT) . "/$inf_ano</td>
+			<td>$cli_nome_razao</td>
+			<td>$inf_tipo</td>
+			<td>$inf_assunto</td>
+			<td>$inf_proprietario</td>
+			<td>$inf_bloco/$inf_apto</td>
+			<td>$inf_data</td>
+			<td align='center'><a href='infracoes_imprimir.php?inf_id=$inf_id&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
+			<td align='center'><a href='infracoes_protocolo_imprimir.php?inf_id=$inf_id&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
+			<td align='center'>";
+				if ($inf_comprovante)
 					echo "<a href='$inf_comprovante' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a>";
-				}
 				echo "</td>
-				<td align='center'>";
+			<td align='center'>";
 				if ($rec_id) {
 					echo "<a href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=$rec_id$autenticacao'><img src='../imagens/icon-exibir.png'></a>";
 				} else {
 					echo "<a href='infracoes_gerenciar.php?pagina=recurso_gerenciar&inf_id=$inf_id$autenticacao'>Gerar Recurso</a>";
 				}
 				echo "</td>
-				<td align=center>
-					<div id='normal-button-$inf_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div>
-				</td>
-			</tr>";
+			<td align=center>
+				<div id='normal-button-$inf_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div>
+			</td>
+		</tr>";
 			}
 			echo "</table>";
 			// Paginação pode ser implementada aqui
@@ -403,7 +399,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	// Demais páginas (adicionar, editar, duplicar, recurso) podem ser implementadas de forma semelhante, usando prepared statements e PDO.
 	
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
 </body>
 

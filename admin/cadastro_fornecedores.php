@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_fornecedores';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -11,7 +11,7 @@ include('../mod_includes/php/connect.php');
 	<meta name="author" content="MogiComp">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include("../css/style.php"); ?>
+	<?php include '../css/style.php'; ?>
 	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
 	<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
@@ -20,47 +20,47 @@ include('../mod_includes/php/connect.php');
 </head>
 
 <body>
-	<?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+<?php
+include '../mod_includes/php/funcoes-jquery.php';
+require_once '../mod_includes/php/verificalogin.php';
+include '../mod_topo/topo.php';
+require_once '../mod_includes/php/verificapermissao.php';
 
-	$pagina = $_GET['pagina'] ?? $_POST['pagina'] ?? '';
-	$action = $_GET['action'] ?? $_POST['action'] ?? '';
-	$autenticacao = $_GET['autenticacao'] ?? $_POST['autenticacao'] ?? '';
-	$pag = $_GET['pag'] ?? $_POST['pag'] ?? 1;
+$pagina = $_GET['pagina'] ?? $_POST['pagina'] ?? '';
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$autenticacao = $_GET['autenticacao'] ?? $_POST['autenticacao'] ?? '';
+$pag = $_GET['pag'] ?? $_POST['pag'] ?? 1;
 
-	$page = "Cadastros &raquo; <a href='cadastro_fornecedores.php?pagina=cadastro_fornecedores$autenticacao'>Fornecedores</a>";
+$page = "Cadastros &raquo; <a href='cadastro_fornecedores.php?pagina=cadastro_fornecedores$autenticacao'>Fornecedores</a>";
 
-	if ($action == "adicionar") {
-		$for_nome_razao = $_POST['for_nome_razao'] ?? '';
-		$for_cnpj = $_POST['for_cnpj'] ?? '';
-		$for_autonomo = $_POST['for_autonomo'] ?? "0";
-		$for_nome_mae = $_POST['for_nome_mae'] ?? '';
-		$for_data_nasc = $_POST['for_data_nasc'] ?? '';
-		$for_data_nasc = $for_data_nasc ? implode("-", array_reverse(explode("/", $for_data_nasc))) : null;
-		$for_rg = $_POST['for_rg'] ?? '';
-		$for_cpf = $_POST['for_cpf'] ?? '';
-		$for_pis = $_POST['for_pis'] ?? '';
-		$for_cep = $_POST['for_cep'] ?? '';
-		$for_uf = $_POST['for_uf'] ?? null;
-		$for_municipio = $_POST['for_municipio'] ?? null;
-		$for_bairro = $_POST['for_bairro'] ?? '';
-		$for_endereco = $_POST['for_endereco'] ?? '';
-		$for_numero = $_POST['for_numero'] ?? '';
-		$for_comp = $_POST['for_comp'] ?? '';
-		$for_telefone = $_POST['for_telefone'] ?? '';
-		$for_telefone2 = $_POST['for_telefone2'] ?? '';
-		$for_telefone3 = $_POST['for_telefone3'] ?? '';
-		$for_email = $_POST['for_email'] ?? '';
-		$for_banco = $_POST['for_banco'] ?? '';
-		$for_agencia = $_POST['for_agencia'] ?? '';
-		$for_cc = $_POST['for_cc'] ?? '';
-		$for_status = $_POST['for_status'] ?? '1';
-		$for_observacoes = $_POST['for_observacoes'] ?? '';
+if ($action == "adicionar") {
+	$for_nome_razao = $_POST['for_nome_razao'] ?? '';
+	$for_cnpj = $_POST['for_cnpj'] ?? '';
+	$for_autonomo = $_POST['for_autonomo'] ?? "0";
+	$for_nome_mae = $_POST['for_nome_mae'] ?? '';
+	$for_data_nasc = $_POST['for_data_nasc'] ?? '';
+	$for_data_nasc = $for_data_nasc ? implode("-", array_reverse(explode("/", $for_data_nasc))) : null;
+	$for_rg = $_POST['for_rg'] ?? '';
+	$for_cpf = $_POST['for_cpf'] ?? '';
+	$for_pis = $_POST['for_pis'] ?? '';
+	$for_cep = $_POST['for_cep'] ?? '';
+	$for_uf = $_POST['for_uf'] ?? null;
+	$for_municipio = $_POST['for_municipio'] ?? null;
+	$for_bairro = $_POST['for_bairro'] ?? '';
+	$for_endereco = $_POST['for_endereco'] ?? '';
+	$for_numero = $_POST['for_numero'] ?? '';
+	$for_comp = $_POST['for_comp'] ?? '';
+	$for_telefone = $_POST['for_telefone'] ?? '';
+	$for_telefone2 = $_POST['for_telefone2'] ?? '';
+	$for_telefone3 = $_POST['for_telefone3'] ?? '';
+	$for_email = $_POST['for_email'] ?? '';
+	$for_banco = $_POST['for_banco'] ?? '';
+	$for_agencia = $_POST['for_agencia'] ?? '';
+	$for_cc = $_POST['for_cc'] ?? '';
+	$for_status = $_POST['for_status'] ?? '1';
+	$for_observacoes = $_POST['for_observacoes'] ?? '';
 
-		$sql = "INSERT INTO cadastro_fornecedores (
+	$sql = "INSERT INTO cadastro_fornecedores (
 		for_nome_razao, for_cnpj, for_autonomo, for_nome_mae, for_data_nasc, for_rg, for_cpf, for_pis,
 		for_cep, for_uf, for_municipio, for_bairro, for_endereco, for_numero, for_comp,
 		for_telefone, for_telefone2, for_telefone3, for_email, for_banco, for_agencia, for_cc,
@@ -71,35 +71,35 @@ include('../mod_includes/php/connect.php');
 		:for_telefone, :for_telefone2, :for_telefone3, :for_email, :for_banco, :for_agencia, :for_cc,
 		:for_status, :for_observacoes
 	)";
-		$stmt = $pdo->prepare($sql);
-		$result = $stmt->execute([
-			':for_nome_razao' => $for_nome_razao,
-			':for_cnpj' => $for_cnpj,
-			':for_autonomo' => $for_autonomo,
-			':for_nome_mae' => $for_nome_mae,
-			':for_data_nasc' => $for_data_nasc,
-			':for_rg' => $for_rg,
-			':for_cpf' => $for_cpf,
-			':for_pis' => $for_pis,
-			':for_cep' => $for_cep,
-			':for_uf' => $for_uf ?: null,
-			':for_municipio' => $for_municipio ?: null,
-			':for_bairro' => $for_bairro,
-			':for_endereco' => $for_endereco,
-			':for_numero' => $for_numero,
-			':for_comp' => $for_comp,
-			':for_telefone' => $for_telefone,
-			':for_telefone2' => $for_telefone2,
-			':for_telefone3' => $for_telefone3,
-			':for_email' => $for_email,
-			':for_banco' => $for_banco,
-			':for_agencia' => $for_agencia,
-			':for_cc' => $for_cc,
-			':for_status' => $for_status,
-			':for_observacoes' => $for_observacoes
-		]);
-		if ($result) {
-			$ultimo_id = $pdo->lastInsertId();
+	$stmt = $pdo->prepare($sql);
+	$result = $stmt->execute([
+		':for_nome_razao' => $for_nome_razao,
+		':for_cnpj' => $for_cnpj,
+		':for_autonomo' => $for_autonomo,
+		':for_nome_mae' => $for_nome_mae,
+		':for_data_nasc' => $for_data_nasc,
+		':for_rg' => $for_rg,
+		':for_cpf' => $for_cpf,
+		':for_pis' => $for_pis,
+		':for_cep' => $for_cep,
+		':for_uf' => $for_uf ?: null,
+		':for_municipio' => $for_municipio ?: null,
+		':for_bairro' => $for_bairro,
+		':for_endereco' => $for_endereco,
+		':for_numero' => $for_numero,
+		':for_comp' => $for_comp,
+		':for_telefone' => $for_telefone,
+		':for_telefone2' => $for_telefone2,
+		':for_telefone3' => $for_telefone3,
+		':for_email' => $for_email,
+		':for_banco' => $for_banco,
+		':for_agencia' => $for_agencia,
+		':for_cc' => $for_cc,
+		':for_status' => $for_status,
+		':for_observacoes' => $for_observacoes
+	]);
+	if ($result) {
+		$ultimo_id = $pdo->lastInsertId();
 			$erro = 0;
 			$sql_itens = "SELECT * FROM cadastro_tipos_servicos";
 			$query_itens = $pdo->query($sql_itens);

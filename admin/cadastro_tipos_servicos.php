@@ -1,31 +1,31 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_tipos_servicos';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
 
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-	<title><?php echo $titulo ?? ''; ?></title>
-	<meta name="author" content="MogiComp">
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include("../css/style.php"); ?>
-	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
-	<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+    <title><?php echo $titulo ?? ''; ?></title>
+    <meta name="author" content="MogiComp">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="../imagens/favicon.png">
+    <?php include '../css/style.php'; ?>
+    <script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
 
 <body>
-	<?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+    <?php
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include '../mod_topo/topo.php';
+	require_once '../mod_includes/php/verificapermissao.php';
 
 	$page = "Cadastros &raquo; <a href='cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos$autenticacao'>Tipos de Serviço</a>";
 
@@ -33,9 +33,9 @@ include('../mod_includes/php/connect.php');
 	$pagina = $_GET['pagina'] ?? '';
 	$pag = isset($_GET['pag']) ? (int) $_GET['pag'] : 1;
 
-	if ($action === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	if ($action === 'adicionar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		$tps_nome = $_POST['tps_nome'] ?? '';
-		$stmt = $pdo->prepare("INSERT INTO cadastro_tipos_servicos (tps_nome) VALUES (:tps_nome)");
+		$stmt = $pdo->prepare('INSERT INTO cadastro_tipos_servicos (tps_nome) VALUES (:tps_nome)');
 		if ($stmt->execute([':tps_nome' => $tps_nome])) {
 			echo "<script>abreMask('<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br><input value=\' Ok \' type=\'button\' class=\'close_janela\'>');</script>";
 		} else {
@@ -46,7 +46,7 @@ include('../mod_includes/php/connect.php');
 	if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		$tps_id = $_GET['tps_id'] ?? '';
 		$tps_nome = $_POST['tps_nome'] ?? '';
-		$stmt = $pdo->prepare("UPDATE cadastro_tipos_servicos SET tps_nome = :tps_nome WHERE tps_id = :tps_id");
+		$stmt = $pdo->prepare('UPDATE cadastro_tipos_servicos SET tps_nome = :tps_nome WHERE tps_id = :tps_id');
 		if ($stmt->execute([':tps_nome' => $tps_nome, ':tps_id' => $tps_id])) {
 			echo "<script>abreMask('<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=\' Ok \' type=\'button\' class=\'close_janela\'>');</script>";
 		} else {
@@ -56,7 +56,7 @@ include('../mod_includes/php/connect.php');
 
 	if ($action === 'excluir') {
 		$tps_id = $_GET['tps_id'] ?? '';
-		$stmt = $pdo->prepare("DELETE FROM cadastro_tipos_servicos WHERE tps_id = :tps_id");
+		$stmt = $pdo->prepare('DELETE FROM cadastro_tipos_servicos WHERE tps_id = :tps_id');
 		if ($stmt->execute([':tps_id' => $tps_id])) {
 			echo "<script>abreMask('<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br><input value=\' OK \' type=\'button\' class=\'close_janela\'>');</script>";
 		} else {
@@ -67,14 +67,14 @@ include('../mod_includes/php/connect.php');
 	$num_por_pagina = 20;
 	$primeiro_registro = ($pag - 1) * $num_por_pagina;
 
-	if ($pagina === "cadastro_tipos_servicos") {
-		$stmt = $pdo->prepare("SELECT * FROM cadastro_tipos_servicos ORDER BY tps_nome ASC LIMIT :offset, :limit");
+	if ($pagina === 'cadastro_tipos_servicos') {
+		$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_servicos ORDER BY tps_nome ASC LIMIT :offset, :limit');
 		$stmt->bindValue(':offset', $primeiro_registro, PDO::PARAM_INT);
 		$stmt->bindValue(':limit', $num_por_pagina, PDO::PARAM_INT);
 		$stmt->execute();
 		$servicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		$total = $pdo->query("SELECT COUNT(*) FROM cadastro_tipos_servicos")->fetchColumn();
+		$total = $pdo->query('SELECT COUNT(*) FROM cadastro_tipos_servicos')->fetchColumn();
 
 		echo "
 	<div class='centro'>
@@ -93,7 +93,7 @@ include('../mod_includes/php/connect.php');
 			foreach ($servicos as $servico) {
 				$tps_id = $servico['tps_id'];
 				$tps_nome = htmlspecialchars($servico['tps_nome']);
-				$c1 = $c % 2 == 0 ? "linhaimpar" : "linhapar";
+				$c1 = $c % 2 == 0 ? 'linhaimpar' : 'linhapar';
 				$c++;
 				echo "
 			<script type='text/javascript'>
@@ -107,7 +107,7 @@ include('../mod_includes/php/connect.php');
 					abreMask(
 						'Deseja realmente excluir o tipo de serviço <b>" . addslashes($tps_nome) . "</b>?<br><br>'+
 						'<input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\\'cadastro_tipos_servicos.php?pagina=cadastro_tipos_servicos&action=excluir&tps_id=$tps_id$autenticacao\\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
-						'<input value=\' Não \' type=\'button\' class=\'close_janela\'>');
+						'<input value=\' Não \' type=\'button\' class=\'close_janela\'');
 					\">
 					<img border='0' src='../imagens/icon-excluir.png'>
 				</a>
@@ -117,11 +117,11 @@ include('../mod_includes/php/connect.php');
 				<td align=center><div id='normal-button-$tps_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
 			</tr>";
 			}
-			echo "</table>";
+			echo '</table>';
 			$variavel = "&pagina=cadastro_tipos_servicos$autenticacao";
-			include("../mod_includes/php/paginacao.php");
+			include '../mod_includes/php/paginacao.php';
 		} else {
-			echo "<br><br><br>Não há nenhum tipo de serviço cadastrado.";
+			echo '<br><br><br>Não há nenhum tipo de serviço cadastrado.';
 		}
 		echo "<div class='titulo'>  </div></div>";
 	}
@@ -152,7 +152,7 @@ include('../mod_includes/php/connect.php');
 
 	if ($pagina === 'editar_cadastro_tipos_servicos') {
 		$tps_id = $_GET['tps_id'] ?? '';
-		$stmt = $pdo->prepare("SELECT * FROM cadastro_tipos_servicos WHERE tps_id = :tps_id");
+		$stmt = $pdo->prepare('SELECT * FROM cadastro_tipos_servicos WHERE tps_id = :tps_id');
 		$stmt->execute([':tps_id' => $tps_id]);
 		$servico = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -182,7 +182,8 @@ include('../mod_includes/php/connect.php');
 		}
 	}
 
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
 </body>
+
 </html>

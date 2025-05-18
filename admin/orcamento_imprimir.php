@@ -2,7 +2,7 @@
 session_start();
 date_default_timezone_set('America/Sao_Paulo');
 
-require_once '../mod_includes/php/connect.php'; // $pdo deve estar disponível
+require_once '../mod_includes/php/connect.php';
 
 $meses = [
 	'01' => 'Janeiro',
@@ -23,10 +23,9 @@ $meses = [
 $login = $_GET['login'] ?? '';
 $n = $_GET['n'] ?? '';
 $pagina = $_GET['pagina'] ?? '';
-$orc_id = $_GET['orc_id'] ?? 0;
-$orc_id = (int) $orc_id;
+$orc_id = isset($_GET['orc_id']) ? (int) $_GET['orc_id'] : 0;
 
-$autenticacao = "&login=" . urlencode($login) . "&n=" . urlencode($n);
+$autenticacao = '&login=' . urlencode($login) . '&n=' . urlencode($n);
 
 // Consulta principal
 $sql = "
@@ -70,320 +69,146 @@ $sto_status_n = $status_labels[$sto_status] ?? '';
 
 ob_start();
 ?>
-<style>
-/* ... (mantém o CSS original) ... */
-.topo {
-    margin: 0 auto;
-    text-align: center;
-    padding: 0 0 15px 0;
-}
+<table align="center" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="left">
+            <div class="laudo">
+                <table class="laudo" align="center" cellspacing="0" cellpadding="3" width="1000">
+                    <tr>
+                        <td colspan="2" align="center">
+                            <span class="titulo_laudo">Cotação de Material/Serviço</span>
+                            <br>&nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table cellspacing="0" cellpadding="5" width="1000">
+                                <tr>
+                                    <td width="20%" class="label" align="right">Orçamento N°:</td>
+                                    <td><?= str_pad($orc_id, 6, '0', STR_PAD_LEFT) ?></td>
+                                    <td width="30%" class="label" align="right">Status:</td>
+                                    <td><?= $sto_status_n ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label" align="right">Condomínio:</td>
+                                    <td colspan="3"><?= htmlspecialchars($cli_nome_razao) ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label" align="right">Referente:</td>
+                                    <td colspan="3"><?= htmlspecialchars($tps_nome) ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="label" align="right">Data de cadastro:</td>
+                                    <td><?= $orc_data_cadastro ?> às <?= $orc_hora_cadastro ?></td>
+                                    <td class="label" align="right">Data de aprovação/reprovação:</td>
+                                    <td><?= $orc_data_aprovacao ?></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center" class="formtitulo">Empresas Contatadas</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table class="bordatabela" cellpadding="10" cellspacing="0" width="700">
+                                <tr>
+                                    <td class="titulo_first">Nome da Empresa</td>
+                                    <td class="titulo_tabela">Valor</td>
+                                    <td class="titulo_tabela">INSS (20%)</td>
+                                    <td class="titulo_tabela">Observação</td>
+                                    <td class="titulo_tabela" align="right">Total</td>
+                                    <td class="titulo_last"></td>
+                                </tr>
+                                <?php
+								$sql_fornecedores = "
+									SELECT ofn.*, cf.for_nome_razao, cf.for_autonomo
+									FROM orcamento_fornecedor ofn
+									LEFT JOIN cadastro_fornecedores cf ON cf.for_id = ofn.orf_fornecedor
+									WHERE ofn.orf_orcamento = :orc_id
+									ORDER BY ofn.orf_valor ASC
+								";
+								$stmt_fornecedores = $pdo->prepare($sql_fornecedores);
+								$stmt_fornecedores->execute(['orc_id' => $orc_id]);
+								$fornecedores = $stmt_fornecedores->fetchAll(PDO::FETCH_ASSOC);
 
-.rodape {
-    margin: 0 auto;
-    text-align: left;
-    padding: 15px 0 0 0;
-    font-family: "Calibri";
-}
-
-.rod {
-    color: #999;
-    font-size: 13px;
-    font-family: "Calibri";
-}
-
-.titulo_adm {
-    width: 960px;
-    margin: 0 auto;
-    font-size: 18px;
-    color: #999;
-    text-align: left;
-    border-bottom: 1px dashed #DDD;
-    padding: 0 0 10px 10px;
-    margin: 20px 0 10px 0;
-}
-
-.laudo {
-    font-family: "Calibri";
-    font-size: 13px;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    padding: 20px 10px;
-}
-
-.titulo_laudo {
-    font-size: 20px;
-    font-family: "sharpmedium";
-    color: #0F72BD;
-    font-weight: bold;
-    text-align: center;
-}
-
-.titulo_tabela {
-    font-size: 13px;
-    font-family: "Calibri";
-    border: 0;
-    color: #333;
-    background: #EEE;
-}
-
-.titulo_first {
-    font-size: 13px;
-    font-family: "Calibri";
-    border: 0;
-    color: #333;
-    background: #EEE;
-    -moz-border-radius: 5px 0px 0px 0px;
-    -webkit-border-radius: 5px 0px 0px 0px;
-    border-radius: 5px 0px 0px 0px;
-}
-
-.titulo_last {
-    font-size: 13px;
-    font-family: "Calibri";
-    border: 0;
-    color: #333;
-    background: #EEE;
-    -moz-border-radius: 0px 5px 0px 0px;
-    -webkit-border-radius: 0px 5px 0px 0px;
-    border-radius: 0px 5px 0px 0px;
-}
-
-.bordatabela {
-    border: 1px solid #DADADA;
-    font-size: 11px;
-    color: #666;
-    -moz-border-radius: 2px 2px 0px 0px;
-    -webkit-border-radius: 2px 2px 0px 0px;
-    border-radius: 2px 2px 0px 0px;
-}
-
-.formtitulo {
-    font-family: "Calibri";
-    text-align: left;
-    font-size: 16px;
-    color: #81C566;
-    padding: 25px 0px 0px 0px;
-}
-
-.label {
-    font-family: "Calibri";
-    font-weight: bold;
-}
-
-.azul {
-    color: #0F72BD;
-}
-
-.laranja {
-    color: #F60;
-    font-weight: bold;
-}
-
-.verde {
-    color: #81C566;
-    font-weight: bold;
-}
-
-.vermelho {
-    color: #900;
-    font-weight: bold;
-}
-
-.linhapar {
-    background: #FAFAFA;
-}
-
-.linhaimpar {
-    background: #FFFFFF;
-}
-
-#resultados_anteriores {
-    border-collapse: collapse;
-    width: 1000px;
-}
-
-#resultados_anteriores tr td {
-    border: 1px solid #CCC;
-    text-align: center;
-}
-
-#resultados_anteriores .titulo_ant {
-    background: #EEE;
-    text-align: center;
-}
-
-#resultados_anteriores .esquerda {
-    text-align: left;
-}
-</style>
-<?php
-echo "
-<table align='center' border='0'  cellspacing='0' cellpadding='0'>
-	<tr>
-		<td align='left'>
-			<div class='laudo'>
-			<table class='laudo' align='center' cellspacing='0' cellpadding='3' width='1000'>
-				<tr>
-					<td colspan='2' align='center'>
-						<span class='titulo_laudo'>Cotação de Material/Serviço</span> 
-						<br>&nbsp;
-					</td>
-				</tr>
-				<tr>
-					<td colspan='2'>
-						<table  cellspacing='0' cellpadding='5' width='1000'>
-							<tr>
-								<td width='20%' class='label' align='right'>
-									 Orçamento N°: 
-								</td>
-								<td>
-									 " . str_pad($orc_id, 6, '0', STR_PAD_LEFT) . "
-								</td>
-								<td width='30%' class='label' align='right'>
-									Status: 
-								</td>
-								<td>
-									 $sto_status_n
-								</td>
-							</tr>
-							<tr>
-								<td class='label' align='right'>
-									Condomínio: 
-								</td>
-								<td colspan='3'>
-									 $cli_nome_razao
-								</td>
-							</tr>
-							<tr>
-								<td class='label' align='right'>
-									Referente:
-								</td>
-								<td colspan='3'>
-									 $tps_nome
-								</td>
-							</tr>
-							<tr>
-								<td class='label' align='right'>
-									Data de cadastro:
-								</td>
-								<td>
-									 $orc_data_cadastro às $orc_hora_cadastro
-								</td>
-								<td class='label' align='right'>
-									Data de aprovação/reprovação:
-								</td>
-								<td>
-									 $orc_data_aprovacao
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-				<tr>
-					<td colspan='2' align='center' class='formtitulo'>
-						Empresas Contatadas
-					</td>
-				</tr>
-				<tr>
-					<td colspan='2'>
-						 <table class='bordatabela' cellpadding='10' cellspacing='0' width='700'>
-							<tr>
-								<td class='titulo_first'>Nome da Empresa</td>
-								<td class='titulo_tabela'>Valor</td>
-								<td class='titulo_tabela'>INSS (20%)</td>
-								<td class='titulo_tabela'>Observação</td>
-								<td class='titulo_tabela' align='right'>Total</td>
-								<td class='titulo_last'></td>
-							</tr>
-";
-$sql_fornecedores = "
-	SELECT ofn.*, cf.for_nome_razao, cf.for_autonomo
-	FROM orcamento_fornecedor ofn
-	LEFT JOIN cadastro_fornecedores cf ON cf.for_id = ofn.orf_fornecedor
-	WHERE ofn.orf_orcamento = :orc_id
-	ORDER BY ofn.orf_valor ASC
-";
-$stmt_fornecedores = $pdo->prepare($sql_fornecedores);
-$stmt_fornecedores->execute(['orc_id' => $orc_id]);
-$fornecedores = $stmt_fornecedores->fetchAll(PDO::FETCH_ASSOC);
-
-$c = 0;
-foreach ($fornecedores as $fornecedor) {
-	$total = $fornecedor['orf_valor'];
-	$classe = $c % 2 == 0 ? 'linhaimpar' : 'linhapar';
-	$c++;
-	$inss = '';
-	if ($fornecedor['for_autonomo'] == 1) {
-		$valor_autonomo = ($fornecedor['orf_valor'] * 20) / 100;
-		$total += $valor_autonomo;
-		$inss = "+ R$ " . number_format($valor_autonomo, 2, ',', '.');
-	}
-	echo "
-	<tr class='$classe'>
-		<td>{$fornecedor['for_nome_razao']}</td>
-		<td>R$ " . number_format($fornecedor['orf_valor'], 2, ',', '.') . "</td>
-		<td>$inss</td>
-		<td>{$fornecedor['orf_obs']}</td>
-		<td align='right'><b>R$ " . number_format($total, 2, ',', '.') . "</b></td>
-		<td><div style='border:1px solid #666;'>&nbsp;&nbsp;&nbsp;&nbsp;</div></td>
-	</tr>
-	";
-}
-echo "
-						</table>
-					</td>
-				</tr>
-				<tr>
-					<td colspan='2'></td>
-				</tr>
-				<tr>
-					<td align='left' colspan='2'>
-						<b>Observações:</b> " . nl2br(htmlspecialchars($orc_observacoes)) . "
-					</td>
-				</tr>
-				<tr>
-					<td colspan='2'><br><br>&nbsp;</td>
-				</tr>
-				<tr>
-					<td colspan='2'>
-						 <table class='bordatabela' cellpadding='10' cellspacing='0' width='700'>
-							<tr>
-								<td colspan='2' class='titulo_tabela' align='center'>Aprovação (assinalar a empresa acima e preencher com data/assinatura)</td>                                    
-							</tr>
-							<tr>
-								<td colspan='2'>&nbsp;</td>
-							</tr>
-							<tr>
-								<td width='30%' align='right'>Data</td>
-								<td>_______/_______/______________</td>
-							</tr>
-							<tr>
-								<td colspan='2'>&nbsp;</td>
-							</tr>
-							<tr>
-								<td align='right'>Assinatura</td>
-								<td>_________________________________________________________</td>
-							</tr>
-							<tr>
-								<td colspan='2'>&nbsp;</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			</div>
-			<div class='titulo_adm'>   </div>
-		</td>
-	</tr>
+								$c = 0;
+								foreach ($fornecedores as $fornecedor):
+									$total = $fornecedor['orf_valor'];
+									$classe = $c % 2 === 0 ? 'linhaimpar' : 'linhapar';
+									$c++;
+									$inss = '';
+									if ($fornecedor['for_autonomo'] == 1) {
+										$valor_autonomo = $fornecedor['orf_valor'] * 0.2;
+										$total += $valor_autonomo;
+										$inss = '+ R$ ' . number_format($valor_autonomo, 2, ',', '.');
+									}
+									?>
+                                <tr class="<?= $classe ?>">
+                                    <td><?= htmlspecialchars($fornecedor['for_nome_razao']) ?></td>
+                                    <td>R$ <?= number_format($fornecedor['orf_valor'], 2, ',', '.') ?></td>
+                                    <td><?= $inss ?></td>
+                                    <td><?= htmlspecialchars($fornecedor['orf_obs']) ?></td>
+                                    <td align="right"><b>R$ <?= number_format($total, 2, ',', '.') ?></b></td>
+                                    <td>
+                                        <div style="border:1px solid #666;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                    </tr>
+                    <tr>
+                        <td align="left" colspan="2">
+                            <b>Observações:</b> <?= nl2br(htmlspecialchars($orc_observacoes)) ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><br><br>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table class="bordatabela" cellpadding="10" cellspacing="0" width="700">
+                                <tr>
+                                    <td colspan="2" class="titulo_tabela" align="center">
+                                        Aprovação (assinalar a empresa acima e preencher com data/assinatura)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td width="30%" align="right">Data</td>
+                                    <td>_______/_______/______________</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td align="right">Assinatura</td>
+                                    <td>_________________________________________________________</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">&nbsp;</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="titulo_adm"></div>
+        </td>
+    </tr>
 </table>
-";
+<?php
 $html = ob_get_clean();
 
 require_once __DIR__ . '/../vendor/autoload.php';
 use Mpdf\Mpdf;
+
 $mpdf = new Mpdf([
 	'format' => 'A4',
 	'margin_left' => 10,
@@ -396,28 +221,32 @@ $mpdf = new Mpdf([
 ]);
 $mpdf->SetTitle('Exacto Adm | Imprimir Orçamento');
 $mpdf->useOddEven = false;
-$mpdf->SetHTMLHeader('<div class="topo"><img src=../imagens/logo.png width="200"><br><br><img src=../imagens/linha.png /></div>');
+$mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200"><br><br><img src="../imagens/linha.png" /></div>');
 $mpdf->SetHTMLFooter('
-<div class=rodape>
-<img src=../imagens/linha.png />
-<table align=center class=rod width="100%">
+<div class="rodape">
+<img src="../imagens/linha.png" />
+<table align="center" class="rod" width="100%">
 <tr>
-<td colspan=2 align=center>
+<td colspan="2" align="center">
 <br>
-<span class=azul>Exacto Assessoria e Administração</span><br>
+<span class="azul">Exacto Assessoria e Administração</span><br>
 Rua Prof. Emilio Augusto Ferreira, 32 - Vila Oliveira, Mogi das Cruzes/SP<br>
-Fone: (11) <span class=verde>4791-9220</span><br>
-Email: <span class=azul>exacto@exactoadm.com.br</span> | Site: <span class=azul>www.exactoadm.com.br</span><br> 
+Fone: (11) <span class="verde">4791-9220</span><br>
+Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span class="azul">www.exactoadm.com.br</span><br>
 </td>
 </tr>
 <tr>
-<td colspan=2 align=right>
+<td colspan="2" align="right">
 {PAGENO} / {nbpg}
 </td>
 </tr>
 </table>
 </div>
 ');
+
+// Inclui o CSS externo
+$css = file_get_contents(__DIR__ . '/pdf.css');
+$mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
 $mpdf->allow_charset_conversion = true;
 $mpdf->charset_in = 'UTF-8';
@@ -434,16 +263,13 @@ if ($planilha) {
 	$pagecount = $mpdf->SetSourceFile($planilha);
 	for ($i = 1; $i <= $pagecount; $i++) {
 		$mpdf->AddPage();
-		$mpdf->SetHTMLFooter('<div class=rodape>
-<table align=center class=rod width="100%">
+		$mpdf->SetHTMLFooter('<div class="rodape">
+<table align="center" class="rod" width="100%">
 <tr>
-<td colspan=2 align=center>
-</td>
+<td colspan="2" align="center"></td>
 </tr>
 <tr>
-<td colspan=2 align=right>
-{PAGENO} / {nbpg}
-</td>
+<td colspan="2" align="right">{PAGENO} / {nbpg}</td>
 </tr>
 </table>
 </div>');
@@ -468,16 +294,13 @@ foreach ($anexos as $anexo) {
 	$pagecount = $mpdf->SetSourceFile($anexo);
 	for ($i = 1; $i <= $pagecount; $i++) {
 		$mpdf->AddPage();
-		$mpdf->SetHTMLFooter('<div class=rodape>
-<table align=center class=rod width="100%">
+		$mpdf->SetHTMLFooter('<div class="rodape">
+<table align="center" class="rod" width="100%">
 <tr>
-<td colspan=2 align=center>
-</td>
+<td colspan="2" align="center"></td>
 </tr>
 <tr>
-<td colspan=2 align=right>
-{PAGENO} / {nbpg}
-</td>
+<td colspan="2" align="right">{PAGENO} / {nbpg}</td>
 </tr>
 </table>
 </div>');

@@ -1,73 +1,73 @@
 <?php
 session_start();
 $pagina_link = 'relatorio_orcamentos';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title><?php echo $titulo ?? ''; ?></title>
-    <meta name="author" content="MogiComp">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include("../css/style.php"); ?>
-    <script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+	<title><?php echo $titulo ?? ''; ?></title>
+	<meta name="author" content="MogiComp">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include "../css/style.php"; ?>
+	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
+	<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
 
 <body>
-    <?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+	<?php
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include "../mod_topo/topo.php";
+	require_once '../mod_includes/php/verificapermissao.php';
 
 	$page = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=relatorio_orcamentos" . $autenticacao . "'>Orçamentos</a>";
 
 	$fil_orc = $_REQUEST['fil_orc'] ?? '';
-	$orc_query = $fil_orc !== '' ? " (orc_id LIKE :fil_orc) " : " 1 = 1 ";
+	$orc_query = $fil_orc !== '' ? "orc_id LIKE :fil_orc" : "1 = 1";
 
 	$fil_nome = $_REQUEST['fil_nome'] ?? '';
-	$nome_query = $fil_nome !== '' ? " (cli_nome_razao LIKE :fil_nome) " : " 1 = 1 ";
+	$nome_query = $fil_nome !== '' ? "cli_nome_razao LIKE :fil_nome" : "1 = 1";
 
 	$fil_tipo_servico = $_REQUEST['fil_tipo_servico'] ?? '';
 	if ($fil_tipo_servico !== '') {
-		$tipo_servico_query = " orc_tipo_servico = :fil_tipo_servico ";
+		$tipo_servico_query = "orc_tipo_servico = :fil_tipo_servico";
 		$stmt_tps = $pdo->prepare("SELECT tps_nome FROM cadastro_tipos_servicos WHERE tps_id = :tps_id");
 		$stmt_tps->execute([':tps_id' => $fil_tipo_servico]);
 		$fil_tipo_servico_n = $stmt_tps->fetchColumn() ?: "Tipo de Serviço Prestado";
 	} else {
-		$tipo_servico_query = " 1 = 1 ";
+		$tipo_servico_query = "1 = 1";
 		$fil_tipo_servico_n = "Tipo de Serviço Prestado";
 	}
 
 	$fil_data_inicio = $_REQUEST['fil_data_inicio'] ?? '';
 	$fil_data_fim = $_REQUEST['fil_data_fim'] ?? '';
-	$data_query = " 1 = 1 ";
+	$data_query = "1 = 1";
 	$params_data = [];
 	if ($fil_data_inicio !== '') {
 		$data_inicio = implode('-', array_reverse(explode('/', $fil_data_inicio)));
-		$data_query = " orc_data_cadastro >= :data_inicio ";
+		$data_query = "orc_data_cadastro >= :data_inicio";
 		$params_data[':data_inicio'] = $data_inicio;
 	}
 	if ($fil_data_fim !== '') {
 		$data_fim = implode('-', array_reverse(explode('/', $fil_data_fim)));
 		if ($fil_data_inicio !== '') {
-			$data_query = " orc_data_cadastro BETWEEN :data_inicio AND :data_fim ";
+			$data_query = "orc_data_cadastro BETWEEN :data_inicio AND :data_fim";
 			$params_data[':data_fim'] = $data_fim . " 23:59:59";
 		} else {
-			$data_query = " orc_data_cadastro <= :data_fim ";
+			$data_query = "orc_data_cadastro <= :data_fim";
 			$params_data[':data_fim'] = $data_fim . " 23:59:59";
 		}
 	}
 
 	$fil_status = $_REQUEST['fil_status'] ?? '';
 	if ($fil_status !== '') {
-		$status_query = " (sto_status = :fil_status) ";
+		$status_query = "sto_status = :fil_status";
 		switch ($fil_status) {
 			case 1:
 				$fil_status_n = "<span class='laranja'>Pendente</span>";
@@ -85,12 +85,12 @@ include('../mod_includes/php/connect.php');
 				$fil_status_n = "Status";
 		}
 	} else {
-		$status_query = " 1 = 1 ";
+		$status_query = "1 = 1";
 		$fil_status_n = "Status";
 	}
 
 	$filtro = $_REQUEST['filtro'] ?? '';
-	$filtro_query = $filtro !== '' ? " 1 = 1 " : " 1 = 0 ";
+	$filtro_query = $filtro !== '' ? "1 = 1" : "1 = 0";
 
 	$sql = "SELECT * FROM orcamento_gerenciar 
 	LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
@@ -204,10 +204,10 @@ include('../mod_includes/php/connect.php');
 	</div>
 </div>";
 
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="../mod_includes/js/elementPrint.js"></script>
+	<script type="text/javascript" src="../mod_includes/js/jquery-1.3.2.min.js"></script>
+	<script type="text/javascript" src="../mod_includes/js/elementPrint.js"></script>
 </body>
 
 </html>

@@ -1,12 +1,12 @@
 <?php
 session_start();
 $pagina_link = 'prestacao_gerenciar';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
 
-require_once('../mod_includes/php/verificalogin.php');
-require_once('../mod_includes/php/verificapermissao.php');
-include('../mod_includes/php/funcoes-jquery.php');
-include('../mod_topo/topo.php');
+require_once '../mod_includes/php/verificalogin.php';
+require_once '../mod_includes/php/verificapermissao.php';
+include '../mod_includes/php/funcoes-jquery.php';
+include '../mod_topo/topo.php';
 
 $titulo = $titulo ?? 'Prestação de Contas';
 
@@ -199,7 +199,7 @@ if ($pagina === "prestacao_gerenciar") {
 <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
 <link rel='shortcut icon' href='../imagens/favicon.png'>
 ";
-	include("../css/style.php");
+	include "../css/style.php";
 	echo "
 <script src='../mod_includes/js/funcoes.js'></script>
 <script src='../mod_includes/js/jquery-1.8.3.min.js'></script>
@@ -304,7 +304,7 @@ if ($pagina === "prestacao_gerenciar") {
 		echo "</table>";
 		// Paginação (ajuste conforme seu sistema)
 		$variavel = "&pagina=prestacao_gerenciar&fil_prestacao=$fil_prestacao&fil_nome=$fil_nome&fil_referencia=$fil_referencia&fil_data_inicio=$fil_data_inicio&fil_data_fim=$fil_data_fim$autenticacao";
-		include("../mod_includes/php/paginacao.php");
+		include "../mod_includes/php/paginacao.php";
 	} else {
 		echo "<br><br><br>Não há nenhuma prestação de conta cadastrada.";
 	}
@@ -448,5 +448,5 @@ if ($pagina === 'editar_prestacao_gerenciar') {
 	}
 }
 
-include('../mod_rodape/rodape.php');
+include '../mod_rodape/rodape.php';
 echo "</body></html>";

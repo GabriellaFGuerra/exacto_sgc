@@ -3,114 +3,114 @@ session_start();
 require_once '../mod_includes/php/connect.php';
 require_once '../mod_includes/php/verificalogin.php';
 include '../mod_includes/php/funcoes-jquery.php';
-include "../mod_topo/topo.php";
+include '../mod_topo/topo.php';
 
-$page = "Parâmetros Gerais";
+$page = 'Parâmetros Gerais';
 $erro = false;
 $msg = '';
 
 function get_param($arr, $key, $default = '')
 {
-	return $arr[$key] ?? $default;
+    return $arr[$key] ?? $default;
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'envia') {
-	$ger_id = intval(get_param($_GET, 'ger_id', 1));
-	$fields = [
-		'ger_nome',
-		'ger_sigla',
-		'ger_cep',
-		'ger_uf',
-		'ger_municipio',
-		'ger_bairro',
-		'ger_endereco',
-		'ger_numero',
-		'ger_comp',
-		'ger_telefone',
-		'ger_email',
-		'ger_site',
-		'ger_cor_primaria',
-		'ger_cor_secundaria',
-		'ger_numeracao_anual',
-		'ger_guia_anual',
-		'ger_status'
-	];
-	$data = [];
-	foreach ($fields as $field) {
-		$data[$field] = get_param($_POST, $field, '');
-	}
+    $ger_id = (int)get_param($_GET, 'ger_id', 1);
+    $fields = [
+        'ger_nome',
+        'ger_sigla',
+        'ger_cep',
+        'ger_uf',
+        'ger_municipio',
+        'ger_bairro',
+        'ger_endereco',
+        'ger_numero',
+        'ger_comp',
+        'ger_telefone',
+        'ger_email',
+        'ger_site',
+        'ger_cor_primaria',
+        'ger_cor_secundaria',
+        'ger_numeracao_anual',
+        'ger_guia_anual',
+        'ger_status'
+    ];
+    $data = [];
+    foreach ($fields as $field) {
+        $data[$field] = get_param($_POST, $field, '');
+    }
 
-	// Verifica se já existe registro
-	$stmt = $pdo->query("SELECT ger_id FROM parametros_gerais LIMIT 1");
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Verifica se já existe registro
+    $stmt = $pdo->query('SELECT ger_id FROM parametros_gerais LIMIT 1');
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-	if ($row) {
-		// UPDATE
-		$ger_id = $row['ger_id'];
-		$sql = "UPDATE parametros_gerais SET 
-			ger_nome = :ger_nome,
-			ger_sigla = :ger_sigla,
-			ger_cep = :ger_cep,
-			ger_uf = :ger_uf,
-			ger_municipio = :ger_municipio,
-			ger_bairro = :ger_bairro,
-			ger_endereco = :ger_endereco,
-			ger_numero = :ger_numero,
-			ger_comp = :ger_comp,
-			ger_telefone = :ger_telefone,
-			ger_email = :ger_email,
-			ger_site = :ger_site,
-			ger_cor_primaria = :ger_cor_primaria,
-			ger_cor_secundaria = :ger_cor_secundaria,
-			ger_numeracao_anual = :ger_numeracao_anual,
-			ger_guia_anual = :ger_guia_anual,
-			ger_status = :ger_status
-			WHERE ger_id = :ger_id";
-		$data['ger_id'] = $ger_id;
-	} else {
-		// INSERT
-		$sql = "INSERT INTO parametros_gerais (
-			ger_nome, ger_sigla, ger_cep, ger_uf, ger_municipio, ger_bairro, ger_endereco,
-			ger_numero, ger_comp, ger_telefone, ger_email, ger_site,
-			ger_cor_primaria, ger_cor_secundaria, ger_numeracao_anual, ger_guia_anual, ger_status
-		) VALUES (
-			:ger_nome, :ger_sigla, :ger_cep, :ger_uf, :ger_municipio, :ger_bairro, :ger_endereco,
-			:ger_numero, :ger_comp, :ger_telefone, :ger_email, :ger_site,
-			:ger_cor_primaria, :ger_cor_secundaria, :ger_numeracao_anual, :ger_guia_anual, :ger_status
-		)";
-	}
+    if ($row) {
+        // UPDATE
+        $ger_id = $row['ger_id'];
+        $sql = 'UPDATE parametros_gerais SET 
+            ger_nome = :ger_nome,
+            ger_sigla = :ger_sigla,
+            ger_cep = :ger_cep,
+            ger_uf = :ger_uf,
+            ger_municipio = :ger_municipio,
+            ger_bairro = :ger_bairro,
+            ger_endereco = :ger_endereco,
+            ger_numero = :ger_numero,
+            ger_comp = :ger_comp,
+            ger_telefone = :ger_telefone,
+            ger_email = :ger_email,
+            ger_site = :ger_site,
+            ger_cor_primaria = :ger_cor_primaria,
+            ger_cor_secundaria = :ger_cor_secundaria,
+            ger_numeracao_anual = :ger_numeracao_anual,
+            ger_guia_anual = :ger_guia_anual,
+            ger_status = :ger_status
+            WHERE ger_id = :ger_id';
+        $data['ger_id'] = $ger_id;
+    } else {
+        // INSERT
+        $sql = 'INSERT INTO parametros_gerais (
+            ger_nome, ger_sigla, ger_cep, ger_uf, ger_municipio, ger_bairro, ger_endereco,
+            ger_numero, ger_comp, ger_telefone, ger_email, ger_site,
+            ger_cor_primaria, ger_cor_secundaria, ger_numeracao_anual, ger_guia_anual, ger_status
+        ) VALUES (
+            :ger_nome, :ger_sigla, :ger_cep, :ger_uf, :ger_municipio, :ger_bairro, :ger_endereco,
+            :ger_numero, :ger_comp, :ger_telefone, :ger_email, :ger_site,
+            :ger_cor_primaria, :ger_cor_secundaria, :ger_numeracao_anual, :ger_guia_anual, :ger_status
+        )';
+    }
 
-	$stmt = $pdo->prepare($sql);
-	if ($stmt->execute($data)) {
-		$ultimo_id = $row ? $ger_id : $pdo->lastInsertId();
+    $stmt = $pdo->prepare($sql);
+    if ($stmt->execute($data)) {
+        $ultimo_id = $row ? $ger_id : $pdo->lastInsertId();
 
-		// Upload do logo
-		if (isset($_FILES['ger_logo']) && $_FILES['ger_logo']['error'][0] === UPLOAD_ERR_OK) {
-			$uploadDir = "../imagens/";
-			if (!is_dir($uploadDir)) {
-				mkdir($uploadDir, 0755, true);
-			}
-			$tmpName = $_FILES['ger_logo']['tmp_name'][0];
-			$logoPath = "{$uploadDir}logo.png";
-			if (move_uploaded_file($tmpName, $logoPath)) {
-				$stmtLogo = $pdo->prepare("UPDATE parametros_gerais SET ger_logo = :logo WHERE ger_id = :id");
-				$stmtLogo->execute(['logo' => $logoPath, 'id' => $ultimo_id]);
-			} else {
-				$erro = true;
-			}
-		}
+        // Upload do logo
+        if (isset($_FILES['ger_logo']) && $_FILES['ger_logo']['error'][0] === UPLOAD_ERR_OK) {
+            $uploadDir = '../imagens/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $tmpName = $_FILES['ger_logo']['tmp_name'][0];
+            $logoPath = $uploadDir . 'logo.png';
+            if (move_uploaded_file($tmpName, $logoPath)) {
+                $stmtLogo = $pdo->prepare('UPDATE parametros_gerais SET ger_logo = :logo WHERE ger_id = :id');
+                $stmtLogo->execute(['logo' => $logoPath, 'id' => $ultimo_id]);
+            } else {
+                $erro = true;
+            }
+        }
 
-		$msg = $erro
-			? "<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' class='close_janela'>"
-			: "<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>";
-	} else {
-		$msg = "<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' class='close_janela'>";
-	}
-	echo "<script>abreMask(`$msg`);</script>";
+        $msg = $erro
+            ? '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">'
+            : '<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=" Ok " type="button" class="close_janela">';
+    } else {
+        $msg = '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">';
+    }
+    echo "<script>abreMask(`$msg`);</script>";
 }
 
 // Carregar dados para o formulário
-$stmt = $pdo->query("SELECT * FROM parametros_gerais LEFT JOIN end_uf ON end_uf.uf_id = parametros_gerais.ger_uf LEFT JOIN end_municipios ON end_municipios.mun_id = parametros_gerais.ger_municipio WHERE ger_id = 1");
+$stmt = $pdo->query('SELECT * FROM parametros_gerais LEFT JOIN end_uf ON end_uf.uf_id = parametros_gerais.ger_uf LEFT JOIN end_municipios ON end_municipios.mun_id = parametros_gerais.ger_municipio WHERE ger_id = 1');
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $ger_id = $row['ger_id'] ?? 1;
@@ -136,7 +136,7 @@ $ger_guia_anual = $row['ger_guia_anual'] ?? 0;
 $ger_status = $row['ger_status'] ?? 1;
 
 // Carregar UFs
-$stmtUF = $pdo->query("SELECT * FROM end_uf ORDER BY uf_sigla");
+$stmtUF = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
 $ufs = $stmtUF->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
@@ -148,7 +148,7 @@ $ufs = $stmtUF->fetchAll(PDO::FETCH_ASSOC);
     <meta name="author" content="MogiComp">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include "../css/style.php"; ?>
+    <?php include '../css/style.php'; ?>
     <script src="../mod_includes/js/funcoes.js"></script>
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
     <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />

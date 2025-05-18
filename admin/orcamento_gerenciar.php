@@ -3,6 +3,7 @@ declare(strict_types=1);
 session_start();
 
 require_once '../mod_includes/php/connect.php';
+
 function abreMask(string $msg): void
 {
 	echo "<script>abreMask(`$msg`);</script>";
@@ -144,7 +145,7 @@ if ($action === 'excluir_anexo') {
 // Ativar/desativar orçamento
 if ($action === 'ativar' || $action === 'desativar') {
 	$orc_id = $_GET['orc_id'] ?? '';
-	$status = ($action === 'ativar') ? 1 : 0;
+	$status = $action === 'ativar' ? 1 : 0;
 	$sql = "UPDATE orcamento_gerenciar SET orc_status = ? WHERE orc_id = ?";
 	$stmt = $pdo->prepare($sql);
 	if ($stmt->execute([$status, $orc_id])) {
@@ -171,8 +172,8 @@ $fil_usuario_responsavel = $_REQUEST['fil_usuario_responsavel'] ?? '';
 $fil_gerente_responsavel = $_REQUEST['fil_gerente_responsavel'] ?? '';
 $fil_prazo = $_REQUEST['fil_prazo'] ?? '';
 
-$orc_query = $fil_orc ? " (orc_id LIKE :fil_orc) " : " 1 = 1 ";
-$nome_query = $fil_nome ? " (cli_nome_razao LIKE :fil_nome) " : " 1 = 1 ";
+$orc_query = $fil_orc ? " orc_id LIKE :fil_orc " : " 1 = 1 ";
+$nome_query = $fil_nome ? " cli_nome_razao LIKE :fil_nome " : " 1 = 1 ";
 $tipo_servico_query = $fil_tipo_servico ? " orc_tipo_servico = :fil_tipo_servico " : " 1 = 1 ";
 
 $data_query = " 1 = 1 ";
@@ -188,7 +189,7 @@ if ($fil_data_inicio || $fil_data_fim) {
 	}
 }
 
-$status_query = $fil_status !== '' ? " (sto_status = :fil_status) " : " 1 = 1 ";
+$status_query = $fil_status !== '' ? " sto_status = :fil_status " : " 1 = 1 ";
 $usuario_responsavel_query = $fil_usuario_responsavel ? " orc_usuario_responsavel = :fil_usuario_responsavel " : " 1 = 1 ";
 $gerente_responsavel_query = $fil_gerente_responsavel ? " orc_gerente_responsavel = :fil_gerente_responsavel " : " 1 = 1 ";
 
@@ -252,115 +253,115 @@ $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 
 <head>
-    <title>Gerenciar Orçamentos</title>
-    <meta charset="utf-8">
-    <style>
-    table {
-        border-collapse: collapse;
-        width: 100%;
-    }
+	<title>Gerenciar Orçamentos</title>
+	<meta charset="utf-8">
+	<style>
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
 
-    th,
-    td {
-        border: 1px solid #ccc;
-        padding: 5px;
-    }
+		th,
+		td {
+			border: 1px solid #ccc;
+			padding: 5px;
+		}
 
-    th {
-        background: #eee;
-    }
-    </style>
+		th {
+			background: #eee;
+		}
+	</style>
 </head>
 
 <body>
-    <h2>Gerenciar Orçamentos</h2>
+	<h2>Gerenciar Orçamentos</h2>
 
-    <form method="get" action="">
-        <input type="text" name="fil_orc" placeholder="ID Orçamento" value="<?= htmlspecialchars($fil_orc) ?>">
-        <input type="text" name="fil_nome" placeholder="Nome Cliente" value="<?= htmlspecialchars($fil_nome) ?>">
-        <input type="text" name="fil_data_inicio" placeholder="Data início (dd/mm/yyyy)"
-            value="<?= htmlspecialchars($fil_data_inicio) ?>">
-        <input type="text" name="fil_data_fim" placeholder="Data fim (dd/mm/yyyy)"
-            value="<?= htmlspecialchars($fil_data_fim) ?>">
-        <select name="fil_status">
-            <option value="">Status</option>
-            <option value="1" <?= ($fil_status === '1' ? 'selected' : '') ?>>Ativo</option>
-            <option value="0" <?= ($fil_status === '0' ? 'selected' : '') ?>>Inativo</option>
-        </select>
-        <button type="submit">Filtrar</button>
-    </form>
+	<form method="get" action="">
+		<input type="text" name="fil_orc" placeholder="ID Orçamento" value="<?= htmlspecialchars($fil_orc) ?>">
+		<input type="text" name="fil_nome" placeholder="Nome Cliente" value="<?= htmlspecialchars($fil_nome) ?>">
+		<input type="text" name="fil_data_inicio" placeholder="Data início (dd/mm/yyyy)"
+			value="<?= htmlspecialchars($fil_data_inicio) ?>">
+		<input type="text" name="fil_data_fim" placeholder="Data fim (dd/mm/yyyy)"
+			value="<?= htmlspecialchars($fil_data_fim) ?>">
+		<select name="fil_status">
+			<option value="">Status</option>
+			<option value="1" <?= $fil_status === '1' ? 'selected' : '' ?>>Ativo</option>
+			<option value="0" <?= $fil_status === '0' ? 'selected' : '' ?>>Inativo</option>
+		</select>
+		<button type="submit">Filtrar</button>
+	</form>
 
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Tipo Serviço</th>
-            <th>Andamento</th>
-            <th>Prazo</th>
-            <th>Status</th>
-            <th>Ações</th>
-        </tr>
-        <?php foreach ($resultados as $row): ?>
-        <tr>
-            <td><?= htmlspecialchars((string) $row['orc_id']) ?></td>
-            <td><?= htmlspecialchars($row['cli_nome_razao'] ?? '') ?></td>
-            <td><?= htmlspecialchars($row['tps_nome'] ?? '') ?></td>
-            <td><?= htmlspecialchars($row['orc_andamento'] ?? '') ?></td>
-            <td><?= !empty($row['orc_prazo']) ? htmlspecialchars(date('d/m/Y', strtotime($row['orc_prazo']))) : '' ?>
-            </td>
-            <td><?= ($row['orc_status'] ? 'Ativo' : 'Inativo') ?></td>
-            <td>
-                <a href="?action=excluir&orc_id=<?= $row['orc_id'] ?>"
-                    onclick="return confirm('Excluir este orçamento?')">Excluir</a>
-                <?php if ($row['orc_status']): ?>
-                <a href="?action=desativar&orc_id=<?= $row['orc_id'] ?>">Desativar</a>
-                <?php else: ?>
-                <a href="?action=ativar&orc_id=<?= $row['orc_id'] ?>">Ativar</a>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
+	<table>
+		<tr>
+			<th>ID</th>
+			<th>Cliente</th>
+			<th>Tipo Serviço</th>
+			<th>Andamento</th>
+			<th>Prazo</th>
+			<th>Status</th>
+			<th>Ações</th>
+		</tr>
+		<?php foreach ($resultados as $row): ?>
+			<tr>
+				<td><?= htmlspecialchars((string) $row['orc_id']) ?></td>
+				<td><?= htmlspecialchars($row['cli_nome_razao'] ?? '') ?></td>
+				<td><?= htmlspecialchars($row['tps_nome'] ?? '') ?></td>
+				<td><?= htmlspecialchars($row['orc_andamento'] ?? '') ?></td>
+				<td><?= !empty($row['orc_prazo']) ? htmlspecialchars(date('d/m/Y', strtotime($row['orc_prazo']))) : '' ?>
+				</td>
+				<td><?= $row['orc_status'] ? 'Ativo' : 'Inativo' ?></td>
+				<td>
+					<a href="?action=excluir&orc_id=<?= $row['orc_id'] ?>"
+						onclick="return confirm('Excluir este orçamento?')">Excluir</a>
+					<?php if ($row['orc_status']): ?>
+						<a href="?action=desativar&orc_id=<?= $row['orc_id'] ?>">Desativar</a>
+					<?php else: ?>
+						<a href="?action=ativar&orc_id=<?= $row['orc_id'] ?>">Ativar</a>
+					<?php endif; ?>
+				</td>
+			</tr>
+		<?php endforeach; ?>
+	</table>
 
-    <h3>Adicionar Orçamento</h3>
-    <form method="post" enctype="multipart/form-data" action="?action=adicionar">
-        <input type="hidden" name="pagina" value="orcamento_gerenciar">
-        Cliente: <input type="text" name="orc_cliente_id" required><br>
-        Tipo Serviço: <input type="text" name="orc_tipo_servico" required><br>
-        Andamento: <input type="text" name="orc_andamento"><br>
-        Observações: <textarea name="orc_observacoes"></textarea><br>
-        Usuário Responsável: <input type="text" name="orc_usuario_responsavel"><br>
-        Gerente Responsável: <input type="text" name="orc_gerente_responsavel"><br>
-        Prazo: <input type="text" name="orc_prazo" placeholder="dd/mm/yyyy"><br>
-        Status: <select name="orc_status">
-            <option value="1">Ativo</option>
-            <option value="0">Inativo</option>
-        </select><br>
-        <h4>Fornecedores</h4>
-        <div id="fornecedores">
-            <div>
-                Fornecedor: <input type="text" name="orc_fornecedor[]">
-                Valor: <input type="text" name="orc_valor[]">
-                Obs: <input type="text" name="orc_obs[]">
-                Anexo: <input type="file" name="orc_anexo[]">
-            </div>
-        </div>
-        <button type="button" onclick="adicionarFornecedor()">Adicionar Fornecedor</button>
-        <h4>Planilha</h4>
-        <input type="file" name="orc_planilha[]"><br>
-        <button type="submit">Cadastrar</button>
-    </form>
-    <script>
-    function adicionarFornecedor() {
-        var div = document.createElement('div');
-        div.innerHTML =
-            'Fornecedor: <input type="text" name="orc_fornecedor[]"> Valor: <input type="text" name="orc_valor[]"> Obs: <input type="text" name="orc_obs[]"> Anexo: <input type="file" name="orc_anexo[]">';
-        document.getElementById('fornecedores').appendChild(div);
-    }
-    </script>
+	<h3>Adicionar Orçamento</h3>
+	<form method="post" enctype="multipart/form-data" action="?action=adicionar">
+		<input type="hidden" name="pagina" value="orcamento_gerenciar">
+		Cliente: <input type="text" name="orc_cliente_id" required><br>
+		Tipo Serviço: <input type="text" name="orc_tipo_servico" required><br>
+		Andamento: <input type="text" name="orc_andamento"><br>
+		Observações: <textarea name="orc_observacoes"></textarea><br>
+		Usuário Responsável: <input type="text" name="orc_usuario_responsavel"><br>
+		Gerente Responsável: <input type="text" name="orc_gerente_responsavel"><br>
+		Prazo: <input type="text" name="orc_prazo" placeholder="dd/mm/yyyy"><br>
+		Status: <select name="orc_status">
+			<option value="1">Ativo</option>
+			<option value="0">Inativo</option>
+		</select><br>
+		<h4>Fornecedores</h4>
+		<div id="fornecedores">
+			<div>
+				Fornecedor: <input type="text" name="orc_fornecedor[]">
+				Valor: <input type="text" name="orc_valor[]">
+				Obs: <input type="text" name="orc_obs[]">
+				Anexo: <input type="file" name="orc_anexo[]">
+			</div>
+		</div>
+		<button type="button" onclick="adicionarFornecedor()">Adicionar Fornecedor</button>
+		<h4>Planilha</h4>
+		<input type="file" name="orc_planilha[]"><br>
+		<button type="submit">Cadastrar</button>
+	</form>
+	<script>
+		function adicionarFornecedor() {
+			var div = document.createElement('div');
+			div.innerHTML =
+				'Fornecedor: <input type="text" name="orc_fornecedor[]"> Valor: <input type="text" name="orc_valor[]"> Obs: <input type="text" name="orc_obs[]"> Anexo: <input type="file" name="orc_anexo[]">';
+			document.getElementById('fornecedores').appendChild(div);
+		}
+	</script>
 </body>
 
 </html>
 <?php
-include('../mod_rodape/rodape.php');
+include '../mod_rodape/rodape.php';
 ?>

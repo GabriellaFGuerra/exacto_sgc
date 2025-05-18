@@ -1,30 +1,30 @@
 <?php
 session_start();
 $pagina_link = 'relatorio_infracoes';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-    <title><?php echo $titulo ?? ''; ?></title>
-    <meta name="author" content="MogiComp">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include("../css/style.php"); ?>
-    <script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+	<title><?php echo $titulo ?? ''; ?></title>
+	<meta name="author" content="MogiComp">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include '../css/style.php'; ?>
+	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js" type="text/javascript"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
 
 <body>
-    <?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+	<?php
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include '../mod_topo/topo.php';
+	require_once '../mod_includes/php/verificapermissao.php';
 
 	$page = "Relatórios &raquo; <a href='relatorio_infracoes.php?pagina=relatorio_infracoes" . ($autenticacao ?? '') . "'>Infrações</a>";
 
@@ -47,32 +47,33 @@ include('../mod_includes/php/connect.php');
 	$params = [];
 
 	if ($fil_nome !== '') {
-		$where[] = "cli_nome_razao LIKE :fil_nome";
+		$where[] = 'cli_nome_razao LIKE :fil_nome';
 		$params[':fil_nome'] = "%$fil_nome%";
 	}
 	if ($fil_proprietario !== '') {
-		$where[] = "inf_proprietario LIKE :fil_proprietario";
+		$where[] = 'inf_proprietario LIKE :fil_proprietario';
 		$params[':fil_proprietario'] = "%$fil_proprietario%";
 	}
 	if ($fil_assunto !== '') {
-		$where[] = "inf_assunto LIKE :fil_assunto";
+		$where[] = 'inf_assunto LIKE :fil_assunto';
 		$params[':fil_assunto'] = "%$fil_assunto%";
 	}
 	if ($fil_bloco !== '') {
-		$where[] = "inf_bloco LIKE :fil_bloco";
+		$where[] = 'inf_bloco LIKE :fil_bloco';
 		$params[':fil_bloco'] = "%$fil_bloco%";
 	}
 	if ($fil_apto !== '') {
-		$where[] = "inf_apto LIKE :fil_apto";
+		$where[] = 'inf_apto LIKE :fil_apto';
 		$params[':fil_apto'] = "%$fil_apto%";
 	}
 	if ($fil_inf_tipo !== '') {
-		$where[] = "inf_tipo = :fil_inf_tipo";
+		$where[] = 'inf_tipo = :fil_inf_tipo';
 		$params[':fil_inf_tipo'] = $fil_inf_tipo;
 		$fil_inf_tipo_n = $fil_inf_tipo;
 	} else {
-		$fil_inf_tipo_n = "Tipo de infracoes";
+		$fil_inf_tipo_n = 'Tipo de infracoes';
 	}
+
 	$data_inicio = '';
 	$data_fim = '';
 	if ($fil_data_inicio !== '') {
@@ -82,19 +83,19 @@ include('../mod_includes/php/connect.php');
 		$data_fim = implode('-', array_reverse(explode('/', $fil_data_fim)));
 	}
 	if ($data_inicio !== '' && $data_fim !== '') {
-		$where[] = "inf_data BETWEEN :data_inicio AND :data_fim";
+		$where[] = 'inf_data BETWEEN :data_inicio AND :data_fim';
 		$params[':data_inicio'] = $data_inicio;
 		$params[':data_fim'] = $data_fim;
 	} elseif ($data_inicio !== '') {
-		$where[] = "inf_data >= :data_inicio";
+		$where[] = 'inf_data >= :data_inicio';
 		$params[':data_inicio'] = $data_inicio;
 	} elseif ($data_fim !== '') {
-		$where[] = "inf_data <= :data_fim";
+		$where[] = 'inf_data <= :data_fim';
 		$params[':data_fim'] = $data_fim;
 	}
 
 	if ($filtro === '') {
-		$where[] = "1 = 0";
+		$where[] = '1 = 0';
 	}
 
 	$where_sql = $where ? implode(' AND ', $where) : '1=1';
@@ -109,7 +110,7 @@ include('../mod_includes/php/connect.php');
 	$stmt->execute($params);
 	$rows = $stmt->rowCount();
 
-	if (($pagina ?? '') == "relatorio_infracoes") {
+	if (($pagina ?? '') == 'relatorio_infracoes') {
 		echo "
 	<div class='centro'>
 		<div class='titulo'> $page  </div>
@@ -128,8 +129,8 @@ include('../mod_includes/php/connect.php');
 				<option value='Comunicação interna'>Comunicação interna</option>
 				<option value=''>Todos</option>
 			</select>
-			<input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início' value='" . ($fil_data_inicio) . "' onkeypress='return mascaraData(this,event);'>
-			<input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim' value='" . ($fil_data_fim) . "' onkeypress='return mascaraData(this,event);'>
+			<input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início' value='" . $fil_data_inicio . "' onkeypress='return mascaraData(this,event);'>
+			<input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim' value='" . $fil_data_fim . "' onkeypress='return mascaraData(this,event);'>
 			<input type='submit' value='Filtrar'> 
 			<input type='button' onclick=\"PrintDiv('imprimir');\" value='Imprimir' />
 			</form>
@@ -157,13 +158,13 @@ include('../mod_includes/php/connect.php');
 				$inf_ano = $row['inf_ano'];
 				$inf_tipo = $row['inf_tipo'];
 				$inf_proprietario = $row['inf_proprietario'];
-				$inf_data = $row['inf_data'] ? implode("/", array_reverse(explode("-", $row['inf_data']))) : '';
+				$inf_data = $row['inf_data'] ? implode('/', array_reverse(explode('-', $row['inf_data']))) : '';
 				$inf_bloco = $row['inf_bloco'];
 				$inf_apto = $row['inf_apto'];
 				$inf_assunto = $row['inf_assunto'];
-				$c1 = ($c++ % 2 == 0) ? "linhaimpar" : "linhapar";
+				$c1 = $c++ % 2 == 0 ? 'linhaimpar' : 'linhapar';
 				echo "<tr class='$c1'>
-					  <td>" . str_pad($inf_id, 3, "0", STR_PAD_LEFT) . "/$inf_ano</td>
+					  <td>" . str_pad($inf_id, 3, '0', STR_PAD_LEFT) . "/$inf_ano</td>
 					  <td>$inf_tipo</td>
 					  <td>$inf_assunto</td>
 					  <td>$cli_nome_razao</td>
@@ -172,9 +173,9 @@ include('../mod_includes/php/connect.php');
 					  <td align=center>$inf_data</td>
 				  </tr>";
 			}
-			echo "</table>";
+			echo '</table>';
 		} else {
-			echo "<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.";
+			echo '<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.';
 		}
 		echo "
 		<div class='titulo'>  </div>				
@@ -182,10 +183,10 @@ include('../mod_includes/php/connect.php');
 	</div>";
 	}
 
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
-    <script type="text/javascript" src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="../mod_includes/js/elementPrint.js"></script>
+		<script src="../mod_includes/js/jquery-1.3.2.min.js" type="text/javascript"></script>
+			<script src="../mod_includes/js/elementPrint.js" type="text/javascript"></script>
 </body>
 
 </html>

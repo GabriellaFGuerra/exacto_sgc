@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_clientes';
-include('../mod_includes/php/connect.php'); // $pdo deve estar disponível aqui
+include '../mod_includes/php/connect.php'; // $pdo deve estar disponível aqui
 
 function getPost($key, $default = '')
 {
@@ -20,7 +20,7 @@ function getGet($key, $default = '')
 
 function abreMask($msg)
 {
-	echo "<SCRIPT language='JavaScript'>abreMask('$msg');</SCRIPT>";
+	echo "<script language='JavaScript'>abreMask('$msg');</script>";
 }
 
 $page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_clientes'>Clientes</a>";
@@ -43,9 +43,11 @@ if ($action === "adicionar") {
 	$cli_senha = password_hash(getPost('cli_senha'), PASSWORD_DEFAULT);
 	$cli_status = getPost('cli_status', 1);
 
-	$stmt = $pdo->prepare("INSERT INTO cadastro_clientes (
-		cli_nome_razao, cli_cnpj, cli_cep, cli_uf, cli_municipio, cli_bairro, cli_endereco, cli_numero, cli_comp, cli_telefone, cli_email, cli_senha, cli_status
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	$stmt = $pdo->prepare(
+		"INSERT INTO cadastro_clientes (
+			cli_nome_razao, cli_cnpj, cli_cep, cli_uf, cli_municipio, cli_bairro, cli_endereco, cli_numero, cli_comp, cli_telefone, cli_email, cli_senha, cli_status
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	);
 	$ok = $stmt->execute([
 		$cli_nome_razao,
 		$cli_cnpj,
@@ -108,9 +110,11 @@ if ($action === 'editar') {
 		$cli_senha = password_hash($cli_senha, PASSWORD_DEFAULT);
 	}
 
-	$stmt = $pdo->prepare("UPDATE cadastro_clientes SET 
-		cli_nome_razao = ?, cli_cnpj = ?, cli_cep = ?, cli_uf = ?, cli_municipio = ?, cli_bairro = ?, cli_endereco = ?, cli_numero = ?, cli_comp = ?, cli_telefone = ?, cli_email = ?, cli_senha = ?, cli_status = ?
-		WHERE cli_id = ?");
+	$stmt = $pdo->prepare(
+		"UPDATE cadastro_clientes SET 
+			cli_nome_razao = ?, cli_cnpj = ?, cli_cep = ?, cli_uf = ?, cli_municipio = ?, cli_bairro = ?, cli_endereco = ?, cli_numero = ?, cli_comp = ?, cli_telefone = ?, cli_email = ?, cli_senha = ?, cli_status = ?
+			WHERE cli_id = ?"
+	);
 	$ok = $stmt->execute([
 		$cli_nome_razao,
 		$cli_cnpj,
@@ -187,7 +191,7 @@ if ($action === 'desativar') {
 $num_por_pagina = 10;
 $primeiro_registro = ($pag - 1) * $num_por_pagina;
 $fil_nome = getRequest('fil_nome');
-$fil_cli_cnpj = str_replace([".", "-"], "", getRequest('fil_cli_cnpj'));
+$fil_cli_cnpj = str_replace(['.', '-'], '', getRequest('fil_cli_cnpj'));
 
 $nome_query = $fil_nome ? "cli_nome_razao LIKE :fil_nome" : "1=1";
 $cnpj_query = $fil_cli_cnpj ? "REPLACE(REPLACE(cli_cnpj, '.', ''), '-', '') LIKE :fil_cli_cnpj" : "1=1";
@@ -214,7 +218,7 @@ if ($pagina == "cadastro_clientes") {
 		<div class='filtro'>
 			<form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post' action='cadastro_clientes.php?pagina=cadastro_clientes'>
 			<input name='fil_nome' id='fil_nome' value='$fil_nome' placeholder='Nome/Razão Social'>
-			<input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J' value='$fil_cli_cnpj'>						
+			<input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J' value='$fil_cli_cnpj'>                        
 			<input type='submit' value='Filtrar'> 
 			</form>
 		</div>
@@ -269,7 +273,7 @@ if ($pagina == "cadastro_clientes") {
 }
 
 if ($pagina == 'adicionar_cadastro_clientes') {
-	echo "	
+	echo "    
 	<form name='form_cadastro_clientes' id='form_cadastro_clientes' enctype='multipart/form-data' method='post' action='cadastro_clientes.php?pagina=cadastro_clientes&action=adicionar'>
 	<div class='centro'>
 		<div class='titulo'> $page &raquo; Adicionar  </div>
@@ -331,10 +335,12 @@ if ($pagina == 'adicionar_cadastro_clientes') {
 
 if ($pagina == 'editar_cadastro_clientes') {
 	$cli_id = getGet('cli_id');
-	$stmt = $pdo->prepare("SELECT * FROM cadastro_clientes 
+	$stmt = $pdo->prepare(
+		"SELECT * FROM cadastro_clientes 
 		LEFT JOIN end_uf ON end_uf.uf_id = cadastro_clientes.cli_uf
 		LEFT JOIN end_municipios ON end_municipios.mun_id = cadastro_clientes.cli_municipio
-		WHERE cli_id = ?");
+		WHERE cli_id = ?"
+	);
 	$stmt->execute([$cli_id]);
 	$cliente = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -424,5 +430,5 @@ if ($pagina == 'editar_cadastro_clientes') {
 		";
 	}
 }
-include('../mod_rodape/rodape.php');
+include '../mod_rodape/rodape.php';
 ?>

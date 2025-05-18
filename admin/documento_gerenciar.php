@@ -1,7 +1,29 @@
 <?php
 session_start();
 $pagina_link = 'documento_gerenciar';
-include('../mod_includes/php/connect.php');
+include '../mod_includes/php/connect.php';
+
+function formatDateToDb($date)
+{
+	if (!$date)
+		return null;
+	$parts = explode('/', $date);
+	if (count($parts) == 3) {
+		return "{$parts[2]}-{$parts[1]}-{$parts[0]}";
+	}
+	return $date;
+}
+
+function formatDateToBr($date)
+{
+	if (!$date)
+		return '';
+	$parts = explode('-', $date);
+	if (count($parts) == 3) {
+		return "{$parts[2]}/{$parts[1]}/{$parts[0]}";
+	}
+	return $date;
+}
 
 ?>
 <!DOCTYPE html>
@@ -12,7 +34,7 @@ include('../mod_includes/php/connect.php');
 	<meta name="author" content="MogiComp">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include("../css/style.php"); ?>
+	<?php include '../css/style.php'; ?>
 	<script src="../mod_includes/js/funcoes.js" type="text/javascript"></script>
 	<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
@@ -22,38 +44,16 @@ include('../mod_includes/php/connect.php');
 
 <body>
 	<?php
-	include('../mod_includes/php/funcoes-jquery.php');
-	require_once('../mod_includes/php/verificalogin.php');
-	include("../mod_topo/topo.php");
-	require_once('../mod_includes/php/verificapermissao.php');
+	include '../mod_includes/php/funcoes-jquery.php';
+	require_once '../mod_includes/php/verificalogin.php';
+	include '../mod_topo/topo.php';
+	require_once '../mod_includes/php/verificapermissao.php';
 
 	$page = "Documentos &raquo; <a href='documento_gerenciar.php?pagina=documento_gerenciar$autenticacao'>Gerenciar</a>";
 	$action = $_GET['action'] ?? '';
 	$pagina = $_GET['pagina'] ?? '';
 	$autenticacao = $_GET['autenticacao'] ?? '';
 	$pag = $_GET['pag'] ?? 1;
-
-	function formatDateToDb($date)
-	{
-		if (!$date)
-			return null;
-		$parts = explode('/', $date);
-		if (count($parts) == 3) {
-			return "{$parts[2]}-{$parts[1]}-{$parts[0]}";
-		}
-		return $date;
-	}
-
-	function formatDateToBr($date)
-	{
-		if (!$date)
-			return '';
-		$parts = explode('-', $date);
-		if (count($parts) == 3) {
-			return "{$parts[2]}/{$parts[1]}/{$parts[0]}";
-		}
-		return $date;
-	}
 
 	if ($action === "adicionar") {
 		$doc_cliente = $_POST['doc_cliente_id'] ?? null;
@@ -89,11 +89,13 @@ include('../mod_includes/php/connect.php');
 			$doc_data_vencimento = $date->format('Y-m-d');
 		}
 
-		$stmt = $pdo->prepare("INSERT INTO documento_gerenciar (
-		doc_cliente, doc_orcamento, doc_tipo, doc_data_emissao, doc_periodicidade, doc_data_vencimento, doc_observacoes
-	) VALUES (
-		:doc_cliente, :doc_orcamento, :doc_tipo, :doc_data_emissao, :doc_periodicidade, :doc_data_vencimento, :doc_observacoes
-	)");
+		$stmt = $pdo->prepare(
+			"INSERT INTO documento_gerenciar (
+			doc_cliente, doc_orcamento, doc_tipo, doc_data_emissao, doc_periodicidade, doc_data_vencimento, doc_observacoes
+		) VALUES (
+			:doc_cliente, :doc_orcamento, :doc_tipo, :doc_data_emissao, :doc_periodicidade, :doc_data_vencimento, :doc_observacoes
+		)"
+		);
 		$stmt->bindValue(':doc_cliente', $doc_cliente);
 		$stmt->bindValue(':doc_orcamento', $doc_orcamento ?: null, PDO::PARAM_INT);
 		$stmt->bindValue(':doc_tipo', $doc_tipo);
@@ -160,15 +162,16 @@ include('../mod_includes/php/connect.php');
 			$doc_data_vencimento = $date->format('Y-m-d');
 		}
 
-		$stmt = $pdo->prepare("UPDATE documento_gerenciar SET 
-		doc_orcamento = :doc_orcamento,
-		doc_tipo = :doc_tipo,
-		doc_data_emissao = :doc_data_emissao,
-		doc_periodicidade = :doc_periodicidade,
-		doc_data_vencimento = :doc_data_vencimento,
-		doc_observacoes = :doc_observacoes
-		WHERE doc_id = :doc_id
-	");
+		$stmt = $pdo->prepare(
+			"UPDATE documento_gerenciar SET 
+			doc_orcamento = :doc_orcamento,
+			doc_tipo = :doc_tipo,
+			doc_data_emissao = :doc_data_emissao,
+			doc_periodicidade = :doc_periodicidade,
+			doc_data_vencimento = :doc_data_vencimento,
+			doc_observacoes = :doc_observacoes
+		WHERE doc_id = :doc_id"
+		);
 		$stmt->bindValue(':doc_orcamento', $doc_orcamento ?: null, PDO::PARAM_INT);
 		$stmt->bindValue(':doc_tipo', $doc_tipo);
 		$stmt->bindValue(':doc_data_emissao', $doc_data_emissao);
@@ -252,17 +255,17 @@ include('../mod_includes/php/connect.php');
 
 	$where = "cli_status = 1 and cli_deletado = 1 and ucl_usuario = :usuario_id AND $nome_query AND $tipo_doc_query AND $data_query AND $vencido_query";
 	$sql = "SELECT documento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_tipos_docs.tpd_nome, orcamento_gerenciar.orc_id, cadastro_tipos_servicos.tps_nome
-		FROM documento_gerenciar
-		LEFT JOIN (cadastro_clientes
-			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-		ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
-		LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-		LEFT JOIN (orcamento_gerenciar
-			LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
-		ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
-		WHERE $where
-		ORDER BY doc_data_cadastro DESC
-		LIMIT $primeiro_registro, $num_por_pagina";
+	FROM documento_gerenciar
+	LEFT JOIN (cadastro_clientes
+		INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
+	ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+	LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
+	LEFT JOIN (orcamento_gerenciar
+		LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
+	ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+	WHERE $where
+	ORDER BY doc_data_cadastro DESC
+	LIMIT $primeiro_registro, $num_por_pagina";
 
 	$params = [
 		':usuario_id' => $_SESSION['usuario_id']
@@ -309,8 +312,8 @@ include('../mod_includes/php/connect.php');
 				<option value='$fil_vencido'>$fil_vencido</option>
 				<option value='Sim'>Sim</option>
 				<option value='Não'>Não</option>
-				<option value=''>Todos</option>				
-			</select>	
+				<option value=''>Todos</option>                
+			</select>    
 			<input type='submit' value='Filtrar'> 
 			</form>
 		</div>
@@ -357,38 +360,38 @@ include('../mod_includes/php/connect.php');
 				$c++;
 
 				echo "<tr class='$c1'>
-				<td>$tpd_nome</td>
-				<td>$cli_nome_razao</td>
-				<td>$orc_id ($tps_nome)</td>
-				<td align=center>$doc_data_emissao</td>
-				<td align=center>$doc_periodicidade_n</td>
-				<td align=center>$doc_data_vencimento</td>
-				<td align='center'>$doc_data_cadastro<br><span class='detalhe'>$doc_hora_cadastro</span></td>
-				<td align='center'>";
+			<td>$tpd_nome</td>
+			<td>$cli_nome_razao</td>
+			<td>$orc_id ($tps_nome)</td>
+			<td align=center>$doc_data_emissao</td>
+			<td align=center>$doc_periodicidade_n</td>
+			<td align=center>$doc_data_vencimento</td>
+			<td align='center'>$doc_data_cadastro<br><span class='detalhe'>$doc_hora_cadastro</span></td>
+			<td align='center'>";
 				if ($doc_anexo) {
 					echo "<a href='$doc_anexo' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a>";
 				}
 				echo "</td>
-				<td align=center>
-					<div id='normal-button-$doc_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div>
-					<div id='user-options-$doc_id' class='toolbar-icons' style='display: none;'>
-						<a href='documento_gerenciar.php?pagina=editar_documento_gerenciar&doc_id=$doc_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
-						<a onclick=\"abreMask('Deseja realmente excluir o documento <b>$cli_nome_razao</b>?<br><br><input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'documento_gerenciar.php?pagina=documento_gerenciar&action=excluir&doc_id=$doc_id$autenticacao\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input value=\' Não \' type=\'button\' class=\'close_janela\'>');\"><img border='0' src='../imagens/icon-excluir.png'></a>
-					</div>
-				</td>
-			</tr>";
+			<td align=center>
+				<div id='normal-button-$doc_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div>
+				<div id='user-options-$doc_id' class='toolbar-icons' style='display: none;'>
+					<a href='documento_gerenciar.php?pagina=editar_documento_gerenciar&doc_id=$doc_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
+					<a onclick=\"abreMask('Deseja realmente excluir o documento <b>$cli_nome_razao</b>?<br><br><input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'documento_gerenciar.php?pagina=documento_gerenciar&action=excluir&doc_id=$doc_id$autenticacao\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input value=\' Não \' type=\'button\' class=\'close_janela\'>');\"><img border='0' src='../imagens/icon-excluir.png'></a>
+				</div>
+			</td>
+		</tr>";
 			}
 			echo "</table>";
 			// Paginação
 			$sql_total = "SELECT COUNT(*) FROM documento_gerenciar
-			LEFT JOIN (cadastro_clientes
-				INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-			ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
-			LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-			LEFT JOIN (orcamento_gerenciar
-				LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
-			ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
-			WHERE $where";
+		LEFT JOIN (cadastro_clientes
+			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
+		ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+		LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
+		LEFT JOIN (orcamento_gerenciar
+			LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
+		ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+		WHERE $where";
 			$stmt_total = $pdo->prepare($sql_total);
 			$stmt_total->execute($params);
 			$total_registros = $stmt_total->fetchColumn();
@@ -400,7 +403,6 @@ include('../mod_includes/php/connect.php');
 					if ($i == $pag) {
 						echo "<span style='font-weight:bold; color:#000;'>$i</span> ";
 					} else {
-						// Mantém os filtros na URL
 						$queryString = http_build_query(array_merge($_GET, $_POST, ['pag' => $i]));
 						echo "<a href='documento_gerenciar.php?$queryString'>$i</a> ";
 					}
@@ -414,7 +416,7 @@ include('../mod_includes/php/connect.php');
 	}
 
 	if ($pagina == 'adicionar_documento_gerenciar') {
-		echo "	
+		echo "    
 	<form name='form_documento_gerenciar' id='form_documento_gerenciar' enctype='multipart/form-data' method='post' action='documento_gerenciar.php?pagina=documento_gerenciar&action=adicionar$autenticacao'>
 	<div class='centro'>
 		<div class='titulo'> $page &raquo; Adicionar  </div>
@@ -475,15 +477,15 @@ include('../mod_includes/php/connect.php');
 	if ($pagina == 'editar_documento_gerenciar') {
 		$doc_id = $_GET['doc_id'] ?? null;
 		$stmt = $pdo->prepare("SELECT documento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_clientes.cli_cnpj, orcamento_gerenciar.orc_id, cadastro_tipos_servicos.tps_nome, cadastro_tipos_docs.tpd_nome
-		FROM documento_gerenciar
-		LEFT JOIN (cadastro_clientes
-			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-		ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
-		LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-		LEFT JOIN (orcamento_gerenciar
-			LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
-		ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
-		WHERE cadastro_usuarios_clientes.ucl_usuario = :usuario_id AND doc_id = :doc_id");
+	FROM documento_gerenciar
+	LEFT JOIN (cadastro_clientes
+		INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
+	ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+	LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
+	LEFT JOIN (orcamento_gerenciar
+		LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
+	ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+	WHERE cadastro_usuarios_clientes.ucl_usuario = :usuario_id AND doc_id = :doc_id");
 		$stmt->execute([':usuario_id' => $_SESSION['usuario_id'], ':doc_id' => $doc_id]);
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -528,9 +530,9 @@ include('../mod_includes/php/connect.php');
 						<p><br><br>";
 			if ($doc_orcamento) {
 				echo "<select name='doc_orcamento' id='doc_orcamento'>
-								 <option value='$doc_orcamento'>$orc_id ($tps_nome)</option>
-							  </select>
-							  <p>";
+							 <option value='$doc_orcamento'>$orc_id ($tps_nome)</option>
+						  </select>
+						  <p>";
 			}
 			echo "
 						<select name='doc_tipo' id='doc_tipo'>
@@ -575,7 +577,7 @@ include('../mod_includes/php/connect.php');
 		";
 		}
 	}
-	include('../mod_rodape/rodape.php');
+	include '../mod_rodape/rodape.php';
 	?>
 </body>
 

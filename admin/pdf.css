@@ -1,0 +1,171 @@
+body,
+.laudo,
+.rodape,
+.rod,
+.titulo_tabela,
+.titulo_first,
+.titulo_last,
+.formtitulo,
+.label,
+.label2,
+.cliente {
+    font-family: "Calibri", Arial, sans-serif;
+}
+
+.topo {
+    margin: 0 auto;
+    text-align: center;
+    padding-bottom: 15px;
+}
+
+.rodape {
+    margin: 0 auto;
+    text-align: left;
+    padding-top: 15px;
+}
+
+.rod {
+    color: #999;
+    font-size: 13px;
+}
+
+.titulo_adm {
+    width: 960px;
+    margin: 20px 0 10px 0;
+    font-size: 18px;
+    color: #999;
+    text-align: left;
+    border-bottom: 1px dashed #DDD;
+    padding: 0 0 10px 10px;
+}
+
+.laudo {
+    font-size: 13px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border-radius: 10px;
+    padding: 20px 10px;
+}
+
+.titulo_laudo,
+.topo2 {
+    font-family: "sharpmedium", Arial, sans-serif;
+    color: #0F72BD;
+    font-weight: bold;
+}
+
+.titulo_laudo {
+    font-size: 20px;
+    text-align: center;
+}
+
+.titulo_tabela,
+.titulo_first,
+.titulo_last {
+    font-size: 13px;
+    border: 0;
+    color: #333;
+    background: #EEE;
+}
+
+.titulo_first {
+    border-radius: 5px 0 0 0;
+}
+
+.titulo_last {
+    border-radius: 0 5px 0 0;
+}
+
+.bordatabela {
+    border: 1px solid #DADADA;
+    font-size: 11px;
+    color: #666;
+    border-radius: 2px 2px 0 0;
+}
+
+.formtitulo {
+    text-align: left;
+    font-size: 16px;
+    color: #81C566;
+    padding-top: 25px;
+}
+
+.label {
+    font-weight: bold;
+}
+
+.label2 {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.cliente {
+    font-weight: normal;
+    font-size: 11px;
+    color: #000;
+}
+
+.azul {
+    color: #0F72BD;
+}
+
+.laranja {
+    color: #F60;
+    font-weight: bold;
+}
+
+.verde {
+    color: #81C566;
+    font-weight: bold;
+}
+
+.vermelho {
+    color: #900;
+    font-weight: bold;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.linhapar {
+    background: #FAFAFA;
+}
+
+.linhaimpar {
+    background: #FFF;
+}
+
+.topo2 {
+    float: left;
+    width: 33%;
+    text-align: center;
+    font-size: 15px;
+}
+
+.titulo_tabela2 {
+    font-size: 11px;
+    font-weight: bold;
+    border: 0;
+    color: #666;
+    background: #FAFAFA;
+}
+
+#resultados_anteriores {
+    border-collapse: collapse;
+    width: 1000px;
+}
+
+#resultados_anteriores tr td {
+    border: 1px solid #CCC;
+    text-align: center;
+}
+
+#resultados_anteriores .titulo_ant {
+    background: #EEE;
+    text-align: center;
+}
+
+#resultados_anteriores .esquerda {
+    text-align: left;
+}
