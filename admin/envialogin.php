@@ -1,105 +1,70 @@
 <?php
-session_start ();
+session_start();
 include('../mod_includes/php/connect.php');
-function getIp()
+
+function getIp(): string
 {
-    if (!empty($_SERVER['HTTP_CLIENT_IP']))
-    {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    }
-    elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-    {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    }
-    else
-	{
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    return $ip;
+	return $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'];
 }
-?>
-<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta name="author" content="Gustavo Costa">
-<meta http-equiv="Content-Language" content="pt-br">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title><?php echo $titulo;?></title>
-<?php include("../css/style.php"); ?>
-<script type="text/javascript" src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-</head>
 
-<div id='janela' class='janela' style='display:none;'> </div>
-<?php
-
-include('../mod_includes/php/funcoes-jquery.php');
-/*
-include("../mod_includes/php/class.ipdetails.php");
 $ip = getIp();
-$ipdetails = new ipdetails($ip); 
-$ipdetails->scan();
-$pais = $ipdetails->get_countrycode();
-$regiao = $ipdetails->get_region();
-$cidade = $ipdetails->get_city();
-include('../mod_includes/php/caracter_especial.php');
-*/
+$login = $_POST['login'] ?? '';
+$senha = $_POST['senha'] ?? '';
 
-$login = mysql_real_escape_string($_POST['login']);
-$senha = mysql_real_escape_string($_POST['senha']);
-
+// Consulta segura com PDO
 $sql = "SELECT * FROM admin_usuarios
-		INNER JOIN admin_setores ON admin_setores.set_id = admin_usuarios.usu_setor
-		WHERE usu_login = '$login' AND usu_senha = md5('$senha')";
-$query = mysql_query($sql,$conexao);
-$rows = mysql_num_rows($query);
+        INNER JOIN admin_setores ON admin_setores.set_id = admin_usuarios.usu_setor
+        WHERE usu_login = :login";
+$stmt = $pdo->prepare($sql);
+$stmt->bindParam(':login', $login);
+$stmt->execute();
+$usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-
-if ($rows >0)
-{
-	$status = mysql_result($query, 0, 'usu_status');
-	$usu_id = mysql_result($query, 0, 'usu_id');
-	$n = mysql_result($query, 0, 'usu_nome');
-	$s = mysql_result($query, 0, 'usu_setor');
-	$s_n = mysql_result($query, 0, 'set_nome');
-	
-	if ($status == 0)
-	{
-		echo "&nbsp;
-			<SCRIPT language='JavaScript'>
-				abreMask(
-				'<img src=../imagens/x.png> Seu usuário está desativado, por favor contate o administrador do sistema.<br><br>'+
-				'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>' );
-			</SCRIPT>
-			";
-	}
-	else
-	{
-	   	$_SESSION['exactoadm'] = $login.md5($n);
-	   	$_SESSION['setor'] = $s;
-	   	$_SESSION['setor_nome'] = $s_n;
-	   	$_SESSION['usuario_id'] = $usu_id;
-		$sql_log = " INSERT INTO admin_log_login (log_usuario, log_hash, log_ip, log_cidade, log_regiao, log_pais) VALUES ($usu_id, '".$_SESSION['exactoadm']."', '$ip',  '$cidade', '$regiao', '$pais') ";
-		if(mysql_query($sql_log,$conexao))
-		{
-			echo "<script language='JavaScript'>self.location = 'admin.php?login=$login&n=$n'</script>";
-		}
+if ($usuario) {
+	if (!password_verify($senha, $usuario['usu_senha'])) {
+		echo "<script>
+                abreMask('<img src=../imagens/x.png> Login ou senha incorreta.<br>Por favor, tente novamente.<br><br>
+                <input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
+              </script>";
+		exit();
 	}
 
+	if ($usuario['usu_status'] == 0) {
+		echo "<script>
+                abreMask('<img src=../imagens/x.png> Seu usuário está desativado, contate o administrador do sistema.<br><br>
+                <input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
+              </script>";
+		exit();
+	}
+
+	$_SESSION['exactoadm'] = hash('sha256', $login . $usuario['usu_nome']);
+	$_SESSION['setor'] = $usuario['usu_setor'];
+	$_SESSION['setor_nome'] = $usuario['set_nome'];
+	$_SESSION['usuario_id'] = $usuario['usu_id'];
+
+	// Registro de login seguro
+	$sql_log = "INSERT INTO admin_log_login (log_usuario, log_hash, log_ip) VALUES (:usu_id, :hash, :ip)";
+	$stmt_log = $pdo->prepare($sql_log);
+	$stmt_log->bindParam(':usu_id', $usuario['usu_id']);
+	$stmt_log->bindParam(':hash', $_SESSION['exactoadm']);
+	$stmt_log->bindParam(':ip', $ip);
+	$stmt_log->execute();
+
+	header("Location: admin.php?login=" . urlencode($login) . "&n=" . urlencode($usuario['usu_nome']));
+	exit();
+} else {
+	$_SESSION['exactoadm'] = 'N';
+
+	// Registro de tentativa de login falha
+	$sql_log = "INSERT INTO admin_log_login (log_ip, log_observacao) VALUES (:ip, :observacao)";
+	$stmt_log = $pdo->prepare($sql_log);
+	$stmt_log->bindParam(':ip', $ip);
+	$stmt_log->bindValue(':observacao', "Falha login: $login");
+	$stmt_log->execute();
+
+	echo "<script>
+            abreMask('<img src=../imagens/x.png> Login ou senha incorreta.<br>Por favor, tente novamente.<br><br>
+            <input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
+          </script>";
 }
-else
-{
-  	$_SESSION['exactoadm'] = 'N';
-   	$sql_log = " INSERT INTO admin_log_login (log_ip, log_observacao, log_cidade, log_regiao, log_pais) VALUES ('$ip', 'Falha login: $login | $senha ', '$cidade', '$regiao', '$pais') ";
-	mysql_query($sql_log,$conexao);
-  	echo "&nbsp;
-   		<SCRIPT language='JavaScript'>
-			abreMask(
-			'<img src=../imagens/x.png> Login ou senha incorreta.<br>Por favor tente novamente.<br><br>'+
-			'<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>' );
-		</SCRIPT>
-   		";
-}
-
-
-
 ?>
