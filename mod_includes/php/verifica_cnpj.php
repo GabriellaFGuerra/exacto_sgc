@@ -1,23 +1,19 @@
 <?php
-include('connect.php');
+require_once 'connect.php';
 
 $cnpj = $_POST['cnpj'] ?? '';
-$cli_id = $_POST['cli_id'] ?? 0;
+$cli_id = (int) ($_POST['cli_id'] ?? 0);
 
-// Consulta segura com `Prepared Statements`
-$sql = "SELECT COUNT(*) FROM cadastro_clientes WHERE cli_cnpj = :cnpj";
-if ($cli_id != 0) {
-	$sql .= " AND cli_id <> :cli_id";
+$sql = 'SELECT COUNT(*) FROM cadastro_clientes WHERE cli_cnpj = :cnpj';
+$params = [':cnpj' => $cnpj];
+
+if ($cli_id) {
+	$sql .= ' AND cli_id <> :cli_id';
+	$params[':cli_id'] = $cli_id;
 }
 
 $stmt = $pdo->prepare($sql);
-$stmt->bindParam(':cnpj', $cnpj, PDO::PARAM_STR);
-if ($cli_id != 0) {
-	$stmt->bindParam(':cli_id', $cli_id, PDO::PARAM_INT);
-}
-$stmt->execute();
-$rows = $stmt->fetchColumn();
+$stmt->execute($params);
 
-// Retorno seguro
-echo ($rows > 0) ? "true" : "false";
+echo $stmt->fetchColumn() > 0 ? 'true' : 'false';
 ?>

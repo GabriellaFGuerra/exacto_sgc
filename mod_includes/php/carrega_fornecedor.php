@@ -1,27 +1,30 @@
 <?php
-include('connect.php');
+require_once 'connect.php';
 
 $tipo_servico = $_POST['tipo_servico'] ?? '';
 
-if (!empty($tipo_servico)) {
-	// Consulta segura com Prepared Statements
-	$sqlprocura = "SELECT cadastro_fornecedores.for_id, cadastro_fornecedores.for_nome_razao 
-                   FROM cadastro_fornecedores_servicos 
-                   INNER JOIN cadastro_fornecedores ON cadastro_fornecedores.for_id = cadastro_fornecedores_servicos.fse_fornecedor
-                   INNER JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = cadastro_fornecedores_servicos.fse_servico
-                   WHERE fse_servico = :tipo_servico 
-                   GROUP BY for_id
-                   ORDER BY for_nome_razao ASC";
+if ($tipo_servico) {
+	$sql = "
+		SELECT f.for_id, f.for_nome_razao
+		FROM cadastro_fornecedores_servicos fs
+		INNER JOIN cadastro_fornecedores f ON f.for_id = fs.fse_fornecedor
+		INNER JOIN cadastro_tipos_servicos ts ON ts.tps_id = fs.fse_servico
+		WHERE fs.fse_servico = :tipo_servico
+		GROUP BY f.for_id
+		ORDER BY f.for_nome_razao ASC
+	";
 
-	$stmt = $pdo->prepare($sqlprocura);
-	$stmt->bindParam(':tipo_servico', $tipo_servico, PDO::PARAM_INT);
+	$stmt = $pdo->prepare($sql);
+	$stmt->bindValue(':tipo_servico', $tipo_servico, PDO::PARAM_INT);
 	$stmt->execute();
-	$resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	$fornecedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	if ($resultados) {
+	if ($fornecedores) {
 		echo "<option value=''>Fornecedor</option>";
-		foreach ($resultados as $row) {
-			echo "<option value='" . htmlspecialchars($row['for_id']) . "'>" . htmlspecialchars($row['for_nome_razao']) . "</option>";
+		foreach ($fornecedores as $fornecedor) {
+			$id = htmlspecialchars($fornecedor['for_id']);
+			$nome = htmlspecialchars($fornecedor['for_nome_razao']);
+			echo "<option value='$id'>$nome</option>";
 		}
 	} else {
 		echo "<option value=''>Nenhum fornecedor cadastrado para este tipo de serviço.</option>";

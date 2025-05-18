@@ -1,5 +1,6 @@
 <?php
 //########## FUNÇÃO PRÓXIMO DIA ÚTIL ###########
+
 function getDayOfWeek(int $timestamp): string
 {
     $diasSemana = [
@@ -15,19 +16,22 @@ function getDayOfWeek(int $timestamp): string
     return $diasSemana[date('l', $timestamp)] ?? 'Indefinido';
 }
 
-function diaUtil(int $data): int
+function diaUtil(int $timestamp): int
 {
     while (true) {
-        $diaSemana = getDayOfWeek($data);
+        $diaSemana = getDayOfWeek($timestamp);
 
         if ($diaSemana === 'Sábado') {
-            $data += 86400 * 2; // Avança dois dias
-        } elseif ($diaSemana === 'Domingo') {
-            $data += 86400; // Avança um dia
-        } else {
-            return $data;
+            $timestamp += 86400 * 2; // Avança dois dias
+            continue;
         }
+
+        if ($diaSemana === 'Domingo') {
+            $timestamp += 86400; // Avança um dia
+            continue;
+        }
+
+        return $timestamp;
     }
 }
 //############# FIM FUNÇÃO PRÓXIMO DIA ÚTIL ###############
-?>

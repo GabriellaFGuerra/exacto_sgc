@@ -1,23 +1,19 @@
 <?php
-include('connect.php');
+require_once 'connect.php';
 
 $login = $_POST['login'] ?? '';
-$usu_id = $_POST['usu_id'] ?? 0;
+$usu_id = (int) ($_POST['usu_id'] ?? 0);
 
-// Consulta segura com `Prepared Statements`
-$sql = "SELECT COUNT(*) FROM admin_usuarios WHERE usu_login = :login";
-if ($usu_id != 0) {
-	$sql .= " AND usu_id <> :usu_id";
+$sql = 'SELECT COUNT(*) FROM admin_usuarios WHERE usu_login = :login';
+$params = [':login' => $login];
+
+if ($usu_id) {
+	$sql .= ' AND usu_id <> :usu_id';
+	$params[':usu_id'] = $usu_id;
 }
 
 $stmt = $pdo->prepare($sql);
-$stmt->bindParam(':login', $login, PDO::PARAM_STR);
-if ($usu_id != 0) {
-	$stmt->bindParam(':usu_id', $usu_id, PDO::PARAM_INT);
-}
-$stmt->execute();
-$rows = $stmt->fetchColumn();
+$stmt->execute($params);
 
-// Retorno seguro
-echo ($rows > 0) ? "true" : "false";
+echo $stmt->fetchColumn() > 0 ? 'true' : 'false';
 ?>
