@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '089e90004b0eb0be9e6fc666e7bacd7a0d3a616f',
+        'reference' => '70e8ec0f6e43168390f6cbab773520e8cd0b1276',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '089e90004b0eb0be9e6fc666e7bacd7a0d3a616f',
+            'reference' => '70e8ec0f6e43168390f6cbab773520e8cd0b1276',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -72,6 +72,15 @@
             'install_path' => __DIR__ . '/../phpcompatibility/php-compatibility',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v6.10.0',
+            'version' => '6.10.0.0',
+            'reference' => 'bf74d75a1fde6beaa34a0ddae2ec5fce0f72a144',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'psr/http-message' => array(
             'pretty_version' => '2.0',

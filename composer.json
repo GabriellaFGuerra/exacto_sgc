@@ -4,6 +4,7 @@
         "phpcompatibility/php-compatibility": "^9.3"
     },
     "require": {
-        "mpdf/mpdf": "^8.2"
+        "mpdf/mpdf": "^8.2",
+        "phpmailer/phpmailer": "^6.10"
     }
 }
