@@ -4,6 +4,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 require_once '../mod_includes/php/connect.php';
 
+// Array de meses
 $meses = [
     '01' => 'Janeiro',
     '02' => 'Fevereiro',
@@ -19,65 +20,74 @@ $meses = [
     '12' => 'Dezembro'
 ];
 
-// Função para sanitizar entrada
-function getParam(string $key): string
+// Função para obter e sanitizar parâmetros GET
+function obterParametro(string $chave): string
 {
-    $value = filter_input(INPUT_GET, $key, FILTER_SANITIZE_STRING);
-    return $value !== null ? $value : '';
+    $valor = filter_input(INPUT_GET, $chave, FILTER_SANITIZE_STRING);
+    return $valor ?? '';
 }
 
-$login = getParam('login');
-$n = getParam('n');
-$pagina = getParam('pagina');
-$pre_id = filter_input(INPUT_GET, 'pre_id', FILTER_VALIDATE_INT) ?: 0;
+// Função para escapar HTML
+function escapar(string $texto): string
+{
+    return htmlspecialchars($texto ?? '', ENT_QUOTES, 'UTF-8');
+}
 
-if ($pre_id <= 0) {
+// Função para formatar datas
+function formatarData(?string $data): string
+{
+    if (empty($data) || $data === '0000-00-00') {
+        return '';
+    }
+    return date('d/m/Y', strtotime($data));
+}
+
+// Função para formatar hora
+function formatarHora(?string $data): string
+{
+    if (empty($data)) {
+        return '';
+    }
+    return date('H:i', strtotime($data));
+}
+
+// Parâmetros recebidos
+$login = obterParametro('login');
+$numero = obterParametro('n');
+$pagina = obterParametro('pagina');
+$idPrestacao = filter_input(INPUT_GET, 'pre_id', FILTER_VALIDATE_INT) ?: 0;
+
+if ($idPrestacao <= 0) {
     exit('ID inválido.');
 }
 
+// Consulta dos dados da prestação
 $sql = "SELECT pg.*, cc.cli_nome_razao, cc.cli_cnpj 
         FROM prestacao_gerenciar pg
         LEFT JOIN cadastro_clientes cc ON cc.cli_id = pg.pre_cliente
         WHERE pg.pre_id = :pre_id";
 $stmt = $pdo->prepare($sql);
-$stmt->execute(['pre_id' => $pre_id]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->execute(['pre_id' => $idPrestacao]);
+$prestacao = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$row) {
+if (!$prestacao) {
     exit('Registro não encontrado.');
 }
 
-// Função para escapar HTML
-function esc($str): string
-{
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
-}
+// Tratamento dos dados
+$nomeCliente = escapar($prestacao['cli_nome_razao']);
+$cnpjCliente = escapar($prestacao['cli_cnpj']);
+$referencia = $prestacao['pre_referencia'] ?? '';
+[$mesReferencia, $anoReferencia] = explode('/', $referencia) + ['', ''];
+$mesReferencia = str_pad($mesReferencia, 2, '0', STR_PAD_LEFT);
+$nomeMesReferencia = $meses[$mesReferencia] ?? '';
+$dataEnvio = formatarData($prestacao['pre_data_envio'] ?? '');
+$enviadoPor = escapar($prestacao['pre_enviado_por']);
+$observacoes = nl2br(escapar($prestacao['pre_observacoes'] ?? ''));
+$dataCadastro = formatarData($prestacao['pre_data_cadastro'] ?? '');
+$horaCadastro = formatarHora($prestacao['pre_data_cadastro'] ?? '');
 
-// Dados tratados
-$cli_nome_razao = esc($row['cli_nome_razao']);
-$cli_cnpj = esc($row['cli_cnpj']);
-$pre_referencia = $row['pre_referencia'] ?? '';
-$ref = explode('/', $pre_referencia);
-$pre_ref_mes = str_pad($ref[0] ?? '', 2, '0', STR_PAD_LEFT);
-$pre_ref_ano = $ref[1] ?? '';
-$pre_ref_mes_n = $meses[$pre_ref_mes] ?? '';
-
-$pre_data_envio = '';
-if (!empty($row['pre_data_envio']) && $row['pre_data_envio'] !== '0000-00-00') {
-    $pre_data_envio = date('d/m/Y', strtotime($row['pre_data_envio']));
-}
-
-$pre_enviado_por = esc($row['pre_enviado_por']);
-$pre_observacoes = nl2br(esc($row['pre_observacoes']));
-
-$pre_data_cadastro = '';
-$pre_hora_cadastro = '';
-if (!empty($row['pre_data_cadastro'])) {
-    $pre_data_cadastro = date('d/m/Y', strtotime($row['pre_data_cadastro']));
-    $pre_hora_cadastro = date('H:i', strtotime($row['pre_data_cadastro']));
-}
-
-// HTML do PDF
+// Geração do HTML do PDF
 ob_start();
 ?>
 <table align="center" border="0" cellspacing="0" cellpadding="0">
@@ -97,7 +107,7 @@ ob_start();
                             <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
                                 <tr>
                                     <td colspan="4" height="60" class="label2" align="center">
-                                        A/C <?= $cli_nome_razao ?>
+                                        A/C <?= $nomeCliente ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -105,13 +115,13 @@ ob_start();
                                         Data entrega:
                                     </td>
                                     <td>
-                                        <?= $pre_data_envio ?>
+                                        <?= $dataEnvio ?>
                                     </td>
                                     <td width="20%" class="label" align="right">
                                         N°:
                                     </td>
                                     <td>
-                                        <?= $pre_id ?>
+                                        <?= $idPrestacao ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -119,7 +129,7 @@ ob_start();
                                         Enviado por:
                                     </td>
                                     <td colspan="3">
-                                        <?= $pre_enviado_por ?>
+                                        <?= $enviadoPor ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -127,9 +137,9 @@ ob_start();
                                         Referente a entrega de:
                                     </td>
                                     <td colspan="3" valign="top">
-                                        Pasta de Prestação de <?= $pre_ref_mes_n ?> de <?= $pre_ref_ano ?>
+                                        Pasta de Prestação de <?= $nomeMesReferencia ?> de <?= $anoReferencia ?>
                                         <br><br><br>
-                                        <?= $pre_observacoes ?>
+                                        <?= $observacoes ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -152,11 +162,9 @@ ob_start();
                                         <td colspan="2" align="center">
                                             <br>
                                             <span class="azul">Exacto Assessoria e Administração</span><br>
-                                            Rua Prof. Emilio Augusto Ferreira, 32 - Vila Oliveira, Mogi das
-                                            Cruzes/SP<br>
+                                            Rua Prof. Emilio Augusto Ferreira, 32 - Vila Oliveira, Mogi das Cruzes/SP<br>
                                             Fone: (11) <span class="verde">4791-9220</span><br>
-                                            Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span
-                                                class="azul">www.exactoadm.com.br</span><br>
+                                            Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span class="azul">www.exactoadm.com.br</span><br>
                                         </td>
                                     </tr>
                                 </table>
@@ -180,10 +188,11 @@ ob_start();
 <?php
 $html = ob_get_clean();
 
-// Caminho correto do autoload
+// Carrega o autoload do Composer
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 use Mpdf\Mpdf;
 
+// Configuração do PDF
 $mpdf = new Mpdf([
     'format' => 'A4',
     'margin_left' => 10,
@@ -221,6 +230,8 @@ $mpdf->charset_in = 'UTF-8';
 $css = file_get_contents(__DIR__ . '/pdf.css');
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
+// Escreve o HTML no PDF e exibe
 $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-$mpdf->Output('Prestacao_' . str_pad($pre_id, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$nomeArquivo = 'Prestacao_' . str_pad($idPrestacao, 6, '0', STR_PAD_LEFT) . '.pdf';
+$mpdf->Output($nomeArquivo, 'I');
 exit;

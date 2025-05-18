@@ -4,6 +4,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 require_once '../mod_includes/php/connect.php';
 
+// Array de meses em português
 $meses = [
     '01' => 'Janeiro',
     '02' => 'Fevereiro',
@@ -19,71 +20,85 @@ $meses = [
     '12' => 'Dezembro'
 ];
 
-$login = $_GET['login'] ?? '';
-$n = $_GET['n'] ?? '';
+// Função para obter parâmetro GET com valor padrão
+function obterParametro($nome, $padrao = '')
+{
+    return $_GET[$nome] ?? $padrao;
+}
+
+// Parâmetros recebidos via GET
+$login = obterParametro('login');
+$n = obterParametro('n');
+$pagina = obterParametro('pagina');
+$infId = obterParametro('inf_id');
+
+// Autenticação para uso futuro
 $autenticacao = "&login=$login&n=" . urlencode($n);
-$pagina = $_GET['pagina'] ?? '';
-$inf_id = $_GET['inf_id'] ?? '';
 
-$sql = "SELECT ig.*, cc.cli_foto, cc.cli_nome_razao, cc.cli_cnpj 
-        FROM infracoes_gerenciar ig
-        LEFT JOIN cadastro_clientes cc ON cc.cli_id = ig.inf_cliente
-        WHERE ig.inf_id = :inf_id";
+// Consulta dos dados da infração e cliente
+$sql = "
+    SELECT ig.*, cc.cli_foto, cc.cli_nome_razao, cc.cli_cnpj 
+    FROM infracoes_gerenciar ig
+    LEFT JOIN cadastro_clientes cc ON cc.cli_id = ig.inf_cliente
+    WHERE ig.inf_id = :inf_id
+";
 $stmt = $pdo->prepare($sql);
-$stmt->execute(['inf_id' => $inf_id]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->execute(['inf_id' => $infId]);
+$dados = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$row) {
+if (!$dados) {
     exit('Infração não encontrada.');
 }
 
-$inf_id = $row['inf_id'];
-$inf_cliente = $row['inf_cliente'];
-$cli_foto = $row['cli_foto'];
-$cli_nome_razao = $row['cli_nome_razao'];
-$cli_cnpj = $row['cli_cnpj'];
-$inf_ano = $row['inf_ano'];
-$inf_tipo = $row['inf_tipo'];
-$inf_cidade = $row['inf_cidade'];
-$inf_data = date('d/m/Y', strtotime($row['inf_data']));
-$inf_proprietario = $row['inf_proprietario'];
-$inf_apto = $row['inf_apto'];
-$inf_bloco = $row['inf_bloco'];
-$inf_endereco = $row['inf_endereco'];
-$inf_email = $row['inf_email'];
-$inf_desc_irregularidade = $row['inf_desc_irregularidade'];
-$inf_assunto = $row['inf_assunto'];
-$inf_desc_artigo = $row['inf_desc_artigo'];
-$inf_desc_notificacao = $row['inf_desc_notificacao'];
+// Extração dos dados
+$infId = $dados['inf_id'];
+$clienteId = $dados['inf_cliente'];
+$fotoCliente = $dados['cli_foto'];
+$nomeCliente = $dados['cli_nome_razao'];
+$cnpjCliente = $dados['cli_cnpj'];
+$ano = $dados['inf_ano'];
+$tipo = $dados['inf_tipo'];
+$cidade = $dados['inf_cidade'];
+$data = date('d/m/Y', strtotime($dados['inf_data']));
+$proprietario = $dados['inf_proprietario'];
+$apartamento = $dados['inf_apto'];
+$bloco = $dados['inf_bloco'];
+$endereco = $dados['inf_endereco'];
+$email = $dados['inf_email'];
+$descricaoIrregularidade = $dados['inf_desc_irregularidade'];
+$assunto = $dados['inf_assunto'];
+$descricaoArtigo = $dados['inf_desc_artigo'];
+$descricaoNotificacao = $dados['inf_desc_notificacao'];
 
+// Geração do HTML do PDF
 ob_start();
 ?>
 <div class="laudo">
     <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
         <tr>
             <td colspan="3" class="label" align="left">
-                <?= htmlspecialchars($inf_cidade) ?>, <?= htmlspecialchars($inf_data) ?>
+                <?= htmlspecialchars($cidade) ?>, <?= htmlspecialchars($data) ?>
             </td>
         </tr>
         <tr>
             <td align="left" valign="top">
-                <b>Proprietário(a):</b> <?= htmlspecialchars($inf_proprietario) ?>
+                <b>Proprietário(a):</b> <?= htmlspecialchars($proprietario) ?>
             </td>
             <td align="left" valign="top">
-                <b>Unidade:</b> <?= htmlspecialchars($inf_apto) ?>
+                <b>Unidade:</b> <?= htmlspecialchars($apartamento) ?>
             </td>
             <td align="left" valign="top">
-                <b>Bloco/Quadra:</b> <?= htmlspecialchars($inf_bloco) ?>
+                <b>Bloco/Quadra:</b> <?= htmlspecialchars($bloco) ?>
             </td>
         </tr>
         <tr>
-            <td colspan="3" width="20%" align="left">
-                <b>Endereço:</b> <?= htmlspecialchars($inf_endereco) ?>
+            <td colspan="3" align="left">
+                <b>Endereço:</b> <?= htmlspecialchars($endereco) ?>
             </td>
         </tr>
         <tr>
-            <td colspan="3" width="20%" align="left">
-                <b>Email:</b> <?= htmlspecialchars($inf_email) ?>
+            <td colspan="3" align="left">
+                <b>Email:</b> <?= htmlspecialchars($email) ?>
             </td>
         </tr>
     </table>
@@ -91,7 +106,7 @@ ob_start();
     <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
         <tr>
             <td align="left">
-                <b>Assunto:</b> <?= htmlspecialchars($inf_assunto) ?>
+                <b>Assunto:</b> <?= htmlspecialchars($assunto) ?>
             </td>
         </tr>
     </table>
@@ -104,7 +119,7 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($inf_desc_irregularidade)) ?>
+                <?= nl2br(htmlspecialchars($descricaoIrregularidade)) ?>
             </td>
         </tr>
     </table>
@@ -117,7 +132,7 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($inf_desc_artigo)) ?>
+                <?= nl2br(htmlspecialchars($descricaoArtigo)) ?>
             </td>
         </tr>
     </table>
@@ -130,7 +145,7 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($inf_desc_notificacao)) ?>
+                <?= nl2br(htmlspecialchars($descricaoNotificacao)) ?>
             </td>
         </tr>
     </table>
@@ -140,6 +155,7 @@ ob_start();
 <?php
 $html = ob_get_clean();
 
+// Configuração do PDF
 require_once __DIR__ . '/../vendor/autoload.php';
 use Mpdf\Mpdf;
 
@@ -153,35 +169,44 @@ $mpdf = new Mpdf([
     'margin_footer' => 15,
     'orientation' => 'P'
 ]);
+
 $mpdf->SetTitle('Exacto Adm | Imprimir Prestação de Contas');
 $mpdf->useOddEven = false;
-$mpdf->SetHTMLHeader(
-    '<div class="topo2"><img src="' . htmlspecialchars($cli_foto) . '" height="100"></div>
-    <div class="topo2"><br>' . htmlspecialchars($inf_tipo) . '<br><span class="cliente">' . htmlspecialchars($cli_nome_razao) . '</span></div>
-    <div class="topo2"><br>Nº. ' . str_pad($inf_id, 3, "0", STR_PAD_LEFT) . '/' . $inf_ano . '</div>'
-);
-$mpdf->SetHTMLFooter(
-    '<div class="rodape">
+
+// Cabeçalho do PDF
+$cabecalho = '
+    <div class="topo2"><img src="' . htmlspecialchars($fotoCliente) . '" height="100"></div>
+    <div class="topo2"><br>' . htmlspecialchars($tipo) . '<br><span class="cliente">' . htmlspecialchars($nomeCliente) . '</span></div>
+    <div class="topo2"><br>Nº. ' . str_pad($infId, 3, "0", STR_PAD_LEFT) . '/' . $ano . '</div>
+';
+$mpdf->SetHTMLHeader($cabecalho);
+
+// Rodapé do PDF
+$rodape = '
+    <div class="rodape">
         <table align="center" class="rod" width="100%">
             <tr>
                 <td colspan="2" align="left">
                     <br>
                     Atenciosamente,
                     <br>
-                    ' . htmlspecialchars($cli_nome_razao) . '
+                    ' . htmlspecialchars($nomeCliente) . '
                 </td>
             </tr>
         </table>
-    </div>'
-);
+    </div>
+';
+$mpdf->SetHTMLFooter($rodape);
 
 $mpdf->allow_charset_conversion = true;
 $mpdf->charset_in = 'UTF-8';
 
-// Inclui o CSS externo
+// Inclusão do CSS externo
 $css = file_get_contents(__DIR__ . '/pdf.css');
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
+// Geração do PDF
 $mpdf->WriteHTML($html);
-$mpdf->Output('Infração_' . str_pad($inf_id, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$nomeArquivo = 'Infração_' . str_pad($infId, 6, '0', STR_PAD_LEFT) . '.pdf';
+$mpdf->Output($nomeArquivo, 'I');
 exit;

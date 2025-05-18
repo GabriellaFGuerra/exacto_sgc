@@ -5,18 +5,18 @@ require_once '../mod_includes/php/verificalogin.php';
 include '../mod_includes/php/funcoes-jquery.php';
 include '../mod_topo/topo.php';
 
-$page = 'Parâmetros Gerais';
+$pagina = 'Parâmetros Gerais';
 $erro = false;
-$msg = '';
+$mensagem = '';
 
-function get_param($arr, $key, $default = '')
+function obterValor($array, $chave, $padrao = '')
 {
-    return $arr[$key] ?? $default;
+    return $array[$chave] ?? $padrao;
 }
 
-if (isset($_GET['action']) && $_GET['action'] === 'envia') {
-    $ger_id = (int)get_param($_GET, 'ger_id', 1);
-    $fields = [
+function obterCamposParametros()
+{
+    return [
         'ger_nome',
         'ger_sigla',
         'ger_cep',
@@ -35,18 +35,33 @@ if (isset($_GET['action']) && $_GET['action'] === 'envia') {
         'ger_guia_anual',
         'ger_status'
     ];
-    $data = [];
-    foreach ($fields as $field) {
-        $data[$field] = get_param($_POST, $field, '');
-    }
+}
 
+function carregarParametros($pdo)
+{
+    $sql = 'SELECT * FROM parametros_gerais 
+            LEFT JOIN end_uf ON end_uf.uf_id = parametros_gerais.ger_uf 
+            LEFT JOIN end_municipios ON end_municipios.mun_id = parametros_gerais.ger_municipio 
+            WHERE ger_id = 1';
+    $stmt = $pdo->query($sql);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function carregarUFs($pdo)
+{
+    $stmt = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function salvarParametros($pdo, $dados, &$erro)
+{
     // Verifica se já existe registro
     $stmt = $pdo->query('SELECT ger_id FROM parametros_gerais LIMIT 1');
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $registro = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($row) {
-        // UPDATE
-        $ger_id = $row['ger_id'];
+    if ($registro) {
+        // Atualizar
+        $dados['ger_id'] = $registro['ger_id'];
         $sql = 'UPDATE parametros_gerais SET 
             ger_nome = :ger_nome,
             ger_sigla = :ger_sigla,
@@ -66,9 +81,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'envia') {
             ger_guia_anual = :ger_guia_anual,
             ger_status = :ger_status
             WHERE ger_id = :ger_id';
-        $data['ger_id'] = $ger_id;
     } else {
-        // INSERT
+        // Inserir
         $sql = 'INSERT INTO parametros_gerais (
             ger_nome, ger_sigla, ger_cep, ger_uf, ger_municipio, ger_bairro, ger_endereco,
             ger_numero, ger_comp, ger_telefone, ger_email, ger_site,
@@ -81,70 +95,86 @@ if (isset($_GET['action']) && $_GET['action'] === 'envia') {
     }
 
     $stmt = $pdo->prepare($sql);
-    if ($stmt->execute($data)) {
-        $ultimo_id = $row ? $ger_id : $pdo->lastInsertId();
+    if ($stmt->execute($dados)) {
+        return $registro ? $registro['ger_id'] : $pdo->lastInsertId();
+    } else {
+        $erro = true;
+        return null;
+    }
+}
 
-        // Upload do logo
-        if (isset($_FILES['ger_logo']) && $_FILES['ger_logo']['error'][0] === UPLOAD_ERR_OK) {
-            $uploadDir = '../imagens/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-            $tmpName = $_FILES['ger_logo']['tmp_name'][0];
-            $logoPath = $uploadDir . 'logo.png';
-            if (move_uploaded_file($tmpName, $logoPath)) {
-                $stmtLogo = $pdo->prepare('UPDATE parametros_gerais SET ger_logo = :logo WHERE ger_id = :id');
-                $stmtLogo->execute(['logo' => $logoPath, 'id' => $ultimo_id]);
-            } else {
-                $erro = true;
-            }
+function salvarLogo($pdo, $ger_id, &$erro)
+{
+    if (isset($_FILES['ger_logo']) && $_FILES['ger_logo']['error'][0] === UPLOAD_ERR_OK) {
+        $diretorioUpload = '../imagens/';
+        if (!is_dir($diretorioUpload)) {
+            mkdir($diretorioUpload, 0755, true);
         }
+        $caminhoTemporario = $_FILES['ger_logo']['tmp_name'][0];
+        $caminhoLogo = $diretorioUpload . 'logo.png';
+        if (move_uploaded_file($caminhoTemporario, $caminhoLogo)) {
+            $stmtLogo = $pdo->prepare('UPDATE parametros_gerais SET ger_logo = :logo WHERE ger_id = :id');
+            $stmtLogo->execute(['logo' => $caminhoLogo, 'id' => $ger_id]);
+        } else {
+            $erro = true;
+        }
+    }
+}
 
-        $msg = $erro
+if (isset($_GET['action']) && $_GET['action'] === 'envia') {
+    $ger_id = (int)obterValor($_GET, 'ger_id', 1);
+    $campos = obterCamposParametros();
+    $dados = [];
+    foreach ($campos as $campo) {
+        $dados[$campo] = obterValor($_POST, $campo, '');
+    }
+
+    $idSalvo = salvarParametros($pdo, $dados, $erro);
+
+    if ($idSalvo) {
+        salvarLogo($pdo, $idSalvo, $erro);
+        $mensagem = $erro
             ? '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">'
             : '<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=" Ok " type="button" class="close_janela">';
     } else {
-        $msg = '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">';
+        $mensagem = '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">';
     }
-    echo "<script>abreMask(`$msg`);</script>";
+    echo "<script>abreMask(`$mensagem`);</script>";
 }
 
 // Carregar dados para o formulário
-$stmt = $pdo->query('SELECT * FROM parametros_gerais LEFT JOIN end_uf ON end_uf.uf_id = parametros_gerais.ger_uf LEFT JOIN end_municipios ON end_municipios.mun_id = parametros_gerais.ger_municipio WHERE ger_id = 1');
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$parametros = carregarParametros($pdo);
 
-$ger_id = $row['ger_id'] ?? 1;
-$ger_nome = $row['ger_nome'] ?? '';
-$ger_sigla = $row['ger_sigla'] ?? '';
-$ger_cep = $row['ger_cep'] ?? '';
-$ger_uf = $row['ger_uf'] ?? '';
-$uf_sigla = $row['uf_sigla'] ?? 'UF';
-$ger_municipio = $row['ger_municipio'] ?? '';
-$mun_nome = $row['mun_nome'] ?? 'Município';
-$ger_bairro = $row['ger_bairro'] ?? '';
-$ger_endereco = $row['ger_endereco'] ?? '';
-$ger_numero = $row['ger_numero'] ?? '';
-$ger_comp = $row['ger_comp'] ?? '';
-$ger_telefone = $row['ger_telefone'] ?? '';
-$ger_email = $row['ger_email'] ?? '';
-$ger_site = $row['ger_site'] ?? '';
-$ger_logo = $row['ger_logo'] ?? '';
-$ger_cor_primaria = $row['ger_cor_primaria'] ?? '';
-$ger_cor_secundaria = $row['ger_cor_secundaria'] ?? '';
-$ger_numeracao_anual = $row['ger_numeracao_anual'] ?? 0;
-$ger_guia_anual = $row['ger_guia_anual'] ?? 0;
-$ger_status = $row['ger_status'] ?? 1;
+$ger_id = $parametros['ger_id'] ?? 1;
+$ger_nome = $parametros['ger_nome'] ?? '';
+$ger_sigla = $parametros['ger_sigla'] ?? '';
+$ger_cep = $parametros['ger_cep'] ?? '';
+$ger_uf = $parametros['ger_uf'] ?? '';
+$uf_sigla = $parametros['uf_sigla'] ?? 'UF';
+$ger_municipio = $parametros['ger_municipio'] ?? '';
+$mun_nome = $parametros['mun_nome'] ?? 'Município';
+$ger_bairro = $parametros['ger_bairro'] ?? '';
+$ger_endereco = $parametros['ger_endereco'] ?? '';
+$ger_numero = $parametros['ger_numero'] ?? '';
+$ger_comp = $parametros['ger_comp'] ?? '';
+$ger_telefone = $parametros['ger_telefone'] ?? '';
+$ger_email = $parametros['ger_email'] ?? '';
+$ger_site = $parametros['ger_site'] ?? '';
+$ger_logo = $parametros['ger_logo'] ?? '';
+$ger_cor_primaria = $parametros['ger_cor_primaria'] ?? '';
+$ger_cor_secundaria = $parametros['ger_cor_secundaria'] ?? '';
+$ger_numeracao_anual = $parametros['ger_numeracao_anual'] ?? 0;
+$ger_guia_anual = $parametros['ger_guia_anual'] ?? 0;
+$ger_status = $parametros['ger_status'] ?? 1;
 
 // Carregar UFs
-$stmtUF = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
-$ufs = $stmtUF->fetchAll(PDO::FETCH_ASSOC);
-
+$ufs = carregarUFs($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($page) ?></title>
+    <title><?= htmlspecialchars($pagina) ?></title>
     <meta name="author" content="MogiComp">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -166,7 +196,7 @@ $ufs = $stmtUF->fetchAll(PDO::FETCH_ASSOC);
     <form name="form_parametros_gerais" id="form_parametros_gerais" enctype="multipart/form-data" method="post"
         action="parametros_gerais.php?pagina=parametros_gerais&action=envia&ger_id=<?= $ger_id ?>">
         <div class="centro">
-            <div class="titulo"><?= $page ?> &raquo; Editar</div>
+            <div class="titulo"><?= $pagina ?> &raquo; Editar</div>
             <table align="center" cellspacing="0">
                 <tr>
                     <td align="left">

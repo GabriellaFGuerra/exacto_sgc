@@ -11,76 +11,92 @@ require_once '../mod_topo/topo.php';
 $titulo = $titulo ?? 'Cadastro de Gerentes';
 $page = "Cadastros &raquo; <a href='cadastro_gerentes.php?pagina=cadastro_gerentes$autenticacao'>Gerentes</a>";
 
-function abreMaskMsg($img, $msg, $okBtn = true, $backBtn = false)
+function showMaskMessage($icon, $message, $okBtn = true, $backBtn = false)
 {
-	$btn = $okBtn ? "<input value=' Ok ' type='button' class='close_janela'>" : '';
+	$button = $okBtn ? "<input value=' Ok ' type='button' class='close_janela'>" : '';
 	if ($backBtn) {
-		$btn = "<input value=' Ok ' type='button' onclick=javascript:window.history.back();>";
+		$button = "<input value=' Ok ' type='button' onclick=javascript:window.history.back();>";
 	}
 	return "
 	<script>
 		abreMask(
-			'<img src=../imagens/$img.png> $msg<br><br>$btn'
+			'<img src=../imagens/$icon.png> $message<br><br>$button'
 		);
 	</script>
 	";
 }
 
-// Ações
-$action = $_GET['action'] ?? '';
-$pagina = $_GET['pagina'] ?? $_POST['pagina'] ?? '';
-$pag = $_GET['pag'] ?? $_POST['pag'] ?? 1;
+function getRequestParam($name, $default = '')
+{
+	return $_GET[$name] ?? $_POST[$name] ?? $_REQUEST[$name] ?? $default;
+}
+
+// Actions
+$action = getRequestParam('action');
+$pagina = getRequestParam('pagina');
+$pag = (int) getRequestParam('pag', 1);
 $autenticacao = $autenticacao ?? '';
-$fil_nome = $_REQUEST['fil_nome'] ?? '';
+$filterName = trim(getRequestParam('fil_nome'));
 
 if ($action === 'adicionar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$ger_nome = $_POST['ger_nome'] ?? '';
+	$gerenteNome = trim($_POST['ger_nome'] ?? '');
 	$stmt = $pdo->prepare('INSERT INTO cadastro_gerentes (ger_nome) VALUES (:ger_nome)');
-	if ($stmt->execute([':ger_nome' => $ger_nome])) {
-		echo abreMaskMsg('ok', 'Cadastro efetuado com sucesso.');
+	if ($stmt->execute([':ger_nome' => $gerenteNome])) {
+		echo showMaskMessage('ok', 'Cadastro efetuado com sucesso.');
 	} else {
-		echo abreMaskMsg('x', 'Erro ao efetuar cadastro, por favor tente novamente.', false, true);
+		echo showMaskMessage('x', 'Erro ao efetuar cadastro, por favor tente novamente.', false, true);
 	}
+	exit;
 }
 
 if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$ger_id = $_GET['ger_id'] ?? $_POST['ger_id'] ?? '';
-	$ger_nome = $_POST['ger_nome'] ?? '';
+	$gerenteId = getRequestParam('ger_id');
+	$gerenteNome = trim($_POST['ger_nome'] ?? '');
 	$stmt = $pdo->prepare('UPDATE cadastro_gerentes SET ger_nome = :ger_nome WHERE ger_id = :ger_id');
-	if ($stmt->execute([':ger_nome' => $ger_nome, ':ger_id' => $ger_id])) {
-		echo abreMaskMsg('ok', 'Dados alterados com sucesso.');
+	if ($stmt->execute([':ger_nome' => $gerenteNome, ':ger_id' => $gerenteId])) {
+		echo showMaskMessage('ok', 'Dados alterados com sucesso.');
 	} else {
-		echo abreMaskMsg('x', 'Erro ao alterar dados, por favor tente novamente.', false, true);
+		echo showMaskMessage('x', 'Erro ao alterar dados, por favor tente novamente.', false, true);
 	}
+	exit;
 }
 
 if ($action === 'excluir') {
-	$ger_id = $_GET['ger_id'] ?? '';
+	$gerenteId = getRequestParam('ger_id');
 	$stmt = $pdo->prepare('DELETE FROM cadastro_gerentes WHERE ger_id = :ger_id');
-	if ($stmt->execute([':ger_id' => $ger_id])) {
-		echo abreMaskMsg('ok', 'Exclusão realizada com sucesso');
+	if ($stmt->execute([':ger_id' => $gerenteId])) {
+		echo showMaskMessage('ok', 'Exclusão realizada com sucesso');
 	} else {
-		echo abreMaskMsg('x', 'Este item não pode ser excluído pois está relacionado com alguma tabela.', false, true);
+		echo showMaskMessage('x', 'Este item não pode ser excluído pois está relacionado com alguma tabela.', false, true);
 	}
+	exit;
 }
 
-// Filtro e paginação
-$num_por_pagina = 10;
-$primeiro_registro = ($pag - 1) * $num_por_pagina;
-$nome_query = $fil_nome !== '' ? 'ger_nome LIKE :fil_nome' : '1=1';
-$params = $fil_nome !== '' ? [':fil_nome' => "%$fil_nome%"] : [];
+// Pagination and Filter
+$recordsPerPage = 10;
+$offset = ($pag - 1) * $recordsPerPage;
+$whereClause = $filterName !== '' ? 'ger_nome LIKE :filterName' : '1=1';
+$params = $filterName !== '' ? [':filterName' => "%$filterName%"] : [];
 
 if ($pagina === 'cadastro_gerentes') {
-	// Listagem
-	$sql = "SELECT * FROM cadastro_gerentes WHERE $nome_query ORDER BY ger_nome ASC LIMIT $primeiro_registro, $num_por_pagina";
+	// List
+	$sql = "SELECT * FROM cadastro_gerentes WHERE $whereClause ORDER BY ger_nome ASC LIMIT :offset, :limit";
 	$stmt = $pdo->prepare($sql);
-	$stmt->execute($params);
+	foreach ($params as $key => $value) {
+		$stmt->bindValue($key, $value);
+	}
+	$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+	$stmt->bindValue(':limit', $recordsPerPage, PDO::PARAM_INT);
+	$stmt->execute();
 	$gerentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	$cnt_sql = "SELECT COUNT(*) FROM cadastro_gerentes WHERE $nome_query";
-	$cnt_stmt = $pdo->prepare($cnt_sql);
-	$cnt_stmt->execute($params);
-	$total = $cnt_stmt->fetchColumn();
+	$countSql = "SELECT COUNT(*) FROM cadastro_gerentes WHERE $whereClause";
+	$countStmt = $pdo->prepare($countSql);
+	foreach ($params as $key => $value) {
+		$countStmt->bindValue($key, $value);
+	}
+	$countStmt->execute();
+	$totalRecords = $countStmt->fetchColumn();
 
 	echo "
 	<!DOCTYPE html>
@@ -102,16 +118,18 @@ if ($pagina === 'cadastro_gerentes') {
 	<body>
 	<div class='centro'>
 		<div class='titulo'> $page </div>
-		<div id='botoes'><input value='Novo Gerente' type='button' onclick=\"window.location.href='cadastro_gerentes.php?pagina=adicionar_cadastro_gerentes$autenticacao';\" /></div>
+		<div id='botoes'>
+			<input value='Novo Gerente' type='button' onclick=\"window.location.href='cadastro_gerentes.php?pagina=adicionar_cadastro_gerentes$autenticacao';\" />
+		</div>
 		<div class='filtro'>
 			<form name='form_filtro' id='form_filtro' method='post' action='cadastro_gerentes.php?pagina=cadastro_gerentes$autenticacao'>
-				<input name='fil_nome' id='fil_nome' value='$fil_nome' placeholder='Nome'>
+				<input name='fil_nome' id='fil_nome' value='$filterName' placeholder='Nome'>
 				<input type='submit' value='Filtrar'> 
 			</form>
 		</div>
 	";
 
-	if ($total > 0) {
+	if ($totalRecords > 0) {
 		echo "
 		<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
 			<tr>
@@ -119,38 +137,47 @@ if ($pagina === 'cadastro_gerentes') {
 				<td class='titulo_tabela' align='center'>Gerenciar</td>
 			</tr>
 		";
-		$c = 0;
-		foreach ($gerentes as $gerente) {
-			$ger_id = $gerente['ger_id'];
-			$ger_nome = htmlspecialchars($gerente['ger_nome']);
-			$c1 = $c++ % 2 == 0 ? 'linhaimpar' : 'linhapar';
+		foreach ($gerentes as $index => $gerente) {
+			$gerenteId = $gerente['ger_id'];
+			$gerenteNome = htmlspecialchars($gerente['ger_nome']);
+			$rowClass = $index % 2 === 0 ? 'linhaimpar' : 'linhapar';
 			echo "
 			<script>
 				jQuery(function($) {
-					$('#normal-button-$ger_id').toolbar({content: '#user-options-$ger_id', position: 'top', hideOnClick: true});
+					$('#normal-button-$gerenteId').toolbar({content: '#user-options-$gerenteId', position: 'top', hideOnClick: true});
 				});
 			</script>
-			<div id='user-options-$ger_id' class='toolbar-icons' style='display: none;'>
-				<a href='cadastro_gerentes.php?pagina=editar_cadastro_gerentes&ger_id=$ger_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
+			<div id='user-options-$gerenteId' class='toolbar-icons' style='display: none;'>
+				<a href='cadastro_gerentes.php?pagina=editar_cadastro_gerentes&ger_id=$gerenteId$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
 				<a onclick=\"
 					abreMask(
-						'Deseja realmente excluir o gerente <b>$ger_nome</b>?<br><br>'+
-						'<input value=\' Sim \' type=\'button\' onclick=window.location.href=\\'cadastro_gerentes.php?pagina=cadastro_gerentes&action=excluir&ger_id=$ger_id$autenticacao\\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+						'Deseja realmente excluir o gerente <b>$gerenteNome</b>?<br><br>'+
+						'<input value=\' Sim \' type=\'button\' onclick=window.location.href=\\'cadastro_gerentes.php?pagina=cadastro_gerentes&action=excluir&ger_id=$gerenteId$autenticacao\\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<input value=\' Não \' type=\'button\' class=\'close_janela\'>'
 					);
 				\">
 					<img border='0' src='../imagens/icon-excluir.png'>
 				</a>
 			</div>
-			<tr class='$c1'>
-				<td>$ger_nome</td>
-				<td align='center'><div id='normal-button-$ger_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
+			<tr class='$rowClass'>
+				<td>$gerenteNome</td>
+				<td align='center'><div id='normal-button-$gerenteId' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
 			</tr>
 			";
 		}
 		echo '</table>';
-		$variavel = "&pagina=cadastro_gerentes$autenticacao";
-		include '../mod_includes/php/paginacao.php';
+
+		// Pagination
+		$totalPages = ceil($totalRecords / $recordsPerPage);
+		if ($totalPages > 1) {
+			echo "<div class='paginacao'>";
+			for ($i = 1; $i <= $totalPages; $i++) {
+				$activeClass = $i == $pag ? "style='font-weight:bold;'" : '';
+				$url = "cadastro_gerentes.php?pagina=cadastro_gerentes&pag=$i$autenticacao";
+				echo "<a href='$url' $activeClass>[$i]</a> ";
+			}
+			echo "</div>";
+		}
 	} else {
 		echo '<br><br><br>Não há nenhum gerente cadastrado.';
 	}
@@ -198,13 +225,13 @@ if ($pagina === 'adicionar_cadastro_gerentes') {
 }
 
 if ($pagina === 'editar_cadastro_gerentes') {
-	$ger_id = $_GET['ger_id'] ?? '';
+	$gerenteId = getRequestParam('ger_id');
 	$stmt = $pdo->prepare('SELECT * FROM cadastro_gerentes WHERE ger_id = :ger_id');
-	$stmt->execute([':ger_id' => $ger_id]);
+	$stmt->execute([':ger_id' => $gerenteId]);
 	$gerente = $stmt->fetch(PDO::FETCH_ASSOC);
 
 	if ($gerente) {
-		$ger_nome = htmlspecialchars($gerente['ger_nome']);
+		$gerenteNome = htmlspecialchars($gerente['ger_nome']);
 		echo "
 		<!DOCTYPE html>
 		<html>
@@ -216,14 +243,14 @@ if ($pagina === 'editar_cadastro_gerentes') {
 		echo "
 		</head>
 		<body>
-		<form name='form_cadastro_gerentes' id='form_cadastro_gerentes' method='post' action='cadastro_gerentes.php?pagina=cadastro_gerentes&action=editar&ger_id=$ger_id$autenticacao'>
+		<form name='form_cadastro_gerentes' id='form_cadastro_gerentes' method='post' action='cadastro_gerentes.php?pagina=cadastro_gerentes&action=editar&ger_id=$gerenteId$autenticacao'>
 		<div class='centro'>
-			<div class='titulo'> $page &raquo; Editar: $ger_nome </div>
+			<div class='titulo'> $page &raquo; Editar: $gerenteNome </div>
 			<table align='center' cellspacing='0'>
 				<tr>
 					<td align='left'>
-						<input type='hidden' name='ger_id' id='ger_id' value='$ger_id'>
-						<input name='ger_nome' id='ger_nome' value='$ger_nome' placeholder='Nome'>
+						<input type='hidden' name='ger_id' id='ger_id' value='$gerenteId'>
+						<input name='ger_nome' id='ger_nome' value='$gerenteNome' placeholder='Nome'>
 						<p>
 						<center>
 						<div id='erro' align='center'>&nbsp;</div>

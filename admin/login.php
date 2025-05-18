@@ -22,33 +22,37 @@ $titulo = $titulo ?? 'Login - Sistema de Gerenciamento de Orçamentos';
     ?>
     <form name="form_login" id="form_login" method="post" autocomplete="off" action="envialogin.php">
         <div class="centro">
-            <div class="titulo">Bem vindo ao Sistema de Gerenciamento de Orçamentos</div>
+            <div class="titulo">
+                Bem-vindo ao Sistema de Gerenciamento de Orçamentos
+            </div>
             <div id="interna">
                 <table align="center" cellspacing="10">
+                    <tr>
+                        <td>
+                            <span class="texto-pequeno">
+                                Digite seu usuário e senha para acessar o sistema.
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center">
+                            <input type="text" name="login" id="login" placeholder="Usuário" size="20" required
+                                autocomplete="username">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center">
+                            <input type="password" name="senha" id="senha" placeholder="Senha" size="20" required
+                                autocomplete="current-password">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" height="30" valign="bottom">
+                            <input type="submit" id="botao_login" value="Entrar no Sistema" name="botao_login">
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <tr>
-                <td>
-                    <span class="textopeq">Digite seu usuário e senha para acessar o sistema.</span><br>
-                </td>
-            </tr>
-            <tr>
-                <td align="center">
-                    <input name="login" id="login" placeholder="Login" size="20" required>
-                </td>
-            </tr>
-            <tr>
-                <td align="center">
-                    <input type="password" name="senha" id="senha" placeholder="Senha" size="20" required>
-                </td>
-            </tr>
-            <tr>
-                <td align="center" height="30" valign="bottom">
-                    <input type="submit" id="bt_login" value="Entrar no Sistema" name="B1">
-                </td>
-            </tr>
-            </table>
-        </div>
-        <div class="titulo"></div>
         </div>
     </form>
     <?php include '../mod_rodape/rodape.php'; ?>

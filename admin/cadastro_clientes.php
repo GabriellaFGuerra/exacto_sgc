@@ -1,7 +1,7 @@
 <?php
 session_start();
 $pagina_link = 'cadastro_clientes';
-include '../mod_includes/php/connect.php'; // $pdo deve estar disponível aqui
+include '../mod_includes/php/connect.php';
 
 function getPost($key, $default = '')
 {
@@ -23,10 +23,26 @@ function abreMask($msg)
 	echo "<script language='JavaScript'>abreMask('$msg');</script>";
 }
 
-$page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_clientes'>Clientes</a>";
+function renderPagination($total, $perPage, $currentPage, $baseUrl, $extraParams = [])
+{
+	$totalPages = ceil($total / $perPage);
+	if ($totalPages <= 1)
+		return;
+
+	$query = http_build_query(array_merge($extraParams, ['pagina' => 'cadastro_clientes']));
+	echo "<div class='pagination'>";
+	for ($i = 1; $i <= $totalPages; $i++) {
+		$active = $i == $currentPage ? "style='font-weight:bold;'" : '';
+		echo "<a href='{$baseUrl}?{$query}&pag={$i}' {$active}>{$i}</a> ";
+	}
+	echo "</div>";
+}
+
+$pageTitle = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_clientes'>Clientes</a>";
 $action = getRequest('action');
 $pagina = getRequest('pagina');
-$pag = (int) getRequest('pag', 1);
+$pag = max(1, (int) getRequest('pag', 1));
+$numPorPagina = 10;
 
 if ($action === "adicionar") {
 	$cli_nome_razao = getPost('cli_nome_razao');
@@ -66,7 +82,6 @@ if ($action === "adicionar") {
 	if ($ok) {
 		$ultimo_id = $pdo->lastInsertId();
 		$caminho = "../admin/clientes/";
-		$arquivo = '';
 		if (!empty($_FILES['cli_foto']['name'][0])) {
 			if (!file_exists($caminho))
 				mkdir($caminho, 0755, true);
@@ -100,12 +115,11 @@ if ($action === 'editar') {
 	$cli_senha = getPost('cli_senha');
 	$cli_status = getPost('cli_status', 1);
 
-	// Recupera senha antiga
 	$stmt = $pdo->prepare("SELECT cli_senha FROM cadastro_clientes WHERE cli_id = ?");
 	$stmt->execute([$cli_id]);
-	$senhacompara = $stmt->fetchColumn();
-	if (password_verify($cli_senha, $senhacompara)) {
-		$cli_senha = $senhacompara;
+	$senhaAntiga = $stmt->fetchColumn();
+	if (password_verify($cli_senha, $senhaAntiga)) {
+		$cli_senha = $senhaAntiga;
 	} else {
 		$cli_senha = password_hash($cli_senha, PASSWORD_DEFAULT);
 	}
@@ -141,7 +155,6 @@ if ($action === 'editar') {
 			$extensao = pathinfo($nomeArquivo, PATHINFO_EXTENSION);
 			$arquivo = $caminho . md5(mt_rand(1, 10000) . $nomeArquivo) . '.' . $extensao;
 
-			// Remove foto antiga
 			$stmt = $pdo->prepare("SELECT cli_foto FROM cadastro_clientes WHERE cli_id = ?");
 			$stmt->execute([$cli_id]);
 			$cli_foto_old = $stmt->fetchColumn();
@@ -168,61 +181,76 @@ if ($action === 'excluir') {
 	}
 }
 
-if ($action === 'ativar') {
+if ($action === 'ativar' || $action === 'desativar') {
 	$cli_id = getGet('cli_id');
-	$stmt = $pdo->prepare("UPDATE cadastro_clientes SET cli_status = 1 WHERE cli_id = ?");
-	if ($stmt->execute([$cli_id])) {
-		abreMask("<img src=../imagens/ok.png> Ativação realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
+	$status = $action === 'ativar' ? 1 : 0;
+	$stmt = $pdo->prepare("UPDATE cadastro_clientes SET cli_status = ? WHERE cli_id = ?");
+	if ($stmt->execute([$status, $cli_id])) {
+		$msg = $status ? "Ativação" : "Desativação";
+		abreMask("<img src=../imagens/ok.png> {$msg} realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
 	} else {
 		abreMask("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick=javascript:window.history.back(); >");
 	}
 }
 
-if ($action === 'desativar') {
-	$cli_id = getGet('cli_id');
-	$stmt = $pdo->prepare("UPDATE cadastro_clientes SET cli_status = 0 WHERE cli_id = ?");
-	if ($stmt->execute([$cli_id])) {
-		abreMask("<img src=../imagens/ok.png> Desativação realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
-	} else {
-		abreMask("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick=javascript:window.history.back(); >");
-	}
-}
-
-$num_por_pagina = 10;
-$primeiro_registro = ($pag - 1) * $num_por_pagina;
+// Filtros
 $fil_nome = getRequest('fil_nome');
 $fil_cli_cnpj = str_replace(['.', '-'], '', getRequest('fil_cli_cnpj'));
 
-$nome_query = $fil_nome ? "cli_nome_razao LIKE :fil_nome" : "1=1";
-$cnpj_query = $fil_cli_cnpj ? "REPLACE(REPLACE(cli_cnpj, '.', ''), '-', '') LIKE :fil_cli_cnpj" : "1=1";
+$where = [];
+$params = [':usuario_id' => $_SESSION['usuario_id']];
+$where[] = "cli_deletado = 1";
+$where[] = "cli_status = 1";
+$where[] = "ucl_usuario = :usuario_id";
+if ($fil_nome) {
+	$where[] = "cli_nome_razao LIKE :fil_nome";
+	$params[':fil_nome'] = "%$fil_nome%";
+}
+if ($fil_cli_cnpj) {
+	$where[] = "REPLACE(REPLACE(cli_cnpj, '.', ''), '-', '') LIKE :fil_cli_cnpj";
+	$params[':fil_cli_cnpj'] = "%$fil_cli_cnpj%";
+}
+$whereSql = implode(' AND ', $where);
 
+// Total de registros para paginação
+$countSql = "SELECT COUNT(*) FROM cadastro_clientes 
+	INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id
+	WHERE $whereSql";
+$countStmt = $pdo->prepare($countSql);
+foreach ($params as $key => $value) {
+	$countStmt->bindValue($key, $value);
+}
+$countStmt->execute();
+$totalClientes = $countStmt->fetchColumn();
+
+// Consulta paginada
 $sql = "SELECT * FROM cadastro_clientes 
-		INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id
-		WHERE cli_deletado = 1 and cli_status = 1 and ucl_usuario = :usuario_id AND $nome_query AND $cnpj_query
-		ORDER BY cli_nome_razao ASC
-		LIMIT $primeiro_registro, $num_por_pagina";
+	INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id
+	WHERE $whereSql
+	ORDER BY cli_nome_razao ASC
+	LIMIT :offset, :limit";
 $stmt = $pdo->prepare($sql);
-$stmt->bindValue(':usuario_id', $_SESSION['usuario_id']);
-if ($fil_nome)
-	$stmt->bindValue(':fil_nome', "%$fil_nome%");
-if ($fil_cli_cnpj)
-	$stmt->bindValue(':fil_cli_cnpj', "%$fil_cli_cnpj%");
+foreach ($params as $key => $value) {
+	$stmt->bindValue($key, $value);
+}
+$stmt->bindValue(':offset', ($pag - 1) * $numPorPagina, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $numPorPagina, PDO::PARAM_INT);
 $stmt->execute();
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($pagina == "cadastro_clientes") {
 	echo "
 	<div class='centro'>
-		<div class='titulo'> $page  </div>
+		<div class='titulo'> $pageTitle  </div>
 		<div id='botoes'><input value='Novo Cliente' type='button' onclick=javascript:window.location.href='cadastro_clientes.php?pagina=adicionar_cadastro_clientes'; /></div>
 		<div class='filtro'>
 			<form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post' action='cadastro_clientes.php?pagina=cadastro_clientes'>
-			<input name='fil_nome' id='fil_nome' value='$fil_nome' placeholder='Nome/Razão Social'>
-			<input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J' value='$fil_cli_cnpj'>                        
-			<input type='submit' value='Filtrar'> 
+				<input name='fil_nome' id='fil_nome' value='$fil_nome' placeholder='Nome/Razão Social'>
+				<input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J' value='$fil_cli_cnpj'>                        
+				<input type='submit' value='Filtrar'> 
 			</form>
 		</div>
-		";
+	";
 	if (count($clientes) > 0) {
 		echo "
 		<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
@@ -265,18 +293,23 @@ if ($pagina == "cadastro_clientes") {
 			</tr>";
 		}
 		echo "</table>";
-		// Inclua aqui a paginação se necessário
+		// Paginação
+		renderPagination($totalClientes, $numPorPagina, $pag, 'cadastro_clientes.php', [
+			'fil_nome' => $fil_nome,
+			'fil_cli_cnpj' => $fil_cli_cnpj
+		]);
 	} else {
 		echo "<br><br><br>Não há nenhum cliente cadastrado.";
 	}
 	echo "<div class='titulo'>  </div></div>";
 }
 
+// As demais telas (adicionar/editar) permanecem iguais, pois não precisam de paginação
 if ($pagina == 'adicionar_cadastro_clientes') {
 	echo "    
 	<form name='form_cadastro_clientes' id='form_cadastro_clientes' enctype='multipart/form-data' method='post' action='cadastro_clientes.php?pagina=cadastro_clientes&action=adicionar'>
 	<div class='centro'>
-		<div class='titulo'> $page &raquo; Adicionar  </div>
+		<div class='titulo'> $pageTitle &raquo; Adicionar  </div>
 		<table align='center' cellspacing='0' width='580'>
 			<tr>
 				<td align='left'>
@@ -364,7 +397,7 @@ if ($pagina == 'editar_cadastro_clientes') {
 		echo "
 		<form name='form_cadastro_clientes' id='form_cadastro_clientes' enctype='multipart/form-data' method='post' action='cadastro_clientes.php?pagina=cadastro_clientes&action=editar&cli_id=$cli_id'>
 		<div class='centro'>
-			<div class='titulo'> $page &raquo; Editar: $cli_nome_razao </div>
+			<div class='titulo'> $pageTitle &raquo; Editar: $cli_nome_razao </div>
 			<table align='center' cellspacing='0'>
 				<tr>
 					<td align='left'>

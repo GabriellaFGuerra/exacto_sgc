@@ -1,6 +1,6 @@
 <?php
 session_start();
-$pagina_link = 'prestacao_gerenciar';
+$paginaAtual = 'prestacao_gerenciar';
 include '../mod_includes/php/connect.php';
 
 require_once '../mod_includes/php/verificalogin.php';
@@ -10,128 +10,131 @@ include '../mod_topo/topo.php';
 
 $titulo = $titulo ?? 'Prestação de Contas';
 
-function abreMask($msg)
+function exibirMascara($mensagem)
 {
-	echo "<script>abreMask(`$msg`);</script>";
+	echo "<script>abreMask(`$mensagem`);</script>";
 }
 
-function abreMaskAcao($msg)
+function exibirMascaraAcao($mensagem)
 {
-	echo "<script>abreMaskAcao(`$msg`);</script>";
+	echo "<script>abreMaskAcao(`$mensagem`);</script>";
 }
 
-$page = "Prestação de Contas &raquo; <a href='prestacao_gerenciar.php?pagina=prestacao_gerenciar'>Gerenciar</a>";
+$caminhoPagina = "Prestação de Contas &raquo; <a href='prestacao_gerenciar.php?pagina=prestacao_gerenciar'>Gerenciar</a>";
 
-$action = $_GET['action'] ?? '';
+$acao = $_GET['action'] ?? '';
 $pagina = $_GET['pagina'] ?? 'prestacao_gerenciar';
 $autenticacao = $_GET['autenticacao'] ?? '';
-$pag = isset($_GET['pag']) ? (int) $_GET['pag'] : 1;
+$paginaNumero = isset($_GET['pag']) ? (int) $_GET['pag'] : 1;
 
+// Função para tratar datas
+function formatarData($data, $formatoEntrada = 'd/m/Y', $formatoSaida = 'Y-m-d')
+{
+	$dataObj = DateTime::createFromFormat($formatoEntrada, $data);
+	return $dataObj ? $dataObj->format($formatoSaida) : null;
+}
+
+// Processamento de formulários
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	// Adicionar
-	if ($action === "adicionar") {
-		$pre_cliente = $_POST['pre_cliente_id'] ?? '';
-		$pre_referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
-		$pre_data_envio = DateTime::createFromFormat('d/m/Y', $_POST['pre_data_envio'] ?? '');
-		$pre_data_envio = $pre_data_envio ? $pre_data_envio->format('Y-m-d') : null;
-		$pre_enviado_por = $_POST['pre_enviado_por'] ?? '';
-		$pre_observacoes = $_POST['pre_observacoes'] ?? '';
+	if ($acao === "adicionar") {
+		$clienteId = $_POST['pre_cliente_id'] ?? '';
+		$referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
+		$dataEnvio = formatarData($_POST['pre_data_envio'] ?? '');
+		$enviadoPor = $_POST['pre_enviado_por'] ?? '';
+		$observacoes = $_POST['pre_observacoes'] ?? '';
 
 		$stmt = $pdo->prepare("INSERT INTO prestacao_gerenciar (pre_cliente, pre_referencia, pre_data_envio, pre_enviado_por, pre_observacoes) VALUES (?, ?, ?, ?, ?)");
-		if ($stmt->execute([$pre_cliente, $pre_referencia, $pre_data_envio, $pre_enviado_por, $pre_observacoes])) {
-			abreMask("<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
+		if ($stmt->execute([$clienteId, $referencia, $dataEnvio, $enviadoPor, $observacoes])) {
+			exibirMascara("<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
 		} else {
-			abreMask("<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
+			exibirMascara("<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
 		}
 	}
 
-	// Editar
-	if ($action === 'editar') {
-		$pre_id = $_GET['pre_id'] ?? '';
-		$pre_referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
-		$pre_data_envio = DateTime::createFromFormat('d/m/Y', $_POST['pre_data_envio'] ?? '');
-		$pre_data_envio = $pre_data_envio ? $pre_data_envio->format('Y-m-d') : null;
-		$pre_enviado_por = $_POST['pre_enviado_por'] ?? '';
-		$pre_observacoes = $_POST['pre_observacoes'] ?? '';
+	if ($acao === 'editar') {
+		$prestacaoId = $_GET['pre_id'] ?? '';
+		$referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
+		$dataEnvio = formatarData($_POST['pre_data_envio'] ?? '');
+		$enviadoPor = $_POST['pre_enviado_por'] ?? '';
+		$observacoes = $_POST['pre_observacoes'] ?? '';
 
 		$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_referencia = ?, pre_data_envio = ?, pre_enviado_por = ?, pre_observacoes = ? WHERE pre_id = ?");
-		if ($stmt->execute([$pre_referencia, $pre_data_envio, $pre_enviado_por, $pre_observacoes, $pre_id])) {
-			abreMask("<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
+		if ($stmt->execute([$referencia, $dataEnvio, $enviadoPor, $observacoes, $prestacaoId])) {
+			exibirMascara("<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
 		} else {
-			abreMask("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
+			exibirMascara("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
 		}
 	}
 
-	// Comprovante
-	if ($action === 'comprovante') {
+	if ($acao === 'comprovante') {
 		$erro = false;
-		$pre_id = $_GET['pre_id'] ?? '';
+		$prestacaoId = $_GET['pre_id'] ?? '';
 		$arquivos = $_FILES['pre_comprovante'] ?? null;
-		$caminho = "../admin/prestacao_comprovante/$pre_id/";
+		$caminho = "../admin/prestacao_comprovante/$prestacaoId/";
 		if (!is_dir($caminho)) {
 			mkdir($caminho, 0755, true);
 		}
-		$arquivo_final = '';
+		$arquivoFinal = '';
 		if ($arquivos && is_array($arquivos['name'])) {
-			foreach ($arquivos['name'] as $k => $nome) {
-				if ($nome) {
-					$extensao = pathinfo($nome, PATHINFO_EXTENSION);
-					$arquivo = $caminho . md5(mt_rand(1, 10000) . $nome) . '.' . $extensao;
-					if (move_uploaded_file($arquivos['tmp_name'][$k], $arquivo)) {
-						$arquivo_final = $arquivo;
+			foreach ($arquivos['name'] as $indice => $nomeArquivo) {
+				if ($nomeArquivo) {
+					$extensao = pathinfo($nomeArquivo, PATHINFO_EXTENSION);
+					$nomeFinal = $caminho . md5(mt_rand(1, 10000) . $nomeArquivo) . '.' . $extensao;
+					if (move_uploaded_file($arquivos['tmp_name'][$indice], $nomeFinal)) {
+						$arquivoFinal = $nomeFinal;
 					} else {
 						$erro = true;
 					}
 				}
 			}
-			if ($arquivo_final) {
+			if ($arquivoFinal) {
 				$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_comprovante = ? WHERE pre_id = ?");
-				if (!$stmt->execute([$arquivo_final, $pre_id])) {
+				if (!$stmt->execute([$arquivoFinal, $prestacaoId])) {
 					$erro = true;
 				}
 			}
 		}
 		if (!$erro) {
-			abreMask("<img src=../imagens/ok.png> Anexo enviado com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
+			exibirMascara("<img src=../imagens/ok.png> Anexo enviado com sucesso.<br><br><input value=' Ok ' type='button' class='close_janela'>");
 		} else {
-			abreMask("<img src=../imagens/x.png> Erro ao enviar anexo.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
+			exibirMascara("<img src=../imagens/x.png> Erro ao enviar anexo.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
 		}
 	}
 }
 
-// Excluir
-if ($action === 'excluir') {
-	$pre_id = $_GET['pre_id'] ?? '';
+// Exclusão
+if ($acao === 'excluir') {
+	$prestacaoId = $_GET['pre_id'] ?? '';
 	$stmt = $pdo->prepare("DELETE FROM prestacao_gerenciar WHERE pre_id = ?");
-	if ($stmt->execute([$pre_id])) {
-		abreMask("<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
+	if ($stmt->execute([$prestacaoId])) {
+		exibirMascara("<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
 	} else {
-		abreMask("<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
+		exibirMascara("<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
 	}
 }
 
-// Ativar/Desativar
-if ($action === 'ativar' || $action === 'desativar') {
-	$pre_id = $_GET['pre_id'] ?? '';
-	$status = $action === 'ativar' ? 1 : 0;
+// Ativação/Desativação
+if ($acao === 'ativar' || $acao === 'desativar') {
+	$prestacaoId = $_GET['pre_id'] ?? '';
+	$status = $acao === 'ativar' ? 1 : 0;
 	$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_status = ? WHERE pre_id = ?");
-	if ($stmt->execute([$status, $pre_id])) {
-		$msg = $status ? 'Ativação' : 'Desativação';
-		abreMask("<img src=../imagens/ok.png> $msg realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
+	if ($stmt->execute([$status, $prestacaoId])) {
+		$mensagem = $status ? 'Ativação' : 'Desativação';
+		exibirMascara("<img src=../imagens/ok.png> $mensagem realizada com sucesso<br><br><input value=' OK ' type='button' class='close_janela'>");
 	} else {
-		abreMask("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
+		exibirMascara("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=' Ok ' type='button' onclick='window.history.back();'>");
 	}
 }
 
 // Filtros
-$num_por_pagina = 10;
-$primeiro_registro = ($pag - 1) * $num_por_pagina;
+$registrosPorPagina = 10;
+$primeiroRegistro = ($paginaNumero - 1) * $registrosPorPagina;
 
-$fil_prestacao = $_REQUEST['fil_prestacao'] ?? '';
-$fil_nome = $_REQUEST['fil_nome'] ?? '';
-$fil_referencia = $_REQUEST['fil_referencia'] ?? '';
-$fil_data_inicio = $_REQUEST['fil_data_inicio'] ?? '';
-$fil_data_fim = $_REQUEST['fil_data_fim'] ?? '';
+$filtroPrestacao = $_REQUEST['fil_prestacao'] ?? '';
+$filtroNome = $_REQUEST['fil_nome'] ?? '';
+$filtroReferencia = $_REQUEST['fil_referencia'] ?? '';
+$filtroDataInicio = $_REQUEST['fil_data_inicio'] ?? '';
+$filtroDataFim = $_REQUEST['fil_data_fim'] ?? '';
 
 $where = [];
 $params = [];
@@ -139,66 +142,66 @@ $params = [];
 $where[] = "cli_status = 1 AND cli_deletado = 1 AND ucl_usuario = ?";
 $params[] = $_SESSION['usuario_id'];
 
-if ($fil_prestacao) {
+if ($filtroPrestacao) {
 	$where[] = "pre_id = ?";
-	$params[] = $fil_prestacao;
+	$params[] = $filtroPrestacao;
 }
-if ($fil_nome) {
+if ($filtroNome) {
 	$where[] = "cli_nome_razao LIKE ?";
-	$params[] = "%$fil_nome%";
+	$params[] = "%$filtroNome%";
 }
-if ($fil_referencia) {
+if ($filtroReferencia) {
 	$where[] = "pre_referencia = ?";
-	$params[] = $fil_referencia;
+	$params[] = $filtroReferencia;
 }
-if ($fil_data_inicio || $fil_data_fim) {
-	$data_inicio = $fil_data_inicio ? DateTime::createFromFormat('d/m/Y', $fil_data_inicio)->format('Y-m-d') : null;
-	$data_fim = $fil_data_fim ? DateTime::createFromFormat('d/m/Y', $fil_data_fim)->format('Y-m-d 23:59:59') : null;
-	if ($data_inicio && $data_fim) {
+if ($filtroDataInicio || $filtroDataFim) {
+	$dataInicio = $filtroDataInicio ? formatarData($filtroDataInicio) : null;
+	$dataFim = $filtroDataFim ? formatarData($filtroDataFim, 'd/m/Y', 'Y-m-d 23:59:59') : null;
+	if ($dataInicio && $dataFim) {
 		$where[] = "pre_data_cadastro BETWEEN ? AND ?";
-		$params[] = $data_inicio;
-		$params[] = $data_fim;
-	} elseif ($data_inicio) {
+		$params[] = $dataInicio;
+		$params[] = $dataFim;
+	} elseif ($dataInicio) {
 		$where[] = "pre_data_cadastro >= ?";
-		$params[] = $data_inicio;
-	} elseif ($data_fim) {
+		$params[] = $dataInicio;
+	} elseif ($dataFim) {
 		$where[] = "pre_data_cadastro <= ?";
-		$params[] = $data_fim;
+		$params[] = $dataFim;
 	}
 }
 
-$where_sql = implode(' AND ', $where);
+$whereSql = implode(' AND ', $where);
 
-// Listagem
+// Listagem com paginação
 if ($pagina === "prestacao_gerenciar") {
 	$sql = "SELECT * FROM prestacao_gerenciar 
 		LEFT JOIN (cadastro_clientes 
 			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
 		ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
-		WHERE $where_sql
+		WHERE $whereSql
 		ORDER BY pre_data_cadastro DESC
-		LIMIT $primeiro_registro, $num_por_pagina";
+		LIMIT $primeiroRegistro, $registrosPorPagina";
 	$stmt = $pdo->prepare($sql);
 	$stmt->execute($params);
-	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+	$prestacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	$cnt_sql = "SELECT COUNT(*) FROM prestacao_gerenciar 
+	$sqlTotal = "SELECT COUNT(*) FROM prestacao_gerenciar 
 		LEFT JOIN (cadastro_clientes 
 			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
 		ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
-		WHERE $where_sql";
-	$cnt_stmt = $pdo->prepare($cnt_sql);
-	$cnt_stmt->execute($params);
-	$total = $cnt_stmt->fetchColumn();
+		WHERE $whereSql";
+	$stmtTotal = $pdo->prepare($sqlTotal);
+	$stmtTotal->execute($params);
+	$totalRegistros = $stmtTotal->fetchColumn();
 
+	// Cabeçalho HTML
 	echo "<!DOCTYPE html>
 <html lang='pt-br'>
 <head>
 <title>$titulo</title>
 <meta name='author' content='MogiComp'>
 <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-<link rel='shortcut icon' href='../imagens/favicon.png'>
-";
+<link rel='shortcut icon' href='../imagens/favicon.png'>";
 	include "../css/style.php";
 	echo "
 <script src='../mod_includes/js/funcoes.js'></script>
@@ -209,20 +212,21 @@ if ($pagina === "prestacao_gerenciar") {
 </head>
 <body>
 <div class='centro'>
-	<div class='titulo'> $page  </div>
+	<div class='titulo'> $caminhoPagina  </div>
 	<div id='botoes'><input value='Nova Prestação de Conta' type='button' onclick=\"window.location.href='prestacao_gerenciar.php?pagina=adicionar_prestacao_gerenciar$autenticacao';\" /></div>
 	<div class='filtro'>
 		<form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post' action='prestacao_gerenciar.php?pagina=prestacao_gerenciar$autenticacao'>
-		<input name='fil_prestacao' id='fil_prestacao' value='$fil_prestacao' placeholder='N° '>
-		<input name='fil_nome' id='fil_nome' value='$fil_nome' placeholder='Cliente'>
-		<input name='fil_referencia' id='fil_referencia' value='$fil_referencia' placeholder='Referência '>
-		<input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início' value='$fil_data_inicio' onkeypress='return mascaraData(this,event);'>
-		<input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim' value='$fil_data_fim' onkeypress='return mascaraData(this,event);'>
+		<input name='fil_prestacao' id='fil_prestacao' value='$filtroPrestacao' placeholder='N° '>
+		<input name='fil_nome' id='fil_nome' value='$filtroNome' placeholder='Cliente'>
+		<input name='fil_referencia' id='fil_referencia' value='$filtroReferencia' placeholder='Referência '>
+		<input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início' value='$filtroDataInicio' onkeypress='return mascaraData(this,event);'>
+		<input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim' value='$filtroDataFim' onkeypress='return mascaraData(this,event);'>
 		<input type='submit' value='Filtrar'> 
 		</form>
 	</div>
 	";
-	if ($rows) {
+
+	if ($prestacoes) {
 		echo "
 		<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
 			<tr>
@@ -237,29 +241,29 @@ if ($pagina === "prestacao_gerenciar") {
 				<td class='titulo_tabela' align='center'>Protocolo Assinado</td>
 				<td class='titulo_tabela' align='center'>Gerenciar</td>
 			</tr>";
-		$c = 0;
-		foreach ($rows as $row) {
-			$pre_id = $row['pre_id'];
-			$cli_nome_razao = $row['cli_nome_razao'];
-			$pre_referencia = $row['pre_referencia'];
-			$pre_data_envio = $row['pre_data_envio'] ? (new DateTime($row['pre_data_envio']))->format('d/m/Y') : '';
-			$pre_enviado_por = $row['pre_enviado_por'];
-			$pre_observacoes = $row['pre_observacoes'];
-			$pre_data_cadastro = $row['pre_data_cadastro'] ? (new DateTime($row['pre_data_cadastro']))->format('d/m/Y') : '';
-			$pre_hora_cadastro = $row['pre_data_cadastro'] ? (new DateTime($row['pre_data_cadastro']))->format('H:i') : '';
-			$pre_comprovante = $row['pre_comprovante'];
-			$c1 = $c % 2 == 0 ? "linhaimpar" : "linhapar";
-			$c++;
+		$contador = 0;
+		foreach ($prestacoes as $prestacao) {
+			$preId = $prestacao['pre_id'];
+			$clienteNome = $prestacao['cli_nome_razao'];
+			$referencia = $prestacao['pre_referencia'];
+			$dataEnvio = $prestacao['pre_data_envio'] ? (new DateTime($prestacao['pre_data_envio']))->format('d/m/Y') : '';
+			$enviadoPor = $prestacao['pre_enviado_por'];
+			$observacoes = $prestacao['pre_observacoes'];
+			$dataCadastro = $prestacao['pre_data_cadastro'] ? (new DateTime($prestacao['pre_data_cadastro']))->format('d/m/Y') : '';
+			$horaCadastro = $prestacao['pre_data_cadastro'] ? (new DateTime($prestacao['pre_data_cadastro']))->format('H:i') : '';
+			$comprovante = $prestacao['pre_comprovante'];
+			$classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
+			$contador++;
 			echo "
 			<script>
 				$(function() {
-					$('#normal-button-$pre_id').toolbar({content: '#user-options-$pre_id', position: 'top', hideOnClick: true});
+					$('#normal-button-$preId').toolbar({content: '#user-options-$preId', position: 'top', hideOnClick: true});
 				});
 			</script>
-			<div id='user-options-$pre_id' class='toolbar-icons' style='display: none;'>
+			<div id='user-options-$preId' class='toolbar-icons' style='display: none;'>
 				<a href='#' title='Anexar comprovante' onclick=\"
-					abreMaskAcao(
-						'<form name=\\'form_envia_comprovante\\' id=\\'form_envia_comprovante\\' enctype=\\'multipart/form-data\\' method=\\'post\\' action=\\'prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=comprovante&pre_id=$pre_id$autenticacao\\'>'+
+					exibirMascaraAcao(
+						'<form name=\\'form_envia_comprovante\\' id=\\'form_envia_comprovante\\' enctype=\\'multipart/form-data\\' method=\\'post\\' action=\\'prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=comprovante&pre_id=$preId$autenticacao\\'>'+
 						'<table align=center>'+
 							'<tr>'+
 								'<td>'+
@@ -273,37 +277,38 @@ if ($pagina === "prestacao_gerenciar") {
 					\">
 					<img border='0' src='../imagens/icon-comprovante.png'>
 				</a>
-				<a title='Editar' href='prestacao_gerenciar.php?pagina=editar_prestacao_gerenciar&pre_id=$pre_id$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
+				<a title='Editar' href='prestacao_gerenciar.php?pagina=editar_prestacao_gerenciar&pre_id=$preId$autenticacao'><img border='0' src='../imagens/icon-editar.png'></a>
 				<a title='Excluir' onclick=\"
-					abreMask(
-						'Deseja realmente excluir a prestação <b>$pre_id</b>?<br><br>'+
-						'<input value=\\' Sim \\' type=\\'button\\' onclick=\\'window.location.href=\\'prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=excluir&pre_id=$pre_id$autenticacao\\';\\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+					exibirMascara(
+						'Deseja realmente excluir a prestação <b>$preId</b>?<br><br>'+
+						'<input value=\\' Sim \\' type=\\'button\\' onclick=\\'window.location.href=\\'prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=excluir&pre_id=$preId$autenticacao\\';\\'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<input value=\\' Não \\' type=\\'button\\' class=\\'close_janela\\'>');
 					\">
 					<img border='0' src='../imagens/icon-excluir.png'>
 				</a>
 			</div>
 			";
-			echo "<tr class='$c1'>
-				<td>$pre_id</td>
-				<td>$cli_nome_razao</td>
-				<td>$pre_referencia</td>
-				<td>$pre_data_envio</td>
-				<td>$pre_enviado_por</td>
-				<td>$pre_observacoes</td>
-				<td align='center'>$pre_data_cadastro<br><span class='detalhe'>$pre_hora_cadastro</span></td>
-				<td align='center'><a href='prestacao_imprimir.php?pre_id=$pre_id&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
+			echo "<tr class='$classeLinha'>
+				<td>$preId</td>
+				<td>$clienteNome</td>
+				<td>$referencia</td>
+				<td>$dataEnvio</td>
+				<td>$enviadoPor</td>
+				<td>$observacoes</td>
+				<td align='center'>$dataCadastro<br><span class='detalhe'>$horaCadastro</span></td>
+				<td align='center'><a href='prestacao_imprimir.php?pre_id=$preId&autenticacao' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a></td>
 				<td align='center'>";
-			if ($pre_comprovante) {
-				echo "<a href='$pre_comprovante' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a>";
+			if ($comprovante) {
+				echo "<a href='$comprovante' target='_blank'><img src='../imagens/icon-pdf.png' valign='middle'></a>";
 			}
 			echo "</td>
-				<td align=center><div id='normal-button-$pre_id' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
+				<td align=center><div id='normal-button-$preId' class='settings-button'><img src='../imagens/icon-cog-small.png' /></div></td>
 			</tr>";
 		}
 		echo "</table>";
-		// Paginação (ajuste conforme seu sistema)
-		$variavel = "&pagina=prestacao_gerenciar&fil_prestacao=$fil_prestacao&fil_nome=$fil_nome&fil_referencia=$fil_referencia&fil_data_inicio=$fil_data_inicio&fil_data_fim=$fil_data_fim$autenticacao";
+
+		// Paginação
+		$urlPaginacao = "&pagina=prestacao_gerenciar&fil_prestacao=$filtroPrestacao&fil_nome=$filtroNome&fil_referencia=$filtroReferencia&fil_data_inicio=$filtroDataInicio&fil_data_fim=$filtroDataFim$autenticacao";
 		include "../mod_includes/php/paginacao.php";
 	} else {
 		echo "<br><br><br>Não há nenhuma prestação de conta cadastrada.";
@@ -316,7 +321,7 @@ if ($pagina === 'adicionar_prestacao_gerenciar') {
 	echo "
 	<form name='form_prestacao_gerenciar' id='form_prestacao_gerenciar' enctype='multipart/form-data' method='post' action='prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=adicionar$autenticacao'>
 	<div class='centro'>
-		<div class='titulo'> $page &raquo; Adicionar  </div>
+		<div class='titulo'> $caminhoPagina &raquo; Adicionar  </div>
 		<table align='center' cellspacing='0' width='950'>
 			<tr>
 				<td align='left'>
@@ -369,21 +374,21 @@ if ($pagina === 'adicionar_prestacao_gerenciar') {
 
 // Formulário Editar
 if ($pagina === 'editar_prestacao_gerenciar') {
-	$pre_id = $_GET['pre_id'] ?? '';
+	$prestacaoId = $_GET['pre_id'] ?? '';
 	$stmt = $pdo->prepare("SELECT * FROM prestacao_gerenciar 
 		LEFT JOIN (cadastro_clientes 
 			INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
 		ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
 		WHERE ucl_usuario = ? AND pre_id = ?");
-	$stmt->execute([$_SESSION['usuario_id'], $pre_id]);
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+	$stmt->execute([$_SESSION['usuario_id'], $prestacaoId]);
+	$prestacao = $stmt->fetch(PDO::FETCH_ASSOC);
 
-	if ($row) {
-		$pre_cliente = $row['pre_cliente'];
-		$cli_nome_razao = $row['cli_nome_razao'];
-		$cli_cnpj = $row['cli_cnpj'];
-		$pre_referencia = $row['pre_referencia'];
-		[$pre_ref_mes, $pre_ref_ano] = explode('/', $pre_referencia);
+	if ($prestacao) {
+		$clienteId = $prestacao['pre_cliente'];
+		$clienteNome = $prestacao['cli_nome_razao'];
+		$clienteCnpj = $prestacao['cli_cnpj'];
+		$referencia = $prestacao['pre_referencia'];
+		[$mesReferencia, $anoReferencia] = explode('/', $referencia);
 		$meses = [
 			'01' => 'Janeiro',
 			'02' => 'Fevereiro',
@@ -398,21 +403,21 @@ if ($pagina === 'editar_prestacao_gerenciar') {
 			'11' => 'Novembro',
 			'12' => 'Dezembro'
 		];
-		$pre_ref_mes_n = $meses[$pre_ref_mes] ?? $pre_ref_mes;
-		$pre_data_envio = $row['pre_data_envio'] ? (new DateTime($row['pre_data_envio']))->format('d/m/Y') : '';
-		$pre_enviado_por = $row['pre_enviado_por'];
-		$pre_observacoes = $row['pre_observacoes'];
+		$nomeMesReferencia = $meses[$mesReferencia] ?? $mesReferencia;
+		$dataEnvio = $prestacao['pre_data_envio'] ? (new DateTime($prestacao['pre_data_envio']))->format('d/m/Y') : '';
+		$enviadoPor = $prestacao['pre_enviado_por'];
+		$observacoes = $prestacao['pre_observacoes'];
 		echo "
-		<form name='form_prestacao_gerenciar' id='form_prestacao_gerenciar' enctype='multipart/form-data' method='post' action='prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=editar&pre_id=$pre_id$autenticacao'>
+		<form name='form_prestacao_gerenciar' id='form_prestacao_gerenciar' enctype='multipart/form-data' method='post' action='prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=editar&pre_id=$prestacaoId$autenticacao'>
 		<div class='centro'>
-			<div class='titulo'> $page &raquo; Editar: $cli_nome_razao </div>
+			<div class='titulo'> $caminhoPagina &raquo; Editar: $clienteNome </div>
 			<table align='center' cellspacing='0'>
 				<tr>
 					<td align='left'>
 						<div class='formtitulo'>Selecione o cliente</div>
 						<div class='suggestion'>
-							<input name='pre_cliente_id' id='pre_cliente_id'  type='hidden' value='$pre_cliente' />
-							<input name='pre_cliente_block' id='pre_cliente_block' value='$cli_nome_razao ($cli_cnpj)' type='text' placeholder='Digite as iniciais ou CNPJ do cliente para procurar' autocomplete='off' readonly />
+							<input name='pre_cliente_id' id='pre_cliente_id'  type='hidden' value='$clienteId' />
+							<input name='pre_cliente_block' id='pre_cliente_block' value='$clienteNome ($clienteCnpj)' type='text' placeholder='Digite as iniciais ou CNPJ do cliente para procurar' autocomplete='off' readonly />
 							<div class='suggestionsBox' id='suggestions' style='display: none;'>
 								<div class='suggestionList' id='autoSuggestionsList'>&nbsp;</div>
 							</div>
@@ -420,18 +425,18 @@ if ($pagina === 'editar_prestacao_gerenciar') {
 						<p><br><br>
 						Referência:<br>
 						<select name='pre_ref_mes' id='pre_ref_mes'>
-							<option value='$pre_ref_mes'>$pre_ref_mes_n</option>";
+							<option value='$mesReferencia'>$nomeMesReferencia</option>";
 		foreach ($meses as $num => $nome) {
 			echo "<option value='$num'>$nome</option>";
 		}
 		echo "</select>
-						/<input type='text' id='pre_ref_ano' name='pre_ref_ano' value='$pre_ref_ano' placeholder='Ano' />
+						/<input type='text' id='pre_ref_ano' name='pre_ref_ano' value='$anoReferencia' placeholder='Ano' />
 						<p>
-						<input type='text' id='pre_data_envio' name='pre_data_envio' value='$pre_data_envio' placeholder='Data Envio' onkeypress='return mascaraData(this,event);' />
+						<input type='text' id='pre_data_envio' name='pre_data_envio' value='$dataEnvio' placeholder='Data Envio' onkeypress='return mascaraData(this,event);' />
 						<p>
-						<input type='text' id='pre_enviado_por' name='pre_enviado_por' value='$pre_enviado_por' placeholder='Enviado por:' />
+						<input type='text' id='pre_enviado_por' name='pre_enviado_por' value='$enviadoPor' placeholder='Enviado por:' />
 						<p>
-						<textarea name='pre_observacoes' id='pre_observacoes' placeholder='Observações'>$pre_observacoes</textarea>
+						<textarea name='pre_observacoes' id='pre_observacoes' placeholder='Observações'>$observacoes</textarea>
 						<p>
 						<center>
 						<div id='erro' align='center'>&nbsp;</div>

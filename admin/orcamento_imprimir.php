@@ -3,69 +3,149 @@ session_start();
 date_default_timezone_set('America/Sao_Paulo');
 
 require_once '../mod_includes/php/connect.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$meses = [
-	'01' => 'Janeiro',
-	'02' => 'Fevereiro',
-	'03' => 'Março',
-	'04' => 'Abril',
-	'05' => 'Maio',
-	'06' => 'Junho',
-	'07' => 'Julho',
-	'08' => 'Agosto',
-	'09' => 'Setembro',
-	'10' => 'Outubro',
-	'11' => 'Novembro',
-	'12' => 'Dezembro'
-];
+use Mpdf\Mpdf;
 
-// Sanitização básica
+function obterMeses()
+{
+    return [
+        '01' => 'Janeiro',
+        '02' => 'Fevereiro',
+        '03' => 'Março',
+        '04' => 'Abril',
+        '05' => 'Maio',
+        '06' => 'Junho',
+        '07' => 'Julho',
+        '08' => 'Agosto',
+        '09' => 'Setembro',
+        '10' => 'Outubro',
+        '11' => 'Novembro',
+        '12' => 'Dezembro'
+    ];
+}
+
+function obterStatusOrcamento($status)
+{
+    $labels = [
+        1 => "<span class='laranja'>Pendente</span>",
+        2 => "<span class='azul'>Calculado</span>",
+        3 => "<span class='verde'>Aprovado</span>",
+        4 => "<span class='vermelho'>Reprovado</span>"
+    ];
+    return $labels[$status] ?? '';
+}
+
+function buscarOrcamento($pdo, $orcamentoId)
+{
+    $sql = "
+        SELECT og.*, cc.cli_nome_razao, cc.cli_cnpj, cs.tps_nome, h1.sto_status, h1.sto_id, og.orc_tipo_servico_cliente
+        FROM orcamento_gerenciar og
+        LEFT JOIN cadastro_clientes cc ON cc.cli_id = og.orc_cliente
+        LEFT JOIN cadastro_tipos_servicos cs ON cs.tps_id = og.orc_tipo_servico
+        LEFT JOIN cadastro_status_orcamento h1 ON h1.sto_orcamento = og.orc_id
+        WHERE h1.sto_id = (
+            SELECT MAX(h2.sto_id) FROM cadastro_status_orcamento h2 WHERE h2.sto_orcamento = h1.sto_orcamento
+        ) AND og.orc_id = :orc_id
+        LIMIT 1
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['orc_id' => $orcamentoId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function buscarFornecedores($pdo, $orcamentoId)
+{
+    $sql = "
+        SELECT ofn.*, cf.for_nome_razao, cf.for_autonomo
+        FROM orcamento_fornecedor ofn
+        LEFT JOIN cadastro_fornecedores cf ON cf.for_id = ofn.orf_fornecedor
+        WHERE ofn.orf_orcamento = :orc_id
+        ORDER BY ofn.orf_valor ASC
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['orc_id' => $orcamentoId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function buscarPlanilha($pdo, $orcamentoId)
+{
+    $sql = "SELECT orc_planilha FROM orcamento_gerenciar WHERE orc_id = :orc_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['orc_id' => $orcamentoId]);
+    return $stmt->fetchColumn();
+}
+
+function buscarAnexos($pdo, $orcamentoId)
+{
+    $sql = "
+        SELECT ofn.orf_anexo
+        FROM orcamento_fornecedor ofn
+        WHERE ofn.orf_orcamento = :orc_id AND ofn.orf_anexo != ''
+        ORDER BY ofn.orf_id ASC
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['orc_id' => $orcamentoId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function formatarData($data, $formato = 'd/m/Y')
+{
+    return $data ? date($formato, strtotime($data)) : '';
+}
+
+function gerarTabelaFornecedores($fornecedores)
+{
+    $html = '';
+    $contador = 0;
+    foreach ($fornecedores as $fornecedor) {
+        $classeLinha = $contador % 2 === 0 ? 'linhaimpar' : 'linhapar';
+        $valor = $fornecedor['orf_valor'];
+        $inss = '';
+        if ($fornecedor['for_autonomo'] == 1) {
+            $valorInss = $valor * 0.2;
+            $valor += $valorInss;
+            $inss = '+ R$ ' . number_format($valorInss, 2, ',', '.');
+        }
+        $html .= "<tr class='{$classeLinha}'>
+            <td>" . htmlspecialchars($fornecedor['for_nome_razao']) . "</td>
+            <td>R$ " . number_format($fornecedor['orf_valor'], 2, ',', '.') . "</td>
+            <td>{$inss}</td>
+            <td>" . htmlspecialchars($fornecedor['orf_obs']) . "</td>
+            <td align='right'><b>R$ " . number_format($valor, 2, ',', '.') . "</b></td>
+            <td><div style='border:1px solid #666;'>&nbsp;&nbsp;&nbsp;&nbsp;</div></td>
+        </tr>";
+        $contador++;
+    }
+    return $html;
+}
+
+// Entrada e sanitização
 $login = $_GET['login'] ?? '';
 $n = $_GET['n'] ?? '';
 $pagina = $_GET['pagina'] ?? '';
-$orc_id = isset($_GET['orc_id']) ? (int) $_GET['orc_id'] : 0;
+$orcamentoId = isset($_GET['orc_id']) ? (int) $_GET['orc_id'] : 0;
 
-$autenticacao = '&login=' . urlencode($login) . '&n=' . urlencode($n);
-
-// Consulta principal
-$sql = "
-	SELECT og.*, cc.cli_nome_razao, cc.cli_cnpj, cs.tps_nome, h1.sto_status, h1.sto_id, og.orc_tipo_servico_cliente
-	FROM orcamento_gerenciar og
-	LEFT JOIN cadastro_clientes cc ON cc.cli_id = og.orc_cliente
-	LEFT JOIN cadastro_tipos_servicos cs ON cs.tps_id = og.orc_tipo_servico
-	LEFT JOIN cadastro_status_orcamento h1 ON h1.sto_orcamento = og.orc_id
-	WHERE h1.sto_id = (
-		SELECT MAX(h2.sto_id) FROM cadastro_status_orcamento h2 WHERE h2.sto_orcamento = h1.sto_orcamento
-	) AND og.orc_id = :orc_id
-	LIMIT 1
-";
-$stmt = $pdo->prepare($sql);
-$stmt->execute(['orc_id' => $orc_id]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$row) {
-	die('Orçamento não encontrado.');
+$orcamento = buscarOrcamento($pdo, $orcamentoId);
+if (!$orcamento) {
+    die('Orçamento não encontrado.');
 }
 
-$orc_id = $row['orc_id'];
-$orc_cliente = $row['orc_cliente'];
-$cli_nome_razao = $row['cli_nome_razao'];
-$cli_cnpj = $row['cli_cnpj'];
-$orc_tipo_servico = $row['orc_tipo_servico'];
-$tps_nome = $row['tps_nome'] ?: $row['orc_tipo_servico_cliente'];
-$orc_observacoes = $row['orc_observacoes'];
-$sto_status = $row['sto_status'];
-$orc_data_cadastro = date('d/m/Y', strtotime($row['orc_data_cadastro']));
-$orc_hora_cadastro = date('H:i', strtotime($row['orc_data_cadastro']));
-$orc_data_aprovacao = $row['orc_data_aprovacao'] ? date('d/m/Y', strtotime($row['orc_data_aprovacao'])) : '';
+// Dados principais
+$orc_id = $orcamento['orc_id'];
+$orc_cliente = $orcamento['orc_cliente'];
+$cli_nome_razao = $orcamento['cli_nome_razao'];
+$cli_cnpj = $orcamento['cli_cnpj'];
+$orc_tipo_servico = $orcamento['orc_tipo_servico'];
+$tps_nome = $orcamento['tps_nome'] ?: $orcamento['orc_tipo_servico_cliente'];
+$orc_observacoes = $orcamento['orc_observacoes'];
+$sto_status = $orcamento['sto_status'];
+$orc_data_cadastro = formatarData($orcamento['orc_data_cadastro']);
+$orc_hora_cadastro = formatarData($orcamento['orc_data_cadastro'], 'H:i');
+$orc_data_aprovacao = formatarData($orcamento['orc_data_aprovacao']);
 
-$status_labels = [
-	1 => "<span class='laranja'>Pendente</span>",
-	2 => "<span class='azul'>Calculado</span>",
-	3 => "<span class='verde'>Aprovado</span>",
-	4 => "<span class='vermelho'>Reprovado</span>"
-];
-$sto_status_n = $status_labels[$sto_status] ?? '';
+$statusOrcamento = obterStatusOrcamento($sto_status);
+$fornecedores = buscarFornecedores($pdo, $orc_id);
 
 ob_start();
 ?>
@@ -87,19 +167,27 @@ ob_start();
                                     <td width="20%" class="label" align="right">Orçamento N°:</td>
                                     <td><?= str_pad($orc_id, 6, '0', STR_PAD_LEFT) ?></td>
                                     <td width="30%" class="label" align="right">Status:</td>
-                                    <td><?= $sto_status_n ?></td>
+                                    <td><?= $statusOrcamento ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="label" align="right">Condomínio:</td>
-                                    <td colspan="3"><?= htmlspecialchars($cli_nome_razao) ?></td>
+                                    <td colspan="3">
+                                        <?= htmlspecialchars($cli_nome_razao) ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="label" align="right">Referente:</td>
-                                    <td colspan="3"><?= htmlspecialchars($tps_nome) ?></td>
+                                    <td colspan="3">
+                                        <?= htmlspecialchars($tps_nome) ?>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="label" align="right">Data de cadastro:</td>
-                                    <td><?= $orc_data_cadastro ?> às <?= $orc_hora_cadastro ?></td>
+                                    <td>
+                                        <?= $orc_data_cadastro ?> às
+                                        <?= $orc_hora_cadastro ?>
+                                    </td>
                                     <td class="label" align="right">Data de aprovação/reprovação:</td>
                                     <td><?= $orc_data_aprovacao ?></td>
                                 </tr>
@@ -107,7 +195,7 @@ ob_start();
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2" align="center" class="formtitulo">Empresas Contatadas</td>
+                        <td colspan=" 2" align="center" class="formtitulo">Empresas Contatadas</td>
                     </tr>
                     <tr>
                         <td colspan="2">
@@ -120,41 +208,7 @@ ob_start();
                                     <td class="titulo_tabela" align="right">Total</td>
                                     <td class="titulo_last"></td>
                                 </tr>
-                                <?php
-								$sql_fornecedores = "
-									SELECT ofn.*, cf.for_nome_razao, cf.for_autonomo
-									FROM orcamento_fornecedor ofn
-									LEFT JOIN cadastro_fornecedores cf ON cf.for_id = ofn.orf_fornecedor
-									WHERE ofn.orf_orcamento = :orc_id
-									ORDER BY ofn.orf_valor ASC
-								";
-								$stmt_fornecedores = $pdo->prepare($sql_fornecedores);
-								$stmt_fornecedores->execute(['orc_id' => $orc_id]);
-								$fornecedores = $stmt_fornecedores->fetchAll(PDO::FETCH_ASSOC);
-
-								$c = 0;
-								foreach ($fornecedores as $fornecedor):
-									$total = $fornecedor['orf_valor'];
-									$classe = $c % 2 === 0 ? 'linhaimpar' : 'linhapar';
-									$c++;
-									$inss = '';
-									if ($fornecedor['for_autonomo'] == 1) {
-										$valor_autonomo = $fornecedor['orf_valor'] * 0.2;
-										$total += $valor_autonomo;
-										$inss = '+ R$ ' . number_format($valor_autonomo, 2, ',', '.');
-									}
-									?>
-                                <tr class="<?= $classe ?>">
-                                    <td><?= htmlspecialchars($fornecedor['for_nome_razao']) ?></td>
-                                    <td>R$ <?= number_format($fornecedor['orf_valor'], 2, ',', '.') ?></td>
-                                    <td><?= $inss ?></td>
-                                    <td><?= htmlspecialchars($fornecedor['orf_obs']) ?></td>
-                                    <td align="right"><b>R$ <?= number_format($total, 2, ',', '.') ?></b></td>
-                                    <td>
-                                        <div style="border:1px solid #666;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+                                <?= gerarTabelaFornecedores($fornecedores) ?>
                             </table>
                         </td>
                     </tr>
@@ -163,7 +217,8 @@ ob_start();
                     </tr>
                     <tr>
                         <td align="left" colspan="2">
-                            <b>Observações:</b> <?= nl2br(htmlspecialchars($orc_observacoes)) ?>
+                            <b>Observações:</b>
+                            <?= nl2br(htmlspecialchars($orc_observacoes)) ?>
                         </td>
                     </tr>
                     <tr>
@@ -206,18 +261,15 @@ ob_start();
 <?php
 $html = ob_get_clean();
 
-require_once __DIR__ . '/../vendor/autoload.php';
-use Mpdf\Mpdf;
-
 $mpdf = new Mpdf([
-	'format' => 'A4',
-	'margin_left' => 10,
-	'margin_right' => 10,
-	'margin_top' => 30,
-	'margin_bottom' => 30,
-	'margin_header' => 5,
-	'margin_footer' => 5,
-	'orientation' => 'P'
+    'format' => 'A4',
+    'margin_left' => 10,
+    'margin_right' => 10,
+    'margin_top' => 30,
+    'margin_bottom' => 30,
+    'margin_header' => 5,
+    'margin_footer' => 5,
+    'orientation' => 'P'
 ]);
 $mpdf->SetTitle('Exacto Adm | Imprimir Orçamento');
 $mpdf->useOddEven = false;
@@ -244,7 +296,6 @@ Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span class="az
 </div>
 ');
 
-// Inclui o CSS externo
 $css = file_get_contents(__DIR__ . '/pdf.css');
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
@@ -253,17 +304,13 @@ $mpdf->charset_in = 'UTF-8';
 $mpdf->WriteHTML($html);
 
 // Importar planilha PDF do orçamento, se houver
-$sql_planilha = "SELECT orc_planilha FROM orcamento_gerenciar WHERE orc_id = :orc_id";
-$stmt_planilha = $pdo->prepare($sql_planilha);
-$stmt_planilha->execute(['orc_id' => $orc_id]);
-$planilha = $stmt_planilha->fetchColumn();
-
+$planilha = buscarPlanilha($pdo, $orc_id);
 if ($planilha) {
-	$mpdf->SetHTMLHeader('');
-	$pagecount = $mpdf->SetSourceFile($planilha);
-	for ($i = 1; $i <= $pagecount; $i++) {
-		$mpdf->AddPage();
-		$mpdf->SetHTMLFooter('<div class="rodape">
+    $mpdf->SetHTMLHeader('');
+    $pagecount = $mpdf->SetSourceFile($planilha);
+    for ($i = 1; $i <= $pagecount; $i++) {
+        $mpdf->AddPage();
+        $mpdf->SetHTMLFooter('<div class="rodape">
 <table align="center" class="rod" width="100%">
 <tr>
 <td colspan="2" align="center"></td>
@@ -273,28 +320,19 @@ if ($planilha) {
 </tr>
 </table>
 </div>');
-		$import_page = $mpdf->ImportPage($i);
-		$mpdf->UseTemplate($import_page);
-	}
+        $import_page = $mpdf->ImportPage($i);
+        $mpdf->UseTemplate($import_page);
+    }
 }
 
 // Importar anexos dos fornecedores, se houver
-$sql_anexos = "
-	SELECT ofn.orf_anexo
-	FROM orcamento_fornecedor ofn
-	WHERE ofn.orf_orcamento = :orc_id AND ofn.orf_anexo != ''
-	ORDER BY ofn.orf_id ASC
-";
-$stmt_anexos = $pdo->prepare($sql_anexos);
-$stmt_anexos->execute(['orc_id' => $orc_id]);
-$anexos = $stmt_anexos->fetchAll(PDO::FETCH_COLUMN);
-
+$anexos = buscarAnexos($pdo, $orc_id);
 foreach ($anexos as $anexo) {
-	$mpdf->SetHTMLHeader('');
-	$pagecount = $mpdf->SetSourceFile($anexo);
-	for ($i = 1; $i <= $pagecount; $i++) {
-		$mpdf->AddPage();
-		$mpdf->SetHTMLFooter('<div class="rodape">
+    $mpdf->SetHTMLHeader('');
+    $pagecount = $mpdf->SetSourceFile($anexo);
+    for ($i = 1; $i <= $pagecount; $i++) {
+        $mpdf->AddPage();
+        $mpdf->SetHTMLFooter('<div class="rodape">
 <table align="center" class="rod" width="100%">
 <tr>
 <td colspan="2" align="center"></td>
@@ -304,10 +342,11 @@ foreach ($anexos as $anexo) {
 </tr>
 </table>
 </div>');
-		$import_page = $mpdf->ImportPage($i);
-		$mpdf->UseTemplate($import_page);
-	}
+        $import_page = $mpdf->ImportPage($i);
+        $mpdf->UseTemplate($import_page);
+    }
 }
 
-$mpdf->Output('Orçamento_' . str_pad($orc_id, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$nomeArquivo = 'Orçamento_' . str_pad($orc_id, 6, '0', STR_PAD_LEFT) . '.pdf';
+$mpdf->Output($nomeArquivo, 'I');
 exit();

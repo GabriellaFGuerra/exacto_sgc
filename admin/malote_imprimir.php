@@ -4,6 +4,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 require_once '../mod_includes/php/connect.php';
 
+// Array de meses
 $meses = [
     '01' => 'Janeiro',
     '02' => 'Fevereiro',
@@ -19,59 +20,69 @@ $meses = [
     '12' => 'Dezembro'
 ];
 
+// Recupera parâmetros da URL
 $login = $_GET['login'] ?? '';
 $n = $_GET['n'] ?? '';
-$autenticacao = '&login=' . urlencode($login) . '&n=' . urlencode($n);
 $pagina = $_GET['pagina'] ?? '';
-$mal_id = $_GET['mal_id'] ?? '';
+$maloteId = $_GET['mal_id'] ?? '';
+$autenticacao = '&login=' . urlencode($login) . '&n=' . urlencode($n);
 
-$stmt = $pdo->prepare("
+// Busca informações do malote
+$consultaMalote = $pdo->prepare("
     SELECT m.*, c.cli_nome_razao 
     FROM malote_gerenciar m
     LEFT JOIN cadastro_clientes c ON c.cli_id = m.mal_cliente
     WHERE m.mal_id = :mal_id
 ");
-$stmt->execute(['mal_id' => $mal_id]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$consultaMalote->execute(['mal_id' => $maloteId]);
+$malote = $consultaMalote->fetch(PDO::FETCH_ASSOC);
 
-if (!$row) {
+if (!$malote) {
     die('Malote não encontrado.');
 }
 
-$mal_id = $row['mal_id'];
-$mal_lacre = $row['mal_lacre'];
-$cli_nome_razao = $row['cli_nome_razao'];
-$mal_observacoes = $row['mal_observacoes'];
-$mal_data_cadastro = date('d/m/Y', strtotime($row['mal_data_cadastro']));
-$mal_hora_cadastro = date('H:i', strtotime($row['mal_data_cadastro']));
+// Extrai dados do malote
+$idMalote = $malote['mal_id'];
+$lacreMalote = $malote['mal_lacre'];
+$nomeCliente = $malote['cli_nome_razao'];
+$observacoesMalote = $malote['mal_observacoes'];
+$dataCadastro = date('d/m/Y', strtotime($malote['mal_data_cadastro']));
+$horaCadastro = date('H:i', strtotime($malote['mal_data_cadastro']));
 
-// Itens do malote
-$stmtItens = $pdo->prepare("SELECT * FROM malote_itens WHERE mai_malote = :mal_id");
-$stmtItens->execute(['mal_id' => $mal_id]);
-$itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
+// Busca itens do malote
+$consultaItens = $pdo->prepare("SELECT * FROM malote_itens WHERE mai_malote = :mal_id");
+$consultaItens->execute(['mal_id' => $idMalote]);
+$itensMalote = $consultaItens->fetchAll(PDO::FETCH_ASSOC);
 
-function renderItens(array $itens)
+/**
+ * Renderiza as linhas da tabela de itens do malote.
+ *
+ * @param array $itens
+ * @return string
+ */
+function renderizarItens(array $itens): string
 {
-    $c = 0;
+    $contador = 0;
     $html = '';
     foreach ($itens as $item) {
-        $c1 = $c++ % 2 === 0 ? 'linhaimpar' : 'linhapar';
+        $classeLinha = $contador++ % 2 === 0 ? 'linhaimpar' : 'linhapar';
         $fornecedor = htmlspecialchars($item['mai_fornecedor']);
-        $tipo_documento = htmlspecialchars($item['mai_tipo_documento']);
-        $num_cheque = htmlspecialchars($item['mai_num_cheque']);
+        $tipoDocumento = htmlspecialchars($item['mai_tipo_documento']);
+        $numeroCheque = htmlspecialchars($item['mai_num_cheque']);
         $valor = 'R$ ' . number_format((float) $item['mai_valor'], 2, ',', '.');
-        $data_vencimento = $item['mai_data_vencimento'] ? date('d/m/Y', strtotime($item['mai_data_vencimento'])) : '';
-        $html .= '<tr class="' . $c1 . '">
-            <td>' . $fornecedor . '</td>
-            <td>' . $tipo_documento . '</td>
-            <td>' . $num_cheque . '</td>
-            <td>' . $valor . '</td>
-            <td style="text-align:center;">' . $data_vencimento . '</td>
-        </tr>';
+        $dataVencimento = $item['mai_data_vencimento'] ? date('d/m/Y', strtotime($item['mai_data_vencimento'])) : '';
+        $html .= "<tr class=\"{$classeLinha}\">
+            <td>{$fornecedor}</td>
+            <td>{$tipoDocumento}</td>
+            <td>{$numeroCheque}</td>
+            <td>{$valor}</td>
+            <td style=\"text-align:center;\">{$dataVencimento}</td>
+        </tr>";
     }
     return $html;
 }
 
+// Inicia buffer de saída para gerar o HTML do PDF
 ob_start();
 ?>
 <table align="center" border="0" cellspacing="0" cellpadding="0">
@@ -90,18 +101,18 @@ ob_start();
                             <table class="bordatabela" cellspacing="0" cellpadding="3" width="1000">
                                 <tr>
                                     <td colspan="4" height="60" class="label2" align="center">
-                                        <?php echo htmlspecialchars($cli_nome_razao); ?>
+                                        <?php echo htmlspecialchars($nomeCliente); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td width="20%" class="label" align="right">Data de Envio:</td>
-                                    <td colspan="3"><?php echo $mal_data_cadastro; ?></td>
+                                    <td colspan="3"><?php echo $dataCadastro; ?></td>
                                 </tr>
                                 <tr>
                                     <td width="20%" class="label" align="right">Malote N°:</td>
-                                    <td><?php echo $mal_id; ?></td>
+                                    <td><?php echo $idMalote; ?></td>
                                     <td width="20%" class="label" align="right">N° Lacre:</td>
-                                    <td><?php echo htmlspecialchars($mal_lacre); ?></td>
+                                    <td><?php echo htmlspecialchars($lacreMalote); ?></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" valign="top">
@@ -113,7 +124,7 @@ ob_start();
                                                 <td class="titulo_tabela2">Valor</td>
                                                 <td class="titulo_tabela2" align="center">Data Vencimento</td>
                                             </tr>
-                                            <?php echo renderItens($itens); ?>
+                                            <?php echo renderizarItens($itensMalote); ?>
                                         </table>
                                     </td>
                                 </tr>
@@ -160,7 +171,7 @@ ob_start();
                             <table class="bordatabela" cellspacing="0" cellpadding="3" width="1000">
                                 <tr>
                                     <td colspan="4" height="60" class="label2" align="center">
-                                        <?php echo htmlspecialchars($cli_nome_razao); ?>
+                                        <?php echo htmlspecialchars($nomeCliente); ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -169,9 +180,9 @@ ob_start();
                                 </tr>
                                 <tr>
                                     <td width="20%" class="label" align="right">Malote N°:</td>
-                                    <td><?php echo $mal_id; ?></td>
+                                    <td><?php echo $idMalote; ?></td>
                                     <td width="20%" class="label" align="right">N° Lacre:</td>
-                                    <td><?php echo htmlspecialchars($mal_lacre); ?></td>
+                                    <td><?php echo htmlspecialchars($lacreMalote); ?></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" valign="top">
@@ -183,7 +194,7 @@ ob_start();
                                                 <td class="titulo_tabela2">Valor</td>
                                                 <td class="titulo_tabela2" align="center">Data Vencimento</td>
                                             </tr>
-                                            <?php echo renderItens($itens); ?>
+                                            <?php echo renderizarItens($itensMalote); ?>
                                         </table>
                                     </td>
                                 </tr>
@@ -208,6 +219,7 @@ ob_start();
 <?php
 $html = ob_get_clean();
 
+// Geração do PDF
 require_once __DIR__ . '/../vendor/autoload.php';
 use Mpdf\Mpdf;
 
@@ -221,6 +233,7 @@ $mpdf = new Mpdf([
     'margin_footer' => 5,
     'orientation' => 'P'
 ]);
+
 $mpdf->SetTitle('Exacto Adm | Imprimir Malote');
 $mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200" alt="logo"><br><br></div>');
@@ -239,4 +252,4 @@ $css = file_get_contents(__DIR__ . '/pdf.css');
 $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
 
 $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
-$mpdf->Output('Malote_' . str_pad($mal_id, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$mpdf->Output('Malote_' . str_pad($idMalote, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');

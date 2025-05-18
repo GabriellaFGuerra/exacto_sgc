@@ -4,28 +4,35 @@ error_reporting(0);
 date_default_timezone_set('America/Sao_Paulo');
 
 require_once '../mod_includes/php/connect.php'; // Conexão PDO em $pdo
+require_once __DIR__ . '/../vendor/autoload.php'; // Ajuste o caminho conforme necessário
 
-$meses = [
-    '01' => 'Janeiro',
-    '02' => 'Fevereiro',
-    '03' => 'Março',
-    '04' => 'Abril',
-    '05' => 'Maio',
-    '06' => 'Junho',
-    '07' => 'Julho',
-    '08' => 'Agosto',
-    '09' => 'Setembro',
-    '10' => 'Outubro',
-    '11' => 'Novembro',
-    '12' => 'Dezembro'
-];
+// Função para formatar data de yyyy-mm-dd para dd/mm/yyyy
+function formatarData($data)
+{
+    if (!$data)
+        return '';
+    $partes = explode('-', $data);
+    if (count($partes) !== 3)
+        return $data;
+    return "{$partes[2]}/{$partes[1]}/{$partes[0]}";
+}
 
-$login = $_GET['login'] ?? '';
-$n = $_GET['n'] ?? '';
-$autenticacao = "&login=$login&n=" . urlencode($n);
-$pagina = $_GET['pagina'] ?? '';
-$rec_id = $_GET['rec_id'] ?? '';
+// Função para obter parâmetro GET com valor padrão
+function getParametro($nome, $padrao = '')
+{
+    return $_GET[$nome] ?? $padrao;
+}
 
+// Parâmetros recebidos via GET
+$login = getParametro('login');
+$n = getParametro('n');
+$pagina = max(1, intval(getParametro('pagina', 1)));
+$recId = getParametro('rec_id');
+
+// Monta string de autenticação
+$autenticacao = "&login=" . urlencode($login) . "&n=" . urlencode($n);
+
+// Consulta SQL para buscar dados do recurso
 $sql = "
     SELECT * FROM recurso_gerenciar 
     LEFT JOIN (
@@ -35,64 +42,61 @@ $sql = "
     WHERE rec_id = :rec_id
 ";
 $stmt = $pdo->prepare($sql);
-$stmt->execute(['rec_id' => $rec_id]);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->execute(['rec_id' => $recId]);
+$registro = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$row) {
+if (!$registro) {
     die('Registro não encontrado.');
 }
 
-$rec_id = $row['rec_id'];
-$cli_foto = $row['cli_foto'] ?? '';
-$cli_nome_razao = $row['cli_nome_razao'] ?? '';
-$rec_assunto = $row['rec_assunto'] ?? '';
-$rec_descricao = $row['rec_descricao'] ?? '';
-$inf_cidade = $row['inf_cidade'] ?? '';
-$inf_data = isset($row['inf_data']) ? implode("/", array_reverse(explode("-", $row['inf_data']))) : '';
-$inf_proprietario = $row['inf_proprietario'] ?? '';
-$inf_apto = $row['inf_apto'] ?? '';
-$inf_bloco = $row['inf_bloco'] ?? '';
-$inf_endereco = $row['inf_endereco'] ?? '';
-$inf_email = $row['inf_email'] ?? '';
+// Extrai dados do registro
+$fotoCliente = $registro['cli_foto'] ?? '';
+$nomeCliente = $registro['cli_nome_razao'] ?? '';
+$assuntoRecurso = $registro['rec_assunto'] ?? '';
+$descricaoRecurso = $registro['rec_descricao'] ?? '';
+$cidadeInfracao = $registro['inf_cidade'] ?? '';
+$dataInfracao = formatarData($registro['inf_data'] ?? '');
+$proprietario = $registro['inf_proprietario'] ?? '';
+$apartamento = $registro['inf_apto'] ?? '';
+$bloco = $registro['inf_bloco'] ?? '';
+$endereco = $registro['inf_endereco'] ?? '';
+$email = $registro['inf_email'] ?? '';
 
+// Gera HTML do documento
 ob_start();
 ?>
 <div class='laudo'>
-    <?= htmlspecialchars($inf_cidade) ?>, <?= htmlspecialchars($inf_data) ?>
+    <?= htmlspecialchars($cidadeInfracao) ?>, <?= htmlspecialchars($dataInfracao) ?>
     <br><br>
-    <b>Proprietário(a):</b> <?= htmlspecialchars($inf_proprietario) ?>
+    <b>Proprietário(a):</b> <?= htmlspecialchars($proprietario) ?>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <b>Unidade:</b> <?= htmlspecialchars($inf_apto) ?>
+    <b>Unidade:</b> <?= htmlspecialchars($apartamento) ?>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <b>Bloco/Quadra:</b> <?= htmlspecialchars($inf_bloco) ?>
-    <br>
-    <br>
-    <b>Endereço:</b> <?= htmlspecialchars($inf_endereco) ?>
-    <br>
-    <br>
-    <b>Email:</b>
-    <?= htmlspecialchars($inf_email) ?>
-    <br>
-    <br>
-    <?= nl2br(htmlspecialchars($rec_assunto)) ?>
-    <br>
-    <br>
-    <?= nl2br(htmlspecialchars($rec_descricao)) ?>
+    <b>Bloco/Quadra:</b> <?= htmlspecialchars($bloco) ?>
+    <br><br>
+    <b>Endereço:</b> <?= htmlspecialchars($endereco) ?>
+    <br><br>
+    <b>Email:</b> <?= htmlspecialchars($email) ?>
+    <br><br>
+    <?= nl2br(htmlspecialchars($assuntoRecurso)) ?>
+    <br><br>
+    <?= nl2br(htmlspecialchars($descricaoRecurso)) ?>
     <br>
 </div>
 <?php
-$html = ob_get_clean();
+$htmlDocumento = ob_get_clean();
 
-require_once __DIR__ . '/../vendor/autoload.php';
+// Carrega CSS externo para o mPDF
+$css = file_get_contents(__DIR__ . '/pdf.css');
 
-use Mpdf\Mpdf;
-
-$mpdf = new Mpdf([
+// Instancia o mPDF
+$mpdf = new \Mpdf\Mpdf([
+    'mode' => 'utf-8',
     'format' => 'A4',
-    'margin_left' => 10,
-    'margin_right' => 10,
-    'margin_top' => 35,
-    'margin_bottom' => 30,
+    'margin_left' => 15,
+    'margin_right' => 15,
+    'margin_top' => 20,
+    'margin_bottom' => 20,
     'margin_header' => 5,
     'margin_footer' => 15,
     'orientation' => 'P'
@@ -101,7 +105,7 @@ $mpdf = new Mpdf([
 $mpdf->SetTitle('Exacto Adm | Imprimir Carta Deferimento/Indeferimento');
 $mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader(
-    '<div class="topo2"><img src="' . htmlspecialchars($cli_foto) . '" height="100"></div><div class="topo2"></div><div class="topo2"></div>'
+    '<div class="topo2"><img src="' . htmlspecialchars($fotoCliente) . '" height="100"></div>'
 );
 $mpdf->SetHTMLFooter(
     '<div class="rodape">
@@ -111,7 +115,7 @@ $mpdf->SetHTMLFooter(
                     <br>
                     Atenciosamente,
                     <br>
-                    ' . htmlspecialchars($cli_nome_razao) . '
+                    ' . htmlspecialchars($nomeCliente) . '
                 </td>
             </tr>
         </table>
@@ -120,8 +124,15 @@ $mpdf->SetHTMLFooter(
 
 $mpdf->allow_charset_conversion = true;
 $mpdf->charset_in = 'UTF-8';
-$mpdf->WriteHTML($html);
-$mpdf->SetImportUse();
 
-$mpdf->Output('recurso_' . str_pad($rec_id, 6, '0', STR_PAD_LEFT) . '.pdf', 'I');
+// Aplica o CSS
+$mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+
+// Adiciona o conteúdo HTML
+$mpdf->WriteHTML($htmlDocumento, \Mpdf\HTMLParserMode::HTML_BODY);
+
+// Paginação automática do mPDF já é aplicada por padrão
+
+$nomeArquivo = 'recurso_' . str_pad($recId, 6, '0', STR_PAD_LEFT) . '.pdf';
+$mpdf->Output($nomeArquivo, 'I');
 exit;
