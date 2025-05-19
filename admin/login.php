@@ -12,13 +12,18 @@ $titulo = $titulo ?? 'Login - Sistema de Gerenciamento de Orçamentos';
     <meta name="author" content="MogiComp">
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
-    <script src="../libs/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
 </head>
 
 <body>
     <?php
     include '../mod_includes/php/funcoes-jquery.php';
     include '../mod_topo/topo_login.php';
+    session_start();
+    if (isset($_SESSION['login_erro'])) {
+        echo '<div class="erro">' . $_SESSION['login_erro'] . '</div>';
+        unset($_SESSION['login_erro']);
+    }
     ?>
     <form name="form_login" id="form_login" method="post" autocomplete="off" action="envialogin.php">
         <div class="centro">

@@ -73,17 +73,26 @@ function bindFields(array $fields): string
 
 	// Função para abrir máscara/modal
 	function abreMask(msg, altura = 90, seletor = "#janela") {
+		// Remove máscara existente antes de adicionar uma nova
+		jQuery('#mask').remove();
 		jQuery('body').append('<div id="mask"></div>');
 		jQuery('#mask').fadeIn(300);
 		jQuery(seletor).html(msg).fadeIn(300).css({
 			"display": "",
 			"height": `${altura}px`
 		});
-		const popMargTop = (jQuery(seletor).height() + 24) / 2;
-		const popMargLeft = (jQuery(seletor).width() + 24) / 2;
+		const popMargTop = (jQuery(seletor).outerHeight() + 24) / 2;
+		const popMargLeft = (jQuery(seletor).outerWidth() + 24) / 2;
 		jQuery(seletor).css({
 			'margin-top': -popMargTop,
 			'margin-left': -popMargLeft
+		});
+		// Fecha o modal ao clicar na máscara ou em elementos com a classe 'close_janela'
+		jQuery('#mask, .close_janela').off('click').on('click', function () {
+			jQuery('#mask').fadeOut(300, function () {
+				jQuery(this).remove();
+			});
+			jQuery(seletor).fadeOut(300);
 		});
 	}
 

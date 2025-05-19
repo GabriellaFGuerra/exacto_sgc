@@ -3,7 +3,7 @@ declare(strict_types=1);
 session_start();
 require_once '../mod_includes/php/connect.php';
 
-$setor = $_SESSION['setor'] ?? '';
+$setor = isset($_SESSION['setor']) ? (string) $_SESSION['setor'] : '';
 $autenticacao = $_SESSION['autenticacao'] ?? '';
 $n = $_SESSION['nome'] ?? '';
 $setorNome = $_SESSION['setor_nome'] ?? '';
@@ -11,13 +11,13 @@ $setorNome = $_SESSION['setor_nome'] ?? '';
 function getModulos(PDO $pdo, string $setor): array
 {
 	$sql = "
-		SELECT m.mod_id, m.mod_nome, m.mod_link
-		FROM admin_setores_permissoes p
-		INNER JOIN admin_modulos m ON m.mod_id = p.sep_modulo
-		WHERE p.sep_setor = :setor
-		GROUP BY m.mod_id
-		ORDER BY m.mod_ordem ASC
-	";
+        SELECT m.mod_id, m.mod_nome, m.mod_link
+        FROM admin_setores_permissoes p
+        INNER JOIN admin_modulos m ON m.mod_id = p.sep_modulo
+        WHERE p.sep_setor = :setor
+        GROUP BY m.mod_id
+        ORDER BY m.mod_ordem ASC
+    ";
 	$stmt = $pdo->prepare($sql);
 	$stmt->execute(['setor' => $setor]);
 	return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -26,13 +26,13 @@ function getModulos(PDO $pdo, string $setor): array
 function getSubmodulos(PDO $pdo, string $setor, string $modId): array
 {
 	$sql = "
-		SELECT s.sub_id, s.sub_nome, s.sub_link
-		FROM admin_setores_permissoes p
-		INNER JOIN admin_submodulos s ON s.sub_id = p.sep_submodulo
-		WHERE p.sep_setor = :setor AND s.sub_modulo = :modId
-		GROUP BY s.sub_id
-		ORDER BY s.sub_id ASC
-	";
+        SELECT s.sub_id, s.sub_nome, s.sub_link
+        FROM admin_setores_permissoes p
+        INNER JOIN admin_submodulos s ON s.sub_id = p.sep_submodulo
+        WHERE p.sep_setor = :setor AND s.sub_modulo = :modId
+        GROUP BY s.sub_id
+        ORDER BY s.sub_id ASC
+    ";
 	$stmt = $pdo->prepare($sql);
 	$stmt->execute(['setor' => $setor, 'modId' => $modId]);
 	return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -76,7 +76,7 @@ function getSubmodulos(PDO $pdo, string $setor, string $modId): array
 							<?= htmlspecialchars($modulo['mod_nome']) ?>
 						</a>
 						<ul class="sub">
-							<?php foreach (getSubmodulos($pdo, $setor, $modulo['mod_id']) as $sub): ?>
+							<?php foreach (getSubmodulos($pdo, $setor, (string) $modulo['mod_id']) as $sub): ?>
 								<li class="top">
 									<a href="<?= htmlspecialchars($sub['sub_link']) ?>.php?pagina=<?= htmlspecialchars($sub['sub_link']) . htmlspecialchars($autenticacao) ?>"
 										target="_parent">
@@ -94,7 +94,7 @@ function getSubmodulos(PDO $pdo, string $setor, string $modId): array
 					abreMask(
 						'Deseja realmente sair do sistema?<br><br>'+
 						'<input value=\' Sim \' type=\'button\' onclick=window.location.href=\'logout.php?pagina=logout\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
-						'<input value=\' Não \' type=\'button\' class=\'close_janela\'>'
+						'<input value=\' Não \' type=\'button\' class=\'close_janela\'>' 
 					);
 				" class="top_link" target="_parent">Sair</a>
 				</li>

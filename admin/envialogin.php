@@ -2,88 +2,76 @@
 session_start();
 require_once '../mod_includes/php/connect.php';
 
-/**
- * Obtém o endereço IP do usuário.
- *
- * @return string
- */
-function obterIpUsuario(): string
+// Função para obter IP real do usuário
+function getUserIp(): string
 {
-	return $_SERVER['HTTP_CLIENT_IP']
-		?? $_SERVER['HTTP_X_FORWARDED_FOR']
-		?? $_SERVER['REMOTE_ADDR'];
+	foreach (['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'] as $key) {
+		if (!empty($_SERVER[$key])) {
+			return $_SERVER[$key];
+		}
+	}
+	return 'UNKNOWN';
 }
 
-/**
- * Exibe uma mensagem de erro e encerra a execução.
- *
- * @param string $mensagem
- */
-function exibirErro(string $mensagem): void
+// Função para registrar log de login
+function logLogin(PDO $pdo, ?int $userId, string $hash, string $ip, string $obs = null): void
 {
-	echo "<script>
-			abreMask('<img src=../imagens/x.png> $mensagem<br><br>
-			<input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');
-		  </script>";
-	exit;
+	$sql = "INSERT INTO admin_log_login (log_usuario, log_hash, log_ip, log_observacao)
+			VALUES (:userId, :hash, :ip, :obs)";
+	$stmt = $pdo->prepare($sql);
+	$stmt->bindValue(':userId', $userId, $userId ? PDO::PARAM_INT : PDO::PARAM_NULL);
+	$stmt->bindValue(':hash', $hash);
+	$stmt->bindValue(':ip', $ip);
+	$stmt->bindValue(':obs', $obs);
+	$stmt->execute();
 }
 
-$ipUsuario = obterIpUsuario();
-$login = $_POST['login'] ?? '';
+// Recebe e valida dados
+$login = trim($_POST['login'] ?? '');
 $senha = $_POST['senha'] ?? '';
+$ip = getUserIp();
 
-// Consulta usuário pelo login
-$sqlUsuario = '
-	SELECT * FROM admin_usuarios
-	INNER JOIN admin_setores ON admin_setores.set_id = admin_usuarios.usu_setor
-	WHERE usu_login = :login
-';
-$stmtUsuario = $pdo->prepare($sqlUsuario);
-$stmtUsuario->bindParam(':login', $login);
-$stmtUsuario->execute();
-$usuario = $stmtUsuario->fetch(PDO::FETCH_ASSOC);
-
-if ($usuario) {
-	if (!password_verify($senha, $usuario['usu_senha'])) {
-		exibirErro('Login ou senha incorreta.<br>Por favor, tente novamente.');
-	}
-
-	if ($usuario['usu_status'] == 0) {
-		exibirErro('Seu usuário está desativado, contate o administrador do sistema.');
-	}
-
-	$_SESSION['exactoadm'] = hash('sha256', $login . $usuario['usu_nome']);
-	$_SESSION['setor'] = $usuario['usu_setor'];
-	$_SESSION['setor_nome'] = $usuario['set_nome'];
-	$_SESSION['usuario_id'] = $usuario['usu_id'];
-
-	// Registra login bem-sucedido
-	$sqlLog = '
-		INSERT INTO admin_log_login (log_usuario, log_hash, log_ip)
-		VALUES (:usuario_id, :hash, :ip)
-	';
-	$stmtLog = $pdo->prepare($sqlLog);
-	$stmtLog->bindParam(':usuario_id', $usuario['usu_id']);
-	$stmtLog->bindParam(':hash', $_SESSION['exactoadm']);
-	$stmtLog->bindParam(':ip', $ipUsuario);
-	$stmtLog->execute();
-
-	header('Location: admin.php?login=' . urlencode($login) . '&n=' . urlencode($usuario['usu_nome']));
+if ($login === '' || $senha === '') {
+	$_SESSION['login_erro'] = 'Preencha todos os campos.';
+	$_SESSION['exactoadm'] = 'N';
+	logLogin($pdo, null, '', $ip, "Campos vazios: $login");
+	header('Location: login.php');
 	exit;
 }
 
-// Login falhou
-$_SESSION['exactoadm'] = 'N';
+// Busca usuário
+$sql = "SELECT u.*, s.set_nome FROM admin_usuarios u
+		JOIN admin_setores s ON s.set_id = u.usu_setor
+		WHERE u.usu_login = :login LIMIT 1";
+$stmt = $pdo->prepare($sql);
+$stmt->bindParam(':login', $login);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Registra tentativa de login falha
-$sqlLogFalha = '
-	INSERT INTO admin_log_login (log_ip, log_observacao)
-	VALUES (:ip, :observacao)
-';
-$stmtLogFalha = $pdo->prepare($sqlLogFalha);
-$stmtLogFalha->bindParam(':ip', $ipUsuario);
-$observacao = "Falha login: $login";
-$stmtLogFalha->bindParam(':observacao', $observacao);
-$stmtLogFalha->execute();
+if (!$user || !password_verify($senha, $user['usu_senha'])) {
+	$_SESSION['login_erro'] = 'Login ou senha incorreta.<br>Por favor, tente novamente.';
+	$_SESSION['exactoadm'] = 'N';
+	logLogin($pdo, $user['usu_id'] ?? null, '', $ip, "Falha login: $login");
+	header('Location: login.php');
+	exit;
+}
 
-exibirErro('Login ou senha incorreta.<br>Por favor, tente novamente.');
+if ((int) $user['usu_status'] === 0) {
+	$_SESSION['login_erro'] = 'Seu usuário está desativado, contate o administrador do sistema.';
+	$_SESSION['exactoadm'] = 'N';
+	logLogin($pdo, $user['usu_id'], '', $ip, "Usuário desativado: $login");
+	header('Location: login.php');
+	exit;
+}
+
+// Login OK
+// Não use session_id() ou dados previsíveis no hash de sessão
+$_SESSION['exactoadm'] = 'S'; // Apenas marca como logado
+$_SESSION['usu_id'] = $user['usu_id']; // ESSENCIAL para verificalogin.php
+$_SESSION['setor'] = $user['usu_setor'];
+$_SESSION['setor_nome'] = $user['set_nome'];
+
+logLogin($pdo, $user['usu_id'], '', $ip, "Login OK");
+
+header('Location: admin.php?login=' . urlencode($login) . '&n=' . urlencode($user['usu_nome']));
+exit;
