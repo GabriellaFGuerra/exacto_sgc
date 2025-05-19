@@ -135,29 +135,29 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 
 <head>
-	<title>Relatório de Malotes</title>
-	<meta charset="utf-8" />
-	<link rel="shortcut icon" href="../imagens/favicon.png">
-	<?php include '../css/style.php'; ?>
-	<script src="../mod_includes/js/funcoes.js"></script>
-	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
-	<script>
-		jQuery(document).ready(function () {
-			jQuery(".toggle_container").show();
-			jQuery(".toggle_container_info").hide();
-			jQuery("h2.trigger").click(function () {
-				jQuery(this).toggleClass("active").next().slideToggle("slow");
-				return false;
-			});
-		});
-	</script>
+    <title>Relatório de Malotes</title>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="../imagens/favicon.png">
+    <?php include '../css/style.php'; ?>
+    <script src="../mod_includes/js/funcoes.js"></script>
+    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+    <script>
+    jQuery(document).ready(function() {
+        jQuery(".toggle_container").show();
+        jQuery(".toggle_container_info").hide();
+        jQuery("h2.trigger").click(function() {
+            jQuery(this).toggleClass("active").next().slideToggle("slow");
+            return false;
+        });
+    });
+    </script>
 </head>
 
 <body>
-	<?php
+    <?php
 	include '../mod_includes/php/funcoes-jquery.php';
 	require_once '../mod_includes/php/verificalogin.php';
 	include '../mod_topo/topo.php';
@@ -165,26 +165,26 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 	$page = "Relatórios &raquo; <a href='relatorio_malotes.php?pagina=relatorio_malotes{$autenticacao}'>Malotes</a>";
 	?>
-	<div class='container'>
-		<div class='centro'>
-			<div class='titulo'><?= $page ?></div>
-			<div class='filtro'>
-				<form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
-					action='relatorio_malotes.php?pagina=relatorio_malotes<?= $autenticacao ?>&filtro=1'>
-					<input name='fil_malote' id='fil_malote'
-						value='<?= htmlspecialchars($_REQUEST['fil_malote'] ?? '') ?>' placeholder='N° malote'>
-					<input name='fil_lacre' id='fil_lacre' value='<?= htmlspecialchars($_REQUEST['fil_lacre'] ?? '') ?>'
-						placeholder='N° lacre'>
-					<input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($_REQUEST['fil_nome'] ?? '') ?>'
-						placeholder='Cliente'>
-					<input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início'
-						value='<?= htmlspecialchars($_REQUEST['fil_data_inicio'] ?? '') ?>'
-						onkeypress='return mascaraData(this,event);'>
-					<input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim'
-						value='<?= htmlspecialchars($_REQUEST['fil_data_fim'] ?? '') ?>'
-						onkeypress='return mascaraData(this,event);'>
-					<select name='fil_baixado' id='fil_baixado'>
-						<?php
+    <div class='container'>
+        <div class='centro'>
+            <div class='titulo'><?= $page ?></div>
+            <div class='filtro'>
+                <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
+                    action='relatorio_malotes.php?pagina=relatorio_malotes<?= $autenticacao ?>&filtro=1'>
+                    <input name='fil_malote' id='fil_malote'
+                        value='<?= htmlspecialchars($_REQUEST['fil_malote'] ?? '') ?>' placeholder='N° malote'>
+                    <input name='fil_lacre' id='fil_lacre' value='<?= htmlspecialchars($_REQUEST['fil_lacre'] ?? '') ?>'
+                        placeholder='N° lacre'>
+                    <input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($_REQUEST['fil_nome'] ?? '') ?>'
+                        placeholder='Cliente'>
+                    <input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início'
+                        value='<?= htmlspecialchars($_REQUEST['fil_data_inicio'] ?? '') ?>'
+                        onkeypress='return mascaraData(this,event);'>
+                    <input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim'
+                        value='<?= htmlspecialchars($_REQUEST['fil_data_fim'] ?? '') ?>'
+                        onkeypress='return mascaraData(this,event);'>
+                    <select name='fil_baixado' id='fil_baixado'>
+                        <?php
 						$opcoes_baixado = [
 							'' => 'Todos',
 							'1' => 'Sim',
@@ -196,23 +196,23 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 							echo "<option value='$valor' $selected>$texto</option>";
 						}
 						?>
-					</select>
-					<input type='submit' value='Filtrar'>
-					<input type='button' onclick="PrintDiv('imprimir');" value='Imprimir' />
-				</form>
-			</div>
-			<div class='contentPrint' id='imprimir'>
-				<?php if ($total_registros > 0): ?>
-					<img src='<?= $logo ?>' border='0' class='logo' />
-					<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-						<tr>
-							<td class='titulo_tabela'>N° Malote</td>
-							<td class='titulo_tabela'>N° Lacre</td>
-							<td class='titulo_tabela'>Cliente</td>
-							<td class='titulo_tabela'>Observação</td>
-							<td class='titulo_tabela' align='center'>Data Cadastro</td>
-						</tr>
-						<?php
+                    </select>
+                    <input type='submit' value='Filtrar'>
+                    <input type='button' onclick="PrintDiv('imprimir');" value='Imprimir' />
+                </form>
+            </div>
+            <div class='contentPrint' id='imprimir'>
+                <?php if ($total_registros > 0): ?>
+                <img src='<?= $logo ?>' border='0' class='logo' />
+                <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+                    <tr>
+                        <td class='titulo_tabela'>N° Malote</td>
+                        <td class='titulo_tabela'>N° Lacre</td>
+                        <td class='titulo_tabela'>Cliente</td>
+                        <td class='titulo_tabela'>Observação</td>
+                        <td class='titulo_tabela' align='center'>Data Cadastro</td>
+                    </tr>
+                    <?php
 						$linha = 0;
 						foreach ($malotes as $malote):
 							$classe_linha = $linha % 2 == 0 ? "linhaimpar" : "linhapar";
@@ -224,15 +224,15 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 							$mal_data_cadastro = date('d/m/Y', strtotime($malote['mal_data_cadastro']));
 							$mal_hora_cadastro = date('H:i', strtotime($malote['mal_data_cadastro']));
 							?>
-							<tr class='<?= $classe_linha ?>'>
-								<td style='border-top:1px solid #DADADA'><?= $mal_id ?></td>
-								<td style='border-top:1px solid #DADADA'><?= htmlspecialchars($mal_lacre) ?></td>
-								<td style='border-top:1px solid #DADADA'><?= htmlspecialchars($cli_nome_razao) ?></td>
-								<td style='border-top:1px solid #DADADA'><?= htmlspecialchars($mal_observacoes) ?></td>
-								<td style='border-top:1px solid #DADADA' align='center'><?= $mal_data_cadastro ?><br><span
-										class='detalhe'><?= $mal_hora_cadastro ?></span></td>
-							</tr>
-							<?php
+                    <tr class='<?= $classe_linha ?>'>
+                        <td style='border-top:1px solid #DADADA'><?= $mal_id ?></td>
+                        <td style='border-top:1px solid #DADADA'><?= htmlspecialchars($mal_lacre) ?></td>
+                        <td style='border-top:1px solid #DADADA'><?= htmlspecialchars($cli_nome_razao) ?></td>
+                        <td style='border-top:1px solid #DADADA'><?= htmlspecialchars($mal_observacoes) ?></td>
+                        <td style='border-top:1px solid #DADADA' align='center'><?= $mal_data_cadastro ?><br><span
+                                class='detalhe'><?= $mal_hora_cadastro ?></span></td>
+                    </tr>
+                    <?php
 							// Itens do malote
 							$sql_itens = "SELECT * FROM malote_itens WHERE mai_malote = :mal_id";
 							$stmt_itens = $pdo->prepare($sql_itens);
@@ -240,62 +240,62 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 							$itens = $stmt_itens->fetchAll(PDO::FETCH_ASSOC);
 							if ($itens):
 								?>
-								<tr class='<?= $classe_linha ?>'>
-									<td colspan='5'>
-										<h2 class='trigger'><a href='#'> &nbsp;&nbsp;&nbsp;&nbsp; Documentos do malote:</a></h2>
-										<div class='toggle_container'>
-											<div class='block'>
-												<table align='center' width='100%' border='0' cellspacing='0' cellpadding='3'
-													class='bordatabela2'>
-													<tr>
-														<td class='titulo_tabela2'>Fornecedor</td>
-														<td class='titulo_tabela2'>Tipo Documento</td>
-														<td class='titulo_tabela2'>N° Cheque</td>
-														<td class='titulo_tabela2'>Valor</td>
-														<td class='titulo_tabela2' align='center'>Data Vencimento</td>
-														<td class='titulo_tabela2' align='center'>Baixado?</td>
-														<td class='titulo_tabela2' align='center'>Data Baixa</td>
-													</tr>
-													<?php foreach ($itens as $item): ?>
-														<tr>
-															<td><?= htmlspecialchars($item['mai_fornecedor']) ?></td>
-															<td><?= htmlspecialchars($item['mai_tipo_documento']) ?></td>
-															<td><?= htmlspecialchars($item['mai_num_cheque']) ?></td>
-															<td>R$ <?= number_format($item['mai_valor'], 2, ',', '.') ?></td>
-															<td align='center'>
-																<?= date('d/m/Y', strtotime($item['mai_data_vencimento'])) ?>
-															</td>
-															<td align='center'>
-																<?= $item['mai_baixado'] == 1 ? "<span class='verde'>Sim</span>" : "<span class='vermelho'>Não</span>" ?>
-															</td>
-															<td align='center'>
-																<?php
+                    <tr class='<?= $classe_linha ?>'>
+                        <td colspan='5'>
+                            <h2 class='trigger'><a href='#'> &nbsp;&nbsp;&nbsp;&nbsp; Documentos do malote:</a></h2>
+                            <div class='toggle_container'>
+                                <div class='block'>
+                                    <table align='center' width='100%' border='0' cellspacing='0' cellpadding='3'
+                                        class='bordatabela2'>
+                                        <tr>
+                                            <td class='titulo_tabela2'>Fornecedor</td>
+                                            <td class='titulo_tabela2'>Tipo Documento</td>
+                                            <td class='titulo_tabela2'>N° Cheque</td>
+                                            <td class='titulo_tabela2'>Valor</td>
+                                            <td class='titulo_tabela2' align='center'>Data Vencimento</td>
+                                            <td class='titulo_tabela2' align='center'>Baixado?</td>
+                                            <td class='titulo_tabela2' align='center'>Data Baixa</td>
+                                        </tr>
+                                        <?php foreach ($itens as $item): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($item['mai_fornecedor']) ?></td>
+                                            <td><?= htmlspecialchars($item['mai_tipo_documento']) ?></td>
+                                            <td><?= htmlspecialchars($item['mai_num_cheque']) ?></td>
+                                            <td>R$ <?= number_format($item['mai_valor'], 2, ',', '.') ?></td>
+                                            <td align='center'>
+                                                <?= date('d/m/Y', strtotime($item['mai_data_vencimento'])) ?>
+                                            </td>
+                                            <td align='center'>
+                                                <?= $item['mai_baixado'] == 1 ? "<span class='verde'>Sim</span>" : "<span class='vermelho'>Não</span>" ?>
+                                            </td>
+                                            <td align='center'>
+                                                <?php
 																if ($item['mai_data_baixa']) {
 																	echo date('d/m/Y', strtotime($item['mai_data_baixa'])) . "<br><span class='detalhe'>" . date('H:i', strtotime($item['mai_data_baixa'])) . "</span>";
 																}
 																?>
-															</td>
-														</tr>
-													<?php endforeach; ?>
-												</table>
-											</div>
-										</div>
-									</td>
-								</tr>
-							<?php endif; ?>
-						<?php endforeach; ?>
-					</table>
-					<?= paginacao($total_registros, $pagina_atual, $limite) ?>
-				<?php else: ?>
-					<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
-				<?php endif; ?>
-				<div class='titulo'></div>
-			</div>
-		</div>
-	</div>
-	<?php include '../mod_rodape/rodape.php'; ?>
-	<script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-	<script src="../mod_includes/js/elementPrint.js"></script>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                </table>
+                <?= paginacao($total_registros, $pagina_atual, $limite) ?>
+                <?php else: ?>
+                <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+                <?php endif; ?>
+                <div class='titulo'></div>
+            </div>
+        </div>
+    </div>
+    <?php include '../mod_rodape/rodape.php'; ?>
+    <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
+    <script src="../mod_includes/js/elementPrint.js"></script>
 </body>
 
 </html>

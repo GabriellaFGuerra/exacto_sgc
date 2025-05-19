@@ -1,268 +1,229 @@
 <?php
 session_start();
-$pagina_link = 'chamado_consultar';
 require_once '../mod_includes/php/connect.php';
-
-// Função para buscar dados do chamado
-function buscarChamado($pdo, $chamado_id)
-{
-	$sql = "SELECT * FROM cadastro_chamados
-		LEFT JOIN cadastro_equipamentos ON cadastro_equipamentos.equ_id = cadastro_chamados.cha_equipamento
-		LEFT JOIN cadastro_tecnicos ON cadastro_tecnicos.tec_id = cadastro_chamados.cha_tecnico
-		LEFT JOIN (cadastro_unidades 
-			LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente )
-		ON cadastro_unidades.uni_id = cadastro_chamados.cha_unidade
-		LEFT JOIN cadastro_status_chamado h1 ON h1.stc_chamado = cadastro_chamados.cha_id 
-		WHERE h1.stc_id = (SELECT MAX(h2.stc_id) FROM cadastro_status_chamado h2 WHERE h2.stc_chamado = h1.stc_chamado) 
-		AND cha_id = :cha_id
-		GROUP BY cha_id";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute(['cha_id' => $chamado_id]);
-	return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-// Função para buscar histórico paginado
-function buscarHistoricoChamado($pdo, $chamado_id, $offset, $limite)
-{
-	$sql = "SELECT * FROM cadastro_chamados 
-		LEFT JOIN cadastro_equipamentos ON cadastro_equipamentos.equ_id = cadastro_chamados.cha_equipamento
-		LEFT JOIN cadastro_status_chamado ON cadastro_status_chamado.stc_chamado = cadastro_chamados.cha_id
-		LEFT JOIN (cadastro_unidades 
-			LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente )
-		ON cadastro_unidades.uni_id = cadastro_chamados.cha_unidade
-		WHERE cha_id = :cha_id
-		GROUP BY stc_id
-		ORDER BY stc_data ASC
-		LIMIT :offset, :limite";
-	$stmt = $pdo->prepare($sql);
-	$stmt->bindValue(':cha_id', $chamado_id, PDO::PARAM_INT);
-	$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-	$stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
-	$stmt->execute();
-	return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-// Função para contar histórico
-function contarHistoricoChamado($pdo, $chamado_id)
-{
-	$sql = "SELECT COUNT(*) as total FROM cadastro_status_chamado WHERE stc_chamado = :cha_id";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute(['cha_id' => $chamado_id]);
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
-	return $row['total'] ?? 0;
-}
-
-// Função para buscar técnicos
-function buscarTecnicos($pdo)
-{
-	$sql = "SELECT * FROM cadastro_tecnicos ORDER BY tec_nome ASC";
-	return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-}
-
-include '../mod_includes/php/funcoes-jquery.php';
 require_once '../mod_includes/php/verificalogin.php';
-include "../mod_topo/topo.php";
 require_once '../mod_includes/php/verificapermissao.php';
 
-$chamado_id = $_GET['cha_id'] ?? null;
-$acao = $_GET['action'] ?? null;
-$pagina = $_GET['pagina'] ?? null;
+// Variáveis de controle padronizadas
+$pagina_link = 'recurso_gerenciar';
 $autenticacao = $_GET['autenticacao'] ?? '';
-$pagina_atual = isset($_GET['pagina_hist']) ? max(1, intval($_GET['pagina_hist'])) : 1;
-$itens_por_pagina = 20;
-$offset = ($pagina_atual - 1) * $itens_por_pagina;
+$pagina = $_GET['pagina'] ?? 'recurso_gerenciar';
+$action = $_GET['action'] ?? '';
+$rec_id = $_GET['rec_id'] ?? '';
+$paginaAtual = max(1, intval($_GET['pag'] ?? 1));
+$itensPorPagina = 10;
+$primeiroRegistro = ($paginaAtual - 1) * $itensPorPagina;
+$tituloPagina = "Infrações &raquo; <a href='infracoes_gerenciar.php?pagina=infracoes_gerenciar$autenticacao'>Infrações</a> &raquo; Recurso";
 
-// Processa ações de salvar status ou técnico
-if ($acao === "salvar_status" && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$chamado = buscarChamado($pdo, $chamado_id);
-	if ($chamado) {
-		$email_cliente = $chamado['cli_email'] ?? '';
-		$responsavel = $chamado['cha_responsavel'] ?? '';
-		$protocolo = ($chamado['cha_ano'] ?? '') . ($chamado['cha_id'] ?? '');
-	}
-	$status = $_POST['stc_status'] ?? '';
-	$observacao = $_POST['stc_observacao'] ?? '';
-	$sql = "INSERT INTO cadastro_status_chamado (stc_chamado, stc_status, stc_observacao) VALUES (:cha_id, :stc_status, :stc_observacao)";
-	$stmt = $pdo->prepare($sql);
-	if ($stmt->execute(['cha_id' => $chamado_id, 'stc_status' => $status, 'stc_observacao' => $observacao])) {
-		include "../mail/envia_email_status_chamado.php";
-	} else {
-		echo "<script>abreMask('<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');</script>";
-	}
+// Função utilitária padronizada
+function exibirMensagem($mensagem, $url = 'recurso_gerenciar.php?pagina=recurso_gerenciar')
+{
+	$msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+	echo "<script>alert('$msg'); window.location.href = '$url';</script>";
+	exit;
 }
 
-if ($acao === "salvar_tecnico" && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$tecnico_id = $_POST['cha_tecnico'] ?? '';
-	$sql = "UPDATE cadastro_chamados SET cha_tecnico = :cha_tecnico WHERE cha_id = :cha_id";
-	$stmt = $pdo->prepare($sql);
-	if ($stmt->execute(['cha_tecnico' => $tecnico_id, 'cha_id' => $chamado_id])) {
-		echo "<script>abreMask('<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><input value=\' Ok \' type=\'button\' class=\'close_janela\'>' );</script>";
-	} else {
-		echo "<script>abreMask('<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');</script>";
+// Função para upload de arquivos de recurso
+function uploadRecurso($rec_id, $arquivos)
+{
+	$caminho = "../admin/recurso/$rec_id/";
+	if (!file_exists($caminho)) {
+		mkdir($caminho, 0755, true);
 	}
-}
-
-// Exibe detalhes do chamado
-$chamado = buscarChamado($pdo, $chamado_id);
-
-if ($pagina === 'visualizar_chamado') {
-	if ($chamado) {
-		// Extrai dados do chamado
-		extract($chamado);
-
-		// Verifica se é avulso
-		$avulso = (empty($cha_equipamento) && ($cha_avul_tipo || $cha_avul_marca || $cha_avul_modelo || $cha_avul_num_serie)) ? "Sim" : "Não";
-		if ($avulso === "Sim") {
-			$equ_tipo = $cha_avul_tipo;
-			$equ_marca = $cha_avul_marca;
-			$equ_modelo = $cha_avul_modelo;
-			$equ_num_serie = $cha_avul_num_serie;
-		}
-
-		// Status
-		$status_labels = [
-			1 => "<span class='preto'>Em análise</span>",
-			2 => "<span class='azul'>Aberto</span>",
-			3 => "<span class='laranja'>Pendente</span>",
-			4 => "<span class='verde'>Finalizado</span>",
-			5 => "<span class='vermelho'>Cancelado</span>"
-		];
-		$status_atual = $status_labels[$stc_status] ?? '';
-
-		// Datas formatadas
-		$data_cadastro = date('d/m/Y', strtotime($cha_data));
-		$hora_cadastro = date('H:i', strtotime($cha_data));
-		$nome_tecnico = $tec_nome ?: "Selecione o técnico responsável por este chamado";
-
-		echo "
-		<div class='centro'>
-			<img src='../imagens/pdf.png' class='right mouse' onclick=\"window.open('imprimir_chamado.php?pagina=imprimir_chamado&cha_id=$cha_id&autenticacao');\">
-			<div class='titulo'> Visualizar Chamado </div>
-			<div class='quadro'>
-				<div style='width:90%; margin:0 auto; line-height:25px;'>
-					<div class='formtitulo'>Dados do Chamado</div>
-					<b>Cliente/Unidade:</b> <a href='cadastro_clientes.php?pagina=editar_cadastro_clientes&cli_id=$cli_id$autenticacao'><b>$cli_nome_razao</b></a> / <a href='cadastro_unidades.php?pagina=editar_cadastro_unidades&uni_id=$uni_id&cli_id=$cli_id$autenticacao'>$uni_nome_razao</a> <br>
-					<b>Nº Protocolo:</b> $cha_ano$cha_id <br>
-					<b>Chamado avulso?</b> $avulso <br>
-					<b>Situação atual:</b> $status_atual <br>
-					<b>Data de abertura:</b> $data_cadastro às $hora_cadastro <p>
-					<b>Equipamento:</b>
-					<ul>
-						<li><b>Tipo:</b> $equ_tipo </li>
-						<li><b>Marca:</b> $equ_marca </li>
-						<li><b>Modelo:</b> $equ_modelo </li>
-						<li><b>Nº Série:</b> $equ_num_serie </li>
-						<li><b>Nº Patrimônio:</b> $equ_num_pat </li>
-						<li><b>Nosso Nº:</b> $equ_nosso_num </li>
-					</ul>
-					<b>Itens verificados:</b>
-					<ul>
-						<li><b>Disjuntor:</b> $cha_verif_disjuntor </li>
-						<li><b>Registro de Água:</b> $cha_verif_agua </li>
-						<li><b>Registro de Ar:</b> $cha_verif_ar </li>
-					</ul>
-					<b>Responsável:</b> $cha_responsavel <br>
-					<b>Telefone:</b> $cha_telefone <br>
-					<b>Descrição do chamado/problema:</b> <br>
-					" . nl2br($cha_descricao) . " <p>
-				</div>
-			</div>
-			<br>
-			<div style='width:90%; margin:0 auto; line-height:25px;'>
-				<div class='formtitulo'>Histórico do Chamado</div>
-		";
-
-		// Histórico com paginação
-		$total_historico = contarHistoricoChamado($pdo, $cha_id);
-		$historico = buscarHistoricoChamado($pdo, $cha_id, $offset, $itens_por_pagina);
-
-		if ($historico) {
-			echo "<section id='cd-timeline' class='cd-container'>";
-			foreach ($historico as $item) {
-				$data_hist = date('d/m/Y', strtotime($item['stc_data']));
-				$hora_hist = date('H:i', strtotime($item['stc_data']));
-				$status_hist = $status_labels[$item['stc_status']] ?? '';
-				$observacao_hist = $item['stc_observacao'];
-				echo "
-				<div class='cd-timeline-block'>
-					<div class='cd-timeline-img cd-location'>
-						<img src='../imagens/cd-icon-location.svg' alt='Location'>
-					</div>
-					<div class='cd-timeline-content'>
-						<p><b>Status:</b> $status_hist</p>
-						<p><b>Observações:</b> $observacao_hist</p>
-						<span class='cd-date'>$data_hist<br>às $hora_hist</span>
-					</div>
-				</div>
-				";
+	$arquivoFinal = '';
+	foreach ($arquivos['name'] as $key => $nome_arquivo) {
+		if (!empty($nome_arquivo)) {
+			$extensao = pathinfo($nome_arquivo, PATHINFO_EXTENSION);
+			$novo_nome = md5(mt_rand(1, 10000) . $nome_arquivo) . '.' . $extensao;
+			$destino = $caminho . $novo_nome;
+			if (move_uploaded_file($arquivos['tmp_name'][$key], $destino)) {
+				$arquivoFinal = $destino;
 			}
-			echo "</section>";
-
-			// Paginação
-			$total_paginas = ceil($total_historico / $itens_por_pagina);
-			if ($total_paginas > 1) {
-				echo "<div class='paginacao'>";
-				for ($i = 1; $i <= $total_paginas; $i++) {
-					$classe = ($i == $pagina_atual) ? "pagina-ativa" : "";
-					$url = "visualizar_chamado.php?pagina=visualizar_chamado&cha_id=$cha_id$autenticacao&pagina_hist=$i";
-					echo "<a class='$classe' href='$url'>$i</a> ";
-				}
-				echo "</div>";
-			}
-		} else {
-			echo "<br><br><br>Nenhum histórico encontrado.";
 		}
-
-		// Formulários de status e técnico
-		echo "
-			</div>
-			<div style='display:table; width:100%;'>
-				<form enctype='multipart/form-data' method='post' action='visualizar_chamado.php?pagina=visualizar_chamado&action=salvar_status&cha_id=$cha_id$autenticacao'>
-					<div class='subquadro' style='width:45%; float:left; line-height:25px;'>
-						<div class='status'>
-							<p class='subtitle'><input type='button' id='bt_status' value='Adicionar Novo Status' /></p>
-							<div class='conteudo'>
-								<select name='stc_status' id='stc_status'>
-									<option value=''>Status</option>
-									<option value='1'>Em análise</option>
-									<option value='2'>Aberto</option>
-									<option value='3'>Pendente</option>
-									<option value='4'>Finalizado</option>
-									<option value='5'>Cancelado</option>
-								</select>
-								<p>
-								<textarea name='stc_observacao' id='stc_observacao' placeholder='Observação'></textarea>
-								<p>
-								<input type='submit' id='bt_status' value='Salvar' />
-							</div>
-						</div>
-					</div>
-				</form>
-				<form enctype='multipart/form-data' method='post' action='visualizar_chamado.php?pagina=visualizar_chamado&action=salvar_tecnico&cha_id=$cha_id$autenticacao'>
-					<div class='subquadro'  style='width:45%; float:right; line-height:25px;'>
-						<div class='status'>
-							<p class='subtitle'><input type='button' id='bt_status' value='Adicionar Técnico' /></p>
-							<div class='conteudo'>
-								<select name='cha_tecnico' id='cha_tecnico'>
-									<option value='$cha_tecnico'>$nome_tecnico</option>";
-		foreach (buscarTecnicos($pdo) as $tecnico) {
-			echo "<option value='{$tecnico['tec_id']}'>{$tecnico['tec_nome']}</option>";
-		}
-		echo "
-								</select>
-								<p>
-								<input type='submit' id='bt_tecnico' value='Salvar' />
-							</div>
-						</div>
-					</div>
-				</form>
-			</div>
-			<div class='titulo'>  </div>
-		</div>";
-	} else {
-		echo "<div class='centro'><br><br><br>Nenhum chamado encontrado.</div>";
 	}
+	return $arquivoFinal;
 }
 
-include '../mod_rodape/rodape.php';
+// CRUD - Editar recurso
+if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	$rec_assunto = $_POST['rec_assunto'] ?? '';
+	$rec_descricao = $_POST['rec_descricao'] ?? '';
+	$rec_status = $_POST['rec_status'] ?? '';
+	$arquivos = $_FILES['rec_recurso'] ?? ['name' => []];
+
+	// Atualiza dados principais
+	$sql = "UPDATE recurso_gerenciar 
+            SET rec_assunto = :rec_assunto, rec_descricao = :rec_descricao, rec_status = :rec_status 
+            WHERE rec_id = :rec_id";
+	$stmt = $pdo->prepare($sql);
+	$stmt->execute([
+		':rec_assunto' => $rec_assunto,
+		':rec_descricao' => $rec_descricao,
+		':rec_status' => $rec_status,
+		':rec_id' => $rec_id
+	]);
+
+	// Upload de arquivos
+	$arquivoFinal = uploadRecurso($rec_id, $arquivos);
+	if ($arquivoFinal) {
+		// Remove arquivo antigo, se existir
+		$sql = "SELECT rec_recurso FROM recurso_gerenciar WHERE rec_id = :rec_id";
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute([':rec_id' => $rec_id]);
+		$anexo_atual = $stmt->fetchColumn();
+		if ($anexo_atual && file_exists($anexo_atual)) {
+			unlink($anexo_atual);
+		}
+		// Atualiza caminho do arquivo no banco
+		$sql = "UPDATE recurso_gerenciar SET rec_recurso = :arquivo WHERE rec_id = :rec_id";
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute([':arquivo' => $arquivoFinal, ':rec_id' => $rec_id]);
+	}
+
+	exibirMensagem('Dados alterados com sucesso.', "recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=$rec_id$autenticacao");
+}
+
+// Exibe detalhes do recurso
+if ($pagina === 'recurso_gerenciar' && $rec_id) {
+	$sql = "SELECT * FROM recurso_gerenciar 
+            LEFT JOIN infracoes_gerenciar ON infracoes_gerenciar.inf_id = recurso_gerenciar.rec_infracao
+            LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
+            WHERE rec_id = :rec_id";
+	$stmt = $pdo->prepare($sql);
+	$stmt->execute([':rec_id' => $rec_id]);
+	$recurso = $stmt->fetch(PDO::FETCH_ASSOC);
+}
 ?>
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="../imagens/favicon.png">
+    <?php include '../css/style.php'; ?>
+    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/funcoes.js"></script>
+    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+</head>
+
+<body>
+    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+    <?php include '../mod_topo/topo.php'; ?>
+
+    <?php if ($pagina === 'recurso_gerenciar' && $recurso): ?>
+    <form name="form_recurso_gerenciar" id="form_recurso_gerenciar" enctype="multipart/form-data" method="post"
+        action="recurso_gerenciar.php?pagina=recurso_gerenciar&action=editar&rec_id=<?= htmlspecialchars($rec_id) . $autenticacao ?>">
+        <div class="centro">
+            <div class="titulo"><?= $tituloPagina ?> &raquo; Gerenciar: <?= htmlspecialchars($recurso['rec_assunto']) ?>
+            </div>
+            <table align="center" cellspacing="0" width="90%">
+                <tr>
+                    <td align="left">
+                        <b>Cliente:</b> <?= htmlspecialchars($recurso['cli_nome_razao']) ?>
+                        (<?= htmlspecialchars($recurso['cli_cnpj']) ?>)
+                        <p>
+                            <b>Recurso:</b>
+                            <?php if (!empty($recurso['rec_recurso'])): ?>
+                            <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank"><img
+                                    src="../imagens/icon-pdf.png" border="0"></a>
+                            <?php else: ?>
+                            Nenhum arquivo anexado.
+                            <?php endif; ?>
+                            <input type="file" name="rec_recurso[]" />
+                        <p>
+                            <b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?>
+                        <p>
+                            <textarea name="rec_descricao" rows="15" id="rec_descricao"
+                                placeholder="Descrição"><?= htmlspecialchars($recurso['rec_descricao']) ?></textarea>
+                        <p>
+                            <select name="rec_status" id="rec_status">
+                                <option value="<?= htmlspecialchars($recurso['rec_status']) ?>">
+                                    <?= htmlspecialchars($recurso['rec_status']) ?>
+                                </option>
+                                <option value="Deferido">Deferido</option>
+                                <option value="Indeferido">Indeferido</option>
+                            </select>
+                        <p>
+                            <center>
+                                <input type="submit" id="bt_recurso_gerenciar" value="Salvar" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="button" id="botao_cancelar"
+                                    onclick="window.location.href='infracoes_gerenciar.php?pagina=infracoes_gerenciar<?= $autenticacao ?>';"
+                                    value="Cancelar" />
+                            </center>
+                    </td>
+                </tr>
+            </table>
+            <div class="titulo"></div>
+        </div>
+    </form>
+    <?php endif; ?>
+
+    <?php
+	// Paginação para listagem de recursos
+	if ($pagina === 'recurso_listar') {
+		$sql_total = "SELECT COUNT(*) FROM recurso_gerenciar";
+		$total_registros = $pdo->query($sql_total)->fetchColumn();
+
+		$sql = "SELECT * FROM recurso_gerenciar 
+            LEFT JOIN infracoes_gerenciar ON infracoes_gerenciar.inf_id = recurso_gerenciar.rec_infracao
+            LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
+            ORDER BY rec_id DESC
+            LIMIT :offset, :limite";
+		$stmt = $pdo->prepare($sql);
+		$stmt->bindValue(':offset', $primeiroRegistro, PDO::PARAM_INT);
+		$stmt->bindValue(':limite', $itensPorPagina, PDO::PARAM_INT);
+		$stmt->execute();
+		$recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+		?>
+    <div class='centro'>
+        <div class='titulo'>Lista de Recursos</div>
+        <?php if ($recursos): ?>
+        <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+            <tr>
+                <td class='titulo_tabela'>ID</td>
+                <td class='titulo_tabela'>Assunto</td>
+                <td class='titulo_tabela'>Cliente</td>
+                <td class='titulo_tabela'>Status</td>
+                <td class='titulo_tabela'>Gerenciar</td>
+            </tr>
+            <?php foreach ($recursos as $recurso): ?>
+            <tr>
+                <td><?= htmlspecialchars($recurso['rec_id']) ?></td>
+                <td><?= htmlspecialchars($recurso['rec_assunto']) ?></td>
+                <td><?= htmlspecialchars($recurso['cli_nome_razao']) ?></td>
+                <td><?= htmlspecialchars($recurso['rec_status']) ?></td>
+                <td>
+                    <a
+                        href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=<?= htmlspecialchars($recurso['rec_id']) . $autenticacao ?>'>Gerenciar</a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+        <?php
+				$totalPaginas = ceil($total_registros / $itensPorPagina);
+				if ($totalPaginas > 1): ?>
+        <div class='paginacao'>
+            <?php for ($i = 1; $i <= $totalPaginas; $i++):
+							$active = $i == $paginaAtual ? "style='font-weight:bold;'" : '';
+							$url = "recurso_gerenciar.php?pagina=recurso_listar&pag=$i$autenticacao";
+							?>
+            <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
+            <?php endfor; ?>
+        </div>
+        <?php endif; ?>
+        <?php else: ?>
+        <br><br><br>Não há nenhum recurso cadastrado.
+        <?php endif; ?>
+        <div class='titulo'></div>
+    </div>
+    <?php
+	}
+	?>
+    <?php include '../mod_rodape/rodape.php'; ?>
+</body>
+
+</html>

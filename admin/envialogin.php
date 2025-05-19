@@ -66,8 +66,10 @@ if ((int) $user['usu_status'] === 0) {
 
 // Login OK
 // Não use session_id() ou dados previsíveis no hash de sessão
-$_SESSION['exactoadm'] = 'S'; // Apenas marca como logado
-$_SESSION['usu_id'] = $user['usu_id']; // ESSENCIAL para verificalogin.php
+$_SESSION['exactoadm'] = 'S';
+$_SESSION['usu_id'] = $user['usu_id'];
+$_SESSION['usu_nome'] = $user['usu_nome'];
+$_SESSION['usu_login'] = $user['usu_login'];
 $_SESSION['setor'] = $user['usu_setor'];
 $_SESSION['setor_nome'] = $user['set_nome'];
 

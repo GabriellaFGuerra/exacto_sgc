@@ -2,6 +2,8 @@
 session_start();
 $pagina_link = 'relatorio_orcamentos';
 require_once '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/verificalogin.php';
+require_once '../mod_includes/php/verificapermissao.php';
 
 // Definições de paginação
 $registros_por_pagina = 10;
@@ -72,19 +74,19 @@ $where_sql = count($where) ? 'AND ' . implode(' AND ', $where) : '';
 
 // Consulta principal com paginação
 $sql = "
-	SELECT SQL_CALC_FOUND_ROWS *
-	FROM orcamento_gerenciar
-	LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
-	LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
-	LEFT JOIN cadastro_status_orcamento h1 ON h1.sto_orcamento = orcamento_gerenciar.orc_id
-	WHERE h1.sto_id = (
-		SELECT MAX(h2.sto_id)
-		FROM cadastro_status_orcamento h2
-		WHERE h2.sto_orcamento = h1.sto_orcamento
-	)
-	$where_sql
-	ORDER BY orc_data_cadastro DESC
-	LIMIT :offset, :limite
+    SELECT SQL_CALC_FOUND_ROWS *
+    FROM orcamento_gerenciar
+    LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
+    LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
+    LEFT JOIN cadastro_status_orcamento h1 ON h1.sto_orcamento = orcamento_gerenciar.orc_id
+    WHERE h1.sto_id = (
+        SELECT MAX(h2.sto_id)
+        FROM cadastro_status_orcamento h2
+        WHERE h2.sto_orcamento = h1.sto_orcamento
+    )
+    $where_sql
+    ORDER BY orc_data_cadastro DESC
+    LIMIT :offset, :limite
 ";
 
 $stmt = $pdo->prepare($sql);
@@ -129,13 +131,13 @@ function obterNomeTipoServico($pdo, $id_tipo_servico)
 
 $titulo_tipo_servico = obterNomeTipoServico($pdo, $filtro_tipo_servico);
 $titulo_status = exibirStatus($filtro_status);
-
+$logo = '../imagens/logo.png';
+$tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=relatorio_orcamentos'>Orçamentos</a>";
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-    <title>Relatório de Orçamentos</title>
+    <title><?= htmlspecialchars($tituloPagina) ?></title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -145,23 +147,15 @@ $titulo_status = exibirStatus($filtro_status);
     <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+    <?php include '../mod_topo/topo.php'; ?>
 </head>
-
 <body>
-    <?php
-    include '../mod_includes/php/funcoes-jquery.php';
-    require_once '../mod_includes/php/verificalogin.php';
-    include "../mod_topo/topo.php";
-    require_once '../mod_includes/php/verificapermissao.php';
-
-    $page = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=relatorio_orcamentos" . $autenticacao . "'>Orçamentos</a>";
-    ?>
-
+    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
     <div class="centro">
-        <div class="titulo"><?= $page ?></div>
+        <div class="titulo"><?= $tituloPagina ?></div>
         <div class="filtro">
             <form name="form_filtro" id="form_filtro" method="post"
-                action="relatorio_orcamentos.php?pagina=relatorio_orcamentos<?= $autenticacao ?>&filtro=1">
+                action="relatorio_orcamentos.php?pagina=relatorio_orcamentos&filtro=1">
                 <input name="fil_orc" id="fil_orc" value="<?= htmlspecialchars($filtro_numero_orcamento) ?>"
                     placeholder="N° Orçamento">
                 <input name="fil_nome" id="fil_nome" value="<?= htmlspecialchars($filtro_nome_cliente) ?>"
@@ -201,8 +195,7 @@ $titulo_status = exibirStatus($filtro_status);
                         <td class="titulo_tabela">Cliente</td>
                         <td class="titulo_tabela">Serviço</td>
                         <td class="titulo_tabela" align="center">Status</td>
-                    </tr>
-                    <td class="titulo_tabela" align="center">Data Cadastro</td>
+                        <td class="titulo_tabela" align="center">Data Cadastro</td>
                     </tr>
                     <?php foreach ($orcamentos as $indice => $orcamento): ?>
                         <?php
@@ -213,7 +206,7 @@ $titulo_status = exibirStatus($filtro_status);
                         ?>
                         <tr class="<?= $classe_linha ?>">
                             <td><?= $orcamento['orc_id'] ?></td>
-                            <td><?= $orcamento['cli_nome_razao'] ?></td>
+                            <td><?= htmlspecialchars($orcamento['cli_nome_razao']) ?></td>
                             <td><?= $nome_servico ?></td>
                             <td align="center"><?= exibirStatus($orcamento['sto_status']) ?></td>
                             <td align="center"><?= $data_cadastro ?><br><span class="detalhe"><?= $hora_cadastro ?></span></td>
@@ -236,10 +229,8 @@ $titulo_status = exibirStatus($filtro_status);
             <div class="titulo"></div>
         </div>
     </div>
-
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
     <script src="../mod_includes/js/elementPrint.js"></script>
 </body>
-
 </html>

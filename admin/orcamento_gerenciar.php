@@ -1,52 +1,52 @@
 <?php
-declare(strict_types=1);
 session_start();
-
+$pagina_link = 'orcamento_gerenciar';
 require_once '../mod_includes/php/connect.php';
+require_once '../mod_includes/php/verificalogin.php';
+require_once '../mod_includes/php/verificapermissao.php';
 
-/**
- * Exibe uma mensagem e encerra o script.
- */
-function exibirMensagem(string $mensagem): void
+// Funções utilitárias padronizadas
+function exibirMensagem($mensagem, $url = 'orcamento_gerenciar.php?pagina=orcamento_gerenciar')
 {
-	echo "<script>abreMask(`$mensagem`);</script>";
+	$msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+	echo "<script>alert('$msg'); window.location.href = '$url';</script>";
 	exit;
 }
-
-/**
- * Função para criar diretórios se não existirem.
- */
-function criarDiretorio(string $caminho): void
+function formatarValor($valor)
+{
+	return str_replace(",", ".", str_replace(".", "", $valor));
+}
+function dataParaBanco($data)
+{
+	if (empty($data))
+		return null;
+	$partes = explode('/', $data);
+	return (count($partes) === 3) ? "{$partes[2]}-{$partes[1]}-{$partes[0]}" : $data;
+}
+function dataParaBR($data)
+{
+	if (empty($data))
+		return '';
+	$partes = explode('-', $data);
+	return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
+}
+function criarDiretorio($caminho)
 {
 	if (!is_dir($caminho)) {
 		mkdir($caminho, 0755, true);
 	}
 }
 
-/**
- * Função para formatar valor monetário.
- */
-function formatarValor(string $valor): string
-{
-	return str_replace(",", ".", str_replace(".", "", $valor));
-}
-
-/**
- * Função para converter data do formato brasileiro para o formato do banco.
- */
-function converterData(string $data): ?string
-{
-	if (empty($data))
-		return null;
-	$dataObj = DateTime::createFromFormat('d/m/Y', $data);
-	return $dataObj ? $dataObj->format('Y-m-d') : null;
-}
-
+// Variáveis de controle padronizadas
 $acao = $_GET['acao'] ?? $_GET['action'] ?? '';
 $pagina = $_GET['pagina'] ?? ($_POST['pagina'] ?? 'orcamento_gerenciar');
+$autenticacao = $_GET['autenticacao'] ?? '';
 $paginaAtual = isset($_GET['pag']) ? max(1, (int) $_GET['pag']) : 1;
+$itensPorPagina = 10;
+$primeiroRegistro = ($paginaAtual - 1) * $itensPorPagina;
+$tituloPagina = "Orçamentos &raquo; <a href='orcamento_gerenciar.php?pagina=orcamento_gerenciar$autenticacao'>Gerenciar</a>";
 
-// Adicionar orçamento
+// CRUD - Adicionar orçamento
 if ($acao === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	try {
 		$orcamento = [
@@ -56,13 +56,13 @@ if ($acao === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
 			'observacoes' => $_POST['orc_observacoes'] ?? '',
 			'usuario_responsavel' => $_POST['orc_usuario_responsavel'] ?? '',
 			'gerente_responsavel' => $_POST['orc_gerente_responsavel'] ?? '',
-			'prazo' => converterData($_POST['orc_prazo'] ?? ''),
+			'prazo' => dataParaBanco($_POST['orc_prazo'] ?? ''),
 			'status' => $_POST['orc_status'] ?? ''
 		];
 
 		$sql = "INSERT INTO orcamento_gerenciar 
-			(orc_cliente, orc_tipo_servico, orc_andamento, orc_observacoes, orc_usuario_responsavel, orc_gerente_responsavel, orc_prazo, orc_status) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            (orc_cliente, orc_tipo_servico, orc_andamento, orc_observacoes, orc_usuario_responsavel, orc_gerente_responsavel, orc_prazo, orc_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		$stmt = $pdo->prepare($sql);
 		$stmt->execute([
 			$orcamento['cliente'],
@@ -98,7 +98,7 @@ if ($acao === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
 				move_uploaded_file($tmpAnexos[$indice], $arquivo);
 			}
 			$sql = "INSERT INTO orcamento_fornecedor (orf_orcamento, orf_fornecedor, orf_valor, orf_obs, orf_anexo) 
-					VALUES (?, ?, ?, ?, ?)";
+                    VALUES (?, ?, ?, ?, ?)";
 			$stmt = $pdo->prepare($sql);
 			$stmt->execute([
 				$orcamentoId,
@@ -126,11 +126,9 @@ if ($acao === "adicionar" && $_SERVER['REQUEST_METHOD'] === 'POST') {
 			}
 		}
 
-		exibirMensagem("<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br>
-			<input value=' Ok ' type='button' class='close_janela'>");
+		exibirMensagem('Cadastro efetuado com sucesso.');
 	} catch (Exception $e) {
-		exibirMensagem("<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br>
-			<input value=' Ok ' type='button' onclick=javascript:window.history.back();>");
+		exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.');
 	}
 }
 
@@ -141,11 +139,9 @@ if ($acao === 'excluir') {
 		$sql = "DELETE FROM orcamento_gerenciar WHERE orc_id = ?";
 		$stmt = $pdo->prepare($sql);
 		if ($stmt->execute([$orcamentoId])) {
-			exibirMensagem("<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br>
-				<input value=' OK ' type='button' class='close_janela'>");
+			exibirMensagem('Exclusão realizada com sucesso.');
 		} else {
-			exibirMensagem("<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br>
-				<input value=' Ok ' type='button' onclick=javascript:window.history.back(); >");
+			exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
 		}
 	}
 }
@@ -164,11 +160,9 @@ if ($acao === 'excluir_anexo') {
 			if ($planilha && file_exists($planilha)) {
 				unlink($planilha);
 			}
-			exibirMensagem("<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br>
-				<input value=' OK ' type='button' class='close_janela'>");
+			exibirMensagem('Exclusão realizada com sucesso.');
 		} else {
-			exibirMensagem("<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br>
-				<input value=' Ok ' type='button' onclick=javascript:window.history.back(); >");
+			exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
 		}
 	}
 }
@@ -181,18 +175,13 @@ if ($acao === 'ativar' || $acao === 'desativar') {
 	$stmt = $pdo->prepare($sql);
 	if ($stmt->execute([$status, $orcamentoId])) {
 		$mensagem = $status ? "Ativação realizada com sucesso" : "Desativação realizada com sucesso";
-		exibirMensagem("<img src=../imagens/ok.png> $mensagem<br><br>
-			<input value=' OK ' type='button' class='close_janela'>");
+		exibirMensagem($mensagem);
 	} else {
-		exibirMensagem("<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br>
-			<input value=' Ok ' type='button' onclick=javascript:window.history.back(); >");
+		exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
 	}
 }
 
 // Filtros
-$itensPorPagina = 10;
-$primeiroRegistro = ($paginaAtual - 1) * $itensPorPagina;
-
 $filtros = [
 	'orc' => $_REQUEST['fil_orc'] ?? '',
 	'nome' => $_REQUEST['fil_nome'] ?? '',
@@ -213,8 +202,8 @@ $condicoes = [
 
 $dataQuery = "1=1";
 if ($filtros['data_inicio'] || $filtros['data_fim']) {
-	$dataInicio = $filtros['data_inicio'] ? converterData($filtros['data_inicio']) : '';
-	$dataFim = $filtros['data_fim'] ? converterData($filtros['data_fim']) : '';
+	$dataInicio = $filtros['data_inicio'] ? dataParaBanco($filtros['data_inicio']) : '';
+	$dataFim = $filtros['data_fim'] ? dataParaBanco($filtros['data_fim']) : '';
 	if ($dataInicio && $dataFim) {
 		$dataQuery = "orc_data_cadastro BETWEEN :data_inicio AND :data_fim";
 	} elseif ($dataInicio) {
@@ -241,21 +230,21 @@ if ($filtros['prazo'] === 'Vencido') {
 $where = implode(' AND ', $condicoes);
 
 $sql = "SELECT SQL_CALC_FOUND_ROWS * FROM orcamento_gerenciar 
-	LEFT JOIN admin_usuarios ON admin_usuarios.usu_id = orcamento_gerenciar.orc_usuario_responsavel
-	LEFT JOIN cadastro_gerentes ON cadastro_gerentes.ger_id = orcamento_gerenciar.orc_gerente_responsavel
-	LEFT JOIN (cadastro_clientes 
-		INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id )
-	ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
-	LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
-	LEFT JOIN (cadastro_status_orcamento h1 
-		LEFT JOIN cadastro_fornecedores ON cadastro_fornecedores.for_id = h1.sto_fornecedor_aprovado)
-	ON h1.sto_orcamento = orcamento_gerenciar.orc_id 
-	WHERE cli_deletado = 1 and cli_status = 1 
-		and h1.sto_id = (SELECT MAX(h2.sto_id) FROM cadastro_status_orcamento h2 where h2.sto_orcamento = h1.sto_orcamento) 
-		AND ucl_usuario = :usuario_id
-		AND $where
-	ORDER BY orc_data_cadastro DESC
-	LIMIT $primeiroRegistro, $itensPorPagina";
+    LEFT JOIN admin_usuarios ON admin_usuarios.usu_id = orcamento_gerenciar.orc_usuario_responsavel
+    LEFT JOIN cadastro_gerentes ON cadastro_gerentes.ger_id = orcamento_gerenciar.orc_gerente_responsavel
+    LEFT JOIN (cadastro_clientes 
+        INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id )
+    ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
+    LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
+    LEFT JOIN (cadastro_status_orcamento h1 
+        LEFT JOIN cadastro_fornecedores ON cadastro_fornecedores.for_id = h1.sto_fornecedor_aprovado)
+    ON h1.sto_orcamento = orcamento_gerenciar.orc_id 
+    WHERE cli_deletado = 1 and cli_status = 1 
+        and h1.sto_id = (SELECT MAX(h2.sto_id) FROM cadastro_status_orcamento h2 where h2.sto_orcamento = h1.sto_orcamento) 
+        AND ucl_usuario = :usuario_id
+        AND $where
+    ORDER BY orc_data_cadastro DESC
+    LIMIT $primeiroRegistro, $itensPorPagina";
 
 $params = [
 	':usuario_id' => $_SESSION['usuario_id']
@@ -294,144 +283,96 @@ $totalPaginas = ceil($totalRegistros / $itensPorPagina);
 <html lang="pt-br">
 
 <head>
-    <title>Gerenciar Orçamentos</title>
-    <meta charset="utf-8">
-    <style>
-    table {
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    th,
-    td {
-        border: 1px solid #ccc;
-        padding: 5px;
-    }
-
-    th {
-        background: #eee;
-    }
-
-    .paginacao {
-        margin: 10px 0;
-    }
-
-    .paginacao a,
-    .paginacao span {
-        margin: 0 2px;
-        padding: 3px 8px;
-        border: 1px solid #ccc;
-        text-decoration: none;
-    }
-
-    .paginacao .atual {
-        background: #eee;
-        font-weight: bold;
-    }
-    </style>
+    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="../imagens/favicon.png">
+    <?php include "../css/style.php"; ?>
+    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/funcoes.js"></script>
+    <link href="../mod_includes/js/toolbar/jquery.toolars.css" rel="stylesheet" />
+    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+    <?php include '../mod_topo/topo.php'; ?>
 </head>
 
 <body>
-    <h2>Gerenciar Orçamentos</h2>
-
-    <form method="get" action="">
-        <input type="text" name="fil_orc" placeholder="ID Orçamento" value="<?= htmlspecialchars($filtros['orc']) ?>">
-        <input type="text" name="fil_nome" placeholder="Nome Cliente" value="<?= htmlspecialchars($filtros['nome']) ?>">
-        <input type="text" name="fil_data_inicio" placeholder="Data início (dd/mm/yyyy)"
-            value="<?= htmlspecialchars($filtros['data_inicio']) ?>">
-        <input type="text" name="fil_data_fim" placeholder="Data fim (dd/mm/yyyy)"
-            value="<?= htmlspecialchars($filtros['data_fim']) ?>">
-        <select name="fil_status">
-            <option value="">Status</option>
-            <option value="1" <?= $filtros['status'] === '1' ? 'selected' : '' ?>>Ativo</option>
-            <option value="0" <?= $filtros['status'] === '0' ? 'selected' : '' ?>>Inativo</option>
-        </select>
-        <button type="submit">Filtrar</button>
-    </form>
-
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Tipo Serviço</th>
-            <th>Andamento</th>
-            <th>Prazo</th>
-            <th>Status</th>
-            <th>Ações</th>
-        </tr>
-        <?php foreach ($orcamentos as $orcamento): ?>
-        <tr>
-            <td><?= htmlspecialchars((string) $orcamento['orc_id']) ?></td>
-            <td><?= htmlspecialchars($orcamento['cli_nome_razao'] ?? '') ?></td>
-            <td><?= htmlspecialchars($orcamento['tps_nome'] ?? '') ?></td>
-            <td><?= htmlspecialchars($orcamento['orc_andamento'] ?? '') ?></td>
-            <td><?= !empty($orcamento['orc_prazo']) ? htmlspecialchars(date('d/m/Y', strtotime($orcamento['orc_prazo']))) : '' ?>
-            </td>
-            <td><?= $orcamento['orc_status'] ? 'Ativo' : 'Inativo' ?></td>
-            <td>
-                <a href="?acao=excluir&orc_id=<?= $orcamento['orc_id'] ?>"
-                    onclick="return confirm('Excluir este orçamento?')">Excluir</a>
-                <?php if ($orcamento['orc_status']): ?>
-                <a href="?acao=desativar&orc_id=<?= $orcamento['orc_id'] ?>">Desativar</a>
-                <?php else: ?>
-                <a href="?acao=ativar&orc_id=<?= $orcamento['orc_id'] ?>">Ativar</a>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
-
-    <?php if ($totalPaginas > 1): ?>
-    <div class="paginacao">
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-        <?php if ($i == $paginaAtual): ?>
-        <span class="atual"><?= $i ?></span>
-        <?php else: ?>
-        <a href="?<?= http_build_query(array_merge($_GET, ['pag' => $i])) ?>"><?= $i ?></a>
-        <?php endif; ?>
-        <?php endfor; ?>
-    </div>
-    <?php endif; ?>
-
-    <h3>Adicionar Orçamento</h3>
-    <form method="post" enctype="multipart/form-data" action="?acao=adicionar">
-        <input type="hidden" name="pagina" value="orcamento_gerenciar">
-        Cliente: <input type="text" name="orc_cliente_id" required><br>
-        Tipo Serviço: <input type="text" name="orc_tipo_servico" required><br>
-        Andamento: <input type="text" name="orc_andamento"><br>
-        Observações: <textarea name="orc_observacoes"></textarea><br>
-        Usuário Responsável: <input type="text" name="orc_usuario_responsavel"><br>
-        Gerente Responsável: <input type="text" name="orc_gerente_responsavel"><br>
-        Prazo: <input type="text" name="orc_prazo" placeholder="dd/mm/yyyy"><br>
-        Status: <select name="orc_status">
-            <option value="1">Ativo</option>
-            <option value="0">Inativo</option>
-        </select><br>
-        <h4>Fornecedores</h4>
-        <div id="fornecedores">
-            <div>
-                Fornecedor: <input type="text" name="orc_fornecedor[]">
-                Valor: <input type="text" name="orc_valor[]">
-                Obs: <input type="text" name="orc_obs[]">
-                Anexo: <input type="file" name="orc_anexo[]">
-            </div>
+    <div class='centro'>
+        <div class='titulo'> <?= $tituloPagina ?> </div>
+        <div id='botoes'>
+            <input value='Novo Orçamento' type='button'
+                onclick="window.location.href='orcamento_gerenciar.php?pagina=adicionar_orcamento_gerenciar<?= $autenticacao; ?>';" />
         </div>
-        <button type="button" onclick="adicionarFornecedor()">Adicionar Fornecedor</button>
-        <h4>Planilha</h4>
-        <input type="file" name="orc_planilha[]"><br>
-        <button type="submit">Cadastrar</button>
-    </form>
-    <script>
-    function adicionarFornecedor() {
-        var div = document.createElement('div');
-        div.innerHTML =
-            'Fornecedor: <input type="text" name="orc_fornecedor[]"> Valor: <input type="text" name="orc_valor[]"> Obs: <input type="text" name="orc_obs[]"> Anexo: <input type="file" name="orc_anexo[]">';
-        document.getElementById('fornecedores').appendChild(div);
-    }
-    </script>
+        <div class='filtro'>
+            <form method="get" action="orcamento_gerenciar.php">
+                <input type="hidden" name="pagina" value="orcamento_gerenciar">
+                <input type="text" name="fil_orc" placeholder="ID Orçamento"
+                    value="<?= htmlspecialchars($filtros['orc']) ?>">
+                <input type="text" name="fil_nome" placeholder="Nome Cliente"
+                    value="<?= htmlspecialchars($filtros['nome']) ?>">
+                <input type="text" name="fil_data_inicio" placeholder="Data início (dd/mm/yyyy)"
+                    value="<?= htmlspecialchars($filtros['data_inicio']) ?>">
+                <input type="text" name="fil_data_fim" placeholder="Data fim (dd/mm/yyyy)"
+                    value="<?= htmlspecialchars($filtros['data_fim']) ?>">
+                <select name="fil_status">
+                    <option value="">Status</option>
+                    <option value="1" <?= $filtros['status'] === '1' ? 'selected' : '' ?>>Ativo</option>
+                    <option value="0" <?= $filtros['status'] === '0' ? 'selected' : '' ?>>Inativo</option>
+                </select>
+                <button type="submit">Filtrar</button>
+            </form>
+        </div>
+        <?php if ($orcamentos): ?>
+        <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+            <tr>
+                <td class='titulo_tabela'>ID</td>
+                <td class='titulo_tabela'>Cliente</td>
+                <td class='titulo_tabela'>Tipo Serviço</td>
+                <td class='titulo_tabela'>Andamento</td>
+                <td class='titulo_tabela'>Prazo</td>
+                <td class='titulo_tabela'>Status</td>
+                <td class='titulo_tabela'>Gerenciar</td>
+            </tr>
+            <?php foreach ($orcamentos as $orcamento): ?>
+            <tr>
+                <td><?= htmlspecialchars((string) $orcamento['orc_id']) ?></td>
+                <td><?= htmlspecialchars($orcamento['cli_nome_razao'] ?? '') ?></td>
+                <td><?= htmlspecialchars($orcamento['tps_nome'] ?? '') ?></td>
+                <td><?= htmlspecialchars($orcamento['orc_andamento'] ?? '') ?></td>
+                <td><?= !empty($orcamento['orc_prazo']) ? htmlspecialchars(date('d/m/Y', strtotime($orcamento['orc_prazo']))) : '' ?>
+                </td>
+                <td><?= $orcamento['orc_status'] ? 'Ativo' : 'Inativo' ?></td>
+                <td>
+                    <a href="orcamento_gerenciar.php?pagina=orcamento_gerenciar&acao=excluir&orc_id=<?= $orcamento['orc_id'] ?>"
+                        onclick="return confirm('Excluir este orçamento?')">Excluir</a>
+                    <?php if ($orcamento['orc_status']): ?>
+                    <a
+                        href="orcamento_gerenciar.php?pagina=orcamento_gerenciar&acao=desativar&orc_id=<?= $orcamento['orc_id'] ?>">Desativar</a>
+                    <?php else: ?>
+                    <a
+                        href="orcamento_gerenciar.php?pagina=orcamento_gerenciar&acao=ativar&orc_id=<?= $orcamento['orc_id'] ?>">Ativar</a>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+        <?php if ($totalPaginas > 1): ?>
+        <div class="paginacao" style="text-align:center; margin:20px 0;">
+            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+            <?php if ($i == $paginaAtual): ?>
+            <span class="pagina-ativa"><?= $i ?></span>
+            <?php else: ?>
+            <a href="orcamento_gerenciar.php?pagina=orcamento_gerenciar&pag=<?= $i ?><?= $autenticacao ?>"><?= $i ?></a>
+            <?php endif; ?>
+            <?php endfor; ?>
+        </div>
+        <?php endif; ?>
+        <?php else: ?>
+        <br><br><br>Não há nenhum orçamento cadastrado.
+        <?php endif; ?>
+        <div class='titulo'></div>
+    </div>
+    <?php include '../mod_rodape/rodape.php'; ?>
 </body>
 
 </html>
-<?php
-include '../mod_rodape/rodape.php';
-?>

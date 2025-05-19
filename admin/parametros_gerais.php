@@ -2,41 +2,27 @@
 session_start();
 require_once '../mod_includes/php/connect.php';
 require_once '../mod_includes/php/verificalogin.php';
-include '../mod_includes/php/funcoes-jquery.php';
-include '../mod_topo/topo.php';
+require_once '../mod_includes/php/verificapermissao.php';
 
-$pagina = 'Parâmetros Gerais';
-$erro = false;
-$mensagem = '';
-
+// Funções utilitárias padronizadas
+function exibirMensagem($mensagem, $url = 'parametros_gerais.php?pagina=parametros_gerais')
+{
+    $msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+    echo "<script>alert('$msg'); window.location.href = '$url';</script>";
+    exit;
+}
 function obterValor($array, $chave, $padrao = '')
 {
     return $array[$chave] ?? $padrao;
 }
-
 function obterCamposParametros()
 {
     return [
-        'ger_nome',
-        'ger_sigla',
-        'ger_cep',
-        'ger_uf',
-        'ger_municipio',
-        'ger_bairro',
-        'ger_endereco',
-        'ger_numero',
-        'ger_comp',
-        'ger_telefone',
-        'ger_email',
-        'ger_site',
-        'ger_cor_primaria',
-        'ger_cor_secundaria',
-        'ger_numeracao_anual',
-        'ger_guia_anual',
-        'ger_status'
+        'ger_nome', 'ger_sigla', 'ger_cep', 'ger_uf', 'ger_municipio', 'ger_bairro', 'ger_endereco',
+        'ger_numero', 'ger_comp', 'ger_telefone', 'ger_email', 'ger_site',
+        'ger_cor_primaria', 'ger_cor_secundaria', 'ger_numeracao_anual', 'ger_guia_anual', 'ger_status'
     ];
 }
-
 function carregarParametros($pdo)
 {
     $sql = 'SELECT * FROM parametros_gerais 
@@ -46,21 +32,17 @@ function carregarParametros($pdo)
     $stmt = $pdo->query($sql);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
 function carregarUFs($pdo)
 {
     $stmt = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-function salvarParametros($pdo, $dados, &$erro)
+function salvarParametros($pdo, $dados)
 {
-    // Verifica se já existe registro
     $stmt = $pdo->query('SELECT ger_id FROM parametros_gerais LIMIT 1');
     $registro = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($registro) {
-        // Atualizar
         $dados['ger_id'] = $registro['ger_id'];
         $sql = 'UPDATE parametros_gerais SET 
             ger_nome = :ger_nome,
@@ -82,7 +64,6 @@ function salvarParametros($pdo, $dados, &$erro)
             ger_status = :ger_status
             WHERE ger_id = :ger_id';
     } else {
-        // Inserir
         $sql = 'INSERT INTO parametros_gerais (
             ger_nome, ger_sigla, ger_cep, ger_uf, ger_municipio, ger_bairro, ger_endereco,
             ger_numero, ger_comp, ger_telefone, ger_email, ger_site,
@@ -93,17 +74,14 @@ function salvarParametros($pdo, $dados, &$erro)
             :ger_cor_primaria, :ger_cor_secundaria, :ger_numeracao_anual, :ger_guia_anual, :ger_status
         )';
     }
-
     $stmt = $pdo->prepare($sql);
     if ($stmt->execute($dados)) {
         return $registro ? $registro['ger_id'] : $pdo->lastInsertId();
     } else {
-        $erro = true;
         return null;
     }
 }
-
-function salvarLogo($pdo, $ger_id, &$erro)
+function salvarLogo($pdo, $ger_id)
 {
     if (isset($_FILES['ger_logo']) && $_FILES['ger_logo']['error'][0] === UPLOAD_ERR_OK) {
         $diretorioUpload = '../imagens/';
@@ -115,11 +93,14 @@ function salvarLogo($pdo, $ger_id, &$erro)
         if (move_uploaded_file($caminhoTemporario, $caminhoLogo)) {
             $stmtLogo = $pdo->prepare('UPDATE parametros_gerais SET ger_logo = :logo WHERE ger_id = :id');
             $stmtLogo->execute(['logo' => $caminhoLogo, 'id' => $ger_id]);
-        } else {
-            $erro = true;
         }
     }
 }
+
+// Controle de ação
+$pagina = 'Parâmetros Gerais';
+$autenticacao = $_GET['autenticacao'] ?? '';
+$mensagem = '';
 
 if (isset($_GET['action']) && $_GET['action'] === 'envia') {
     $ger_id = (int)obterValor($_GET, 'ger_id', 1);
@@ -128,18 +109,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'envia') {
     foreach ($campos as $campo) {
         $dados[$campo] = obterValor($_POST, $campo, '');
     }
-
-    $idSalvo = salvarParametros($pdo, $dados, $erro);
+    $idSalvo = salvarParametros($pdo, $dados);
 
     if ($idSalvo) {
-        salvarLogo($pdo, $idSalvo, $erro);
-        $mensagem = $erro
-            ? '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">'
-            : '<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=" Ok " type="button" class="close_janela">';
+        salvarLogo($pdo, $idSalvo);
+        exibirMensagem('Dados alterados com sucesso.');
     } else {
-        $mensagem = '<img src=../imagens/x.png> Erro ao alterar os dados, por favor tente novamente.<br><br><input value=" Ok " type="button" class="close_janela">';
+        exibirMensagem('Erro ao alterar os dados, por favor tente novamente.');
     }
-    echo "<script>abreMask(`$mensagem`);</script>";
 }
 
 // Carregar dados para o formulário
@@ -179,8 +156,8 @@ $ufs = carregarUFs($pdo);
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/funcoes.js"></script>
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/funcoes.js"></script>
     <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
@@ -190,6 +167,7 @@ $ufs = carregarUFs($pdo);
     <script src="../mod_includes/js/colorpicker/js/eye.js"></script>
     <script src="../mod_includes/js/colorpicker/js/utils.js"></script>
     <script src="../mod_includes/js/colorpicker/js/layout.js?ver=1.0.2"></script>
+    <?php include '../mod_topo/topo.php'; ?>
 </head>
 
 <body>

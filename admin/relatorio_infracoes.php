@@ -140,6 +140,7 @@ require_once '../mod_includes/php/verificapermissao.php';
 </head>
 
 <body>
+    <?php include '../mod_topo/topo.php'; ?>
     <div class="centro">
         <div class="titulo"><?php echo $tituloPagina; ?></div>
         <div class="filtro">
@@ -175,50 +176,50 @@ require_once '../mod_includes/php/verificapermissao.php';
         </div>
         <div class="contentPrint" id="imprimir">
             <?php if ($totalRegistros > 0): ?>
-                <br>
-                <img src="<?php echo $logo ?? ''; ?>" border="0" valign="middle" class="logo" />
-                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-                    <tr>
-                        <td class="titulo_tabela">N.</td>
-                        <td class="titulo_tabela">Tipo</td>
-                        <td class="titulo_tabela">Assunto</td>
-                        <td class="titulo_tabela">Cliente</td>
-                        <td class="titulo_tabela">Proprietário</td>
-                        <td class="titulo_tabela" align="center">Bloco/Apto</td>
-                        <td class="titulo_tabela" align="center">Data</td>
-                    </tr>
-                    <?php foreach ($registros as $indice => $registro): ?>
-                        <?php
+            <br>
+            <img src="<?php echo $logo ?? ''; ?>" border="0" valign="middle" class="logo" />
+            <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                <tr>
+                    <td class="titulo_tabela">N.</td>
+                    <td class="titulo_tabela">Tipo</td>
+                    <td class="titulo_tabela">Assunto</td>
+                    <td class="titulo_tabela">Cliente</td>
+                    <td class="titulo_tabela">Proprietário</td>
+                    <td class="titulo_tabela" align="center">Bloco/Apto</td>
+                    <td class="titulo_tabela" align="center">Data</td>
+                </tr>
+                <?php foreach ($registros as $indice => $registro): ?>
+                <?php
                         $classeLinha = $indice % 2 == 0 ? 'linhaimpar' : 'linhapar';
                         $dataFormatada = $registro['inf_data'] ? implode('/', array_reverse(explode('-', $registro['inf_data']))) : '';
                         ?>
-                        <tr class="<?php echo $classeLinha; ?>">
-                            <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
-                            </td>
-                            <td><?php echo $registro['inf_tipo']; ?></td>
-                            <td><?php echo $registro['inf_assunto']; ?></td>
-                            <td><?php echo $registro['cli_nome_razao']; ?></td>
-                            <td><?php echo $registro['inf_proprietario']; ?></td>
-                            <td align="center"><?php echo $registro['inf_bloco'] . '/' . $registro['inf_apto']; ?></td>
-                            <td align="center"><?php echo $dataFormatada; ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </table>
-                <!-- Paginação -->
-                <div style="text-align:center; margin-top:20px;">
-                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                        <?php if ($i == $paginaAtual): ?>
-                            <strong><?php echo $i; ?></strong>
-                        <?php else: ?>
-                            <a
-                                href="?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
-                        <?php endif; ?>
-                        <?php if ($i < $totalPaginas)
+                <tr class="<?php echo $classeLinha; ?>">
+                    <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
+                    </td>
+                    <td><?php echo $registro['inf_tipo']; ?></td>
+                    <td><?php echo $registro['inf_assunto']; ?></td>
+                    <td><?php echo $registro['cli_nome_razao']; ?></td>
+                    <td><?php echo $registro['inf_proprietario']; ?></td>
+                    <td align="center"><?php echo $registro['inf_bloco'] . '/' . $registro['inf_apto']; ?></td>
+                    <td align="center"><?php echo $dataFormatada; ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <!-- Paginação -->
+            <div style="text-align:center; margin-top:20px;">
+                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                <?php if ($i == $paginaAtual): ?>
+                <strong><?php echo $i; ?></strong>
+                <?php else: ?>
+                <a
+                    href="?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                <?php endif; ?>
+                <?php if ($i < $totalPaginas)
                             echo ' | '; ?>
-                    <?php endfor; ?>
-                </div>
+                <?php endfor; ?>
+            </div>
             <?php else: ?>
-                <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+            <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
             <?php endif; ?>
             <div class="titulo"></div>
         </div>
