@@ -2,7 +2,7 @@
 node_modules/
 
 # Ignore Composer dependencies
-/vendor/
+/vendor
 
 # Ignore environment files
 .env
