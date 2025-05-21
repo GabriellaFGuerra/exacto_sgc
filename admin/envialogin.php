@@ -48,7 +48,29 @@ $stmt->bindParam(':login', $login);
 $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$user || !password_verify($senha, $user['usu_senha'])) {
+if (!$user) {
+	$_SESSION['login_erro'] = 'Login ou senha incorreta.<br>Por favor, tente novamente.';
+	$_SESSION['exactoadm'] = 'N';
+	logLogin($pdo, null, '', $ip, "Falha login: $login");
+	header('Location: login.php');
+	exit;
+}
+
+// Verifica senha: primeiro pelo hash seguro, depois pelo antigo (exemplo: md5)
+$senhaCorreta = false;
+if (password_verify($senha, $user['usu_senha'])) {
+	$senhaCorreta = true;
+} elseif ($user['usu_senha'] === md5($senha)) {
+	$senhaCorreta = true;
+	// Atualiza para hash seguro
+	$novoHash = password_hash($senha, PASSWORD_DEFAULT);
+	$update = $pdo->prepare("UPDATE admin_usuarios SET usu_senha = :hash WHERE usu_id = :id");
+	$update->bindValue(':hash', $novoHash);
+	$update->bindValue(':id', $user['usu_id'], PDO::PARAM_INT);
+	$update->execute();
+}
+
+if (!$senhaCorreta) {
 	$_SESSION['login_erro'] = 'Login ou senha incorreta.<br>Por favor, tente novamente.';
 	$_SESSION['exactoadm'] = 'N';
 	logLogin($pdo, $user['usu_id'] ?? null, '', $ip, "Falha login: $login");
