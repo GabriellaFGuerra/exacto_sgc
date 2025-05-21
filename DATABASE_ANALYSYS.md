@@ -8,7 +8,6 @@
 
 - **Endereços Duplicados:** As tabelas `cadastro_clientes`, `cadastro_fornecedores` e `parametros_gerais` repetem campos de endereço (CEP, UF, município, bairro, endereço, número, complemento).
 - **Logs de Login Separados:** Existem duas tabelas de log (`admin_log_login` e `cliente_log_login`) com a mesma estrutura, apenas separando tipos de usuário.
-- **Tabelas de Endereço e Colunas Redundantes:** Apesar das tabelas normalizadas (`end_bairros`, `end_enderecos`, `end_municipios`, `end_uf`), ainda há colunas de endereço em tabelas de cadastro.
 - **Campos Semelhantes:** Campos como nomes de usuários e status aparecem em várias tabelas.
 - **Tabela parametros_gerais é desnecessária:** A tabela carrega apenas um registo estático, que pode ser codada diretamente nas páginas como HTML, sendo assim renderizada via navegador, garantindo melhor performance ao servidor e funcionando melhor em conexões mais
 
