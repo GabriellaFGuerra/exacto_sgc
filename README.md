@@ -23,6 +23,50 @@ Atualizar o sistema legado para PHP 8.x, garantindo total compatibilidade com as
 
 ---
 
+## 💾 Instalação
+
+### Passos para Instalação
+
+1. **Pré-requisitos**
+    - PHP 8.2 instalado no servidor.
+    - Servidor web (Apache recomendado).
+    - MySQL ou MariaDB.
+    - Composer instalado para gerenciar dependências.
+
+2. **Clonando o Projeto**
+    ```bash
+    git clone https://github.com/GabriellaFGuerra/exacto_sgc.git /caminho/do/projeto
+    ```
+
+3. **Instalando Dependências**
+    - Acesse a pasta do projeto:
+      ```bash
+      cd /caminho/do/projeto
+      ```
+    - Instale as dependências com o Composer:
+      ```bash
+      composer install
+      ```
+
+4. **Configuração do Banco de Dados**
+    - Crie um banco de dados MySQL/MariaDB.
+    - Importe o arquivo `.sql` fornecido para criar as tabelas e dados iniciais.
+    - Configure as credenciais de acesso ao banco no arquivo `connect.php`.
+
+5. **Permissões de Pastas**
+    - Certifique-se de que as pastas de upload (imagens, planilhas, etc.) possuem permissão de escrita pelo servidor web.
+
+6. **Configuração do Servidor**
+    - Configure o Apache para apontar o DocumentRoot para a pasta do projeto.
+    - Verifique se o módulo `mod_rewrite` está habilitado, se necessário.
+
+7. **Acesso ao Sistema**
+    - Acesse via navegador: `http://localhost/` ou pelo domínio configurado.
+    - Utilize as credenciais fornecidas para o primeiro acesso.
+
+> **Observação:** Para ambientes de produção, recomenda-se configurar HTTPS e revisar permissões de arquivos e pastas para maior segurança.
+---
+
 ## ✅ Alterações Realizadas
 
 ### 🔐 Segurança e Conectividade
