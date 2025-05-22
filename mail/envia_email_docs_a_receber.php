@@ -3,6 +3,9 @@ require_once '../mod_includes/php/connect.php';
 require_once '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
 
 // Função para formatar a data por extenso em português
 function dataPorExtenso(DateTime $data): string
@@ -40,8 +43,8 @@ function dataPorExtenso(DateTime $data): string
 // Exibe máscara de carregando (JS)
 echo <<<HTML
 <script>
-	abreMask('<img src="../imagens/carregando.gif" border="0"><p>Por favor aguarde, enviando email.</p>');
-	blink('p');
+    abreMask('<img src="../imagens/carregando.gif" border="0"><p>Por favor aguarde, enviando email.</p>');
+    blink('p');
 </script>
 HTML;
 
@@ -62,7 +65,7 @@ $periodicidade = $periodicidade ?? '';
 $data_vencimento = $data_vencimento ?? '';
 $data_venc_formatada = $hoje->format('d/m/Y');
 
-// Monta corpo do email
+// Monta corpo do email usando variáveis do .env
 $body = <<<HTML
 <head>
 <style type='text/css'>
@@ -86,43 +89,43 @@ hr 			{ color: #0066B3}
 </style>
 </head>
 <body class='fundo'>
-	<table class='texto' align='center' border='0' width='100%' cellspacing='0' cellpadding='0'>
-	<tr>
-		<td align='left'>
-			<span class='titulo'>
-				<b>Olá Administrador(es) </b>
-			</span><br><br>
-			Os seguintes documentos vencerão em {$data_venc_formatada}.<br><br>
-			<table class='interna' cellspacing='0'>
-			<tr>
-				<td class='titulo_tabela'>Tipo Doc</td>
-				<td class='titulo_tabela'>Cliente</td>
-				<td class='titulo_tabela'>Data Emissão</td>
-				<td class='titulo_tabela'>Periodicidade</td>
-				<td class='titulo_tabela'>Data Venc.</td>
-			</tr>
-			<tr>
-				<td><b>{$tipo_doc}</b></td>
-				<td><b>{$clientes}</b></td>
-				<td><b>{$data_emissao}</b></td>
-				<td><b>{$periodicidade}</b></td>
-				<td class='vermelho'><b>{$data_vencimento}</b></td>								
-			</tr>
-			</table>
-			<br>
-			<b>Atenciosamente,<br>
-			<span class=azul>Exa<span class=verde>c</span>to</span> Assessoria e Administração<br>
-			(11) <span class=verde>4791-9220</span><br>
-			<span class=azul>www.exactoadm.com.br</span> <br><br>
-			</b>
-			<hr>
-			<span class='rodape'>
-				Enviado {$dataPorExtenso}<br><br>
-				As informações contidas nesta mensagem e nos arquivos anexados são para uso restrito, sendo seu sigilo protegido por lei, não havendo ainda garantia legal quanto à integridade de seu conteúdo. Caso não seja o destinatário, por favor desconsidere essa mensagem. O uso indevido dessas informações será tratado conforme as normas da empresa e a legislação em vigor.
-			</span>
-		</td>
-	</tr>
-	</table>
+    <table class='texto' align='center' border='0' width='100%' cellspacing='0' cellpadding='0'>
+    <tr>
+        <td align='left'>
+            <span class='titulo'>
+                <b>Olá Administrador(es) </b>
+            </span><br><br>
+            Os seguintes documentos vencerão em {$data_venc_formatada}.<br><br>
+            <table class='interna' cellspacing='0'>
+            <tr>
+                <td class='titulo_tabela'>Tipo Doc</td>
+                <td class='titulo_tabela'>Cliente</td>
+                <td class='titulo_tabela'>Data Emissão</td>
+                <td class='titulo_tabela'>Periodicidade</td>
+                <td class='titulo_tabela'>Data Venc.</td>
+            </tr>
+            <tr>
+                <td><b>{$tipo_doc}</b></td>
+                <td><b>{$clientes}</b></td>
+                <td><b>{$data_emissao}</b></td>
+                <td><b>{$periodicidade}</b></td>
+                <td class='vermelho'><b>{$data_vencimento}</b></td>								
+            </tr>
+            </table>
+            <br>
+            <b>Atenciosamente,<br>
+            <span class=azul>{$_ENV['MAIL_SIGNATURE_COMPANY']}</span><br>
+            {$_ENV['MAIL_SIGNATURE_PHONE']}<br>
+            <span class=azul>{$_ENV['MAIL_SIGNATURE_SITE']}</span> <br><br>
+            </b>
+            <hr>
+            <span class='rodape'>
+                Enviado {$dataPorExtenso}<br><br>
+                As informações contidas nesta mensagem e nos arquivos anexados são para uso restrito, sendo seu sigilo protegido por lei, não havendo ainda garantia legal quanto à integridade de seu conteúdo. Caso não seja o destinatário, por favor desconsidere essa mensagem. O uso indevido dessas informações será tratado conforme as normas da empresa e a legislação em vigor.
+            </span>
+        </td>
+    </tr>
+    </table>
 </body>
 HTML;
 
@@ -130,18 +133,18 @@ HTML;
 $mail = new PHPMailer(true);
 
 try {
-	// Configurações do servidor SMTP
+	// Configurações do servidor SMTP usando variáveis do .env
 	$mail->isSMTP();
-	$mail->Host = 'mail.sistemaexacto.com.br';
+	$mail->Host = $_ENV['MAIL_HOST'];
 	$mail->SMTPAuth = true;
-	$mail->Username = 'autenticacao@sistemaexacto.com.br';
-	$mail->Password = 'info2012mogi';
-	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-	$mail->Port = 587;
+	$mail->Username = $_ENV['MAIL_USERNAME'];
+	$mail->Password = $_ENV['MAIL_PASSWORD'];
+	$mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
+	$mail->Port = $_ENV['MAIL_PORT'];
 
 	// Remetente
-	$mail->setFrom('noreply@sistemaexacto.com.br', 'ExactoAdm');
-	$mail->addReplyTo('autenticacao@sistemaexacto.com.br', 'ExactoAdm');
+	$mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']);
+	$mail->addReplyTo($_ENV['MAIL_REPLYTO'], $_ENV['MAIL_REPLYTO_NAME']);
 
 	// Destinatários
 	foreach ($emails as $email) {
@@ -150,7 +153,7 @@ try {
 
 	// Conteúdo do email
 	$mail->isHTML(true);
-	$mail->Subject = 'SGO - Documentos à vencer';
+	$mail->Subject = $_ENV['MAIL_SUBJECT'];
 	$mail->Body = $body;
 
 	$mail->send();

@@ -3,40 +3,43 @@ require_once '../mod_includes/php/connect.php';
 require_once '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
 
 // Função para formatar data em português
 function formatarDataPtBr(): string
 {
-	setlocale(LC_TIME, 'pt_BR.UTF-8', 'pt_BR', 'Portuguese_Brazil.1252');
-	$date = new DateTime();
-	$dias = [
-		'Domingo',
-		'Segunda-feira',
-		'Terça-feira',
-		'Quarta-feira',
-		'Quinta-feira',
-		'Sexta-feira',
-		'Sábado'
-	];
-	$meses = [
-		1 => 'Janeiro',
-		2 => 'Fevereiro',
-		3 => 'Março',
-		4 => 'Abril',
-		5 => 'Maio',
-		6 => 'Junho',
-		7 => 'Julho',
-		8 => 'Agosto',
-		9 => 'Setembro',
-		10 => 'Outubro',
-		11 => 'Novembro',
-		12 => 'Dezembro'
-	];
-	$diaSemana = $dias[(int) $date->format('w')];
-	$diaMes = $date->format('d');
-	$mes = $meses[(int) $date->format('n')];
-	$ano = $date->format('Y');
-	return "$diaSemana, $diaMes de $mes de $ano";
+    setlocale(LC_TIME, 'pt_BR.UTF-8', 'pt_BR', 'Portuguese_Brazil.1252');
+    $date = new DateTime();
+    $dias = [
+        'Domingo',
+        'Segunda-feira',
+        'Terça-feira',
+        'Quarta-feira',
+        'Quinta-feira',
+        'Sexta-feira',
+        'Sábado'
+    ];
+    $meses = [
+        1 => 'Janeiro',
+        2 => 'Fevereiro',
+        3 => 'Março',
+        4 => 'Abril',
+        5 => 'Maio',
+        6 => 'Junho',
+        7 => 'Julho',
+        8 => 'Agosto',
+        9 => 'Setembro',
+        10 => 'Outubro',
+        11 => 'Novembro',
+        12 => 'Dezembro'
+    ];
+    $diaSemana = $dias[(int) $date->format('w')];
+    $diaMes = $date->format('d');
+    $mes = $meses[(int) $date->format('n')];
+    $ano = $date->format('Y');
+    return "$diaSemana, $diaMes de $mes de $ano";
 }
 
 // Exibe mensagem de carregamento
@@ -59,12 +62,12 @@ $stmt->execute();
 $emailsAdmin = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 // Insere notificação no banco
-$not_nome = "SGO - Novo Orçamento Realizado";
+$not_nome = $_ENV['MAIL_SUBJECT'] ?? "SGO - Novo Orçamento Realizado";
 $not_obs = "<p><b>Cliente:</b> {$cli_nome_razao}<br><b>Tipo de Serviço:</b> {$orc_tipo_servico_cliente}<br><b>Observações:</b><br>" . nl2br($orc_observacoes) . "</p>";
 $stmt = $pdo->prepare("INSERT INTO notificacoes (not_nome, not_obs) VALUES (:not_nome, :not_obs)");
 $stmt->execute([':not_nome' => $not_nome, ':not_obs' => $not_obs]);
 
-// Monta corpo do e-mail
+// Monta corpo do e-mail usando variáveis do .env
 $orc_observacoes_html = nl2br($orc_observacoes);
 $body = <<<HTML
 <head>
@@ -89,9 +92,9 @@ $body = <<<HTML
                 <b>Observações:</b> <br> {$orc_observacoes_html} <p>
                 <br>
                 <b>Atenciosamente,<br>
-                <span class='azul'>Exa<span class='verde'>c</span>to</span> Assessoria e Administração<br>
-                (11) <span class='verde'>4791-9220</span><br>
-                <span class='azul'>www.exactoadm.com.br</span><br><br></b>
+                <span class='azul'>{$_ENV['MAIL_SIGNATURE_COMPANY']}</span><br>
+                {$_ENV['MAIL_SIGNATURE_PHONE']}<br>
+                <span class='azul'>{$_ENV['MAIL_SIGNATURE_SITE']}</span><br><br></b>
                 <hr>
                 <span class='rodape'>Enviado {$datap}<br><br>
                 As informações contidas nesta mensagem e nos arquivos anexados são para uso restrito...</span>
@@ -105,41 +108,41 @@ HTML;
 $mail = new PHPMailer(true);
 
 try {
-	// Configuração SMTP
-	$mail->isSMTP();
-	$mail->Host = 'mail.sistemaexacto.com.br';
-	$mail->SMTPAuth = true;
-	$mail->Username = 'autenticacao@sistemaexacto.com.br';
-	$mail->Password = 'info2012mogi';
-	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-	$mail->Port = 587;
+    // Configuração SMTP usando variáveis do .env
+    $mail->isSMTP();
+    $mail->Host = $_ENV['MAIL_HOST'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $_ENV['MAIL_USERNAME'];
+    $mail->Password = $_ENV['MAIL_PASSWORD'];
+    $mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
+    $mail->Port = $_ENV['MAIL_PORT'];
 
-	// Configuração do remetente e destinatários
-	$mail->setFrom('noreply@sistemaexacto.com.br', 'ExactoAdm');
-	$mail->addReplyTo('autenticacao@sistemaexacto.com.br', 'ExactoAdm');
+    // Configuração do remetente e destinatários
+    $mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']);
+    $mail->addReplyTo($_ENV['MAIL_REPLYTO'], $_ENV['MAIL_REPLYTO_NAME']);
 
-	foreach ($emailsAdmin as $email) {
-		if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			$mail->addAddress($email);
-		}
-	}
+    foreach ($emailsAdmin as $email) {
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $mail->addAddress($email);
+        }
+    }
 
-	// Conteúdo do e-mail
-	$mail->isHTML(true);
-	$mail->Subject = 'SGO - Novo Orçamento Realizado';
-	$mail->Body = $body;
+    // Conteúdo do e-mail
+    $mail->isHTML(true);
+    $mail->Subject = $_ENV['MAIL_SUBJECT'] ?? 'SGO - Novo Orçamento Realizado';
+    $mail->Body = $body;
 
-	$mail->send();
+    $mail->send();
 
-	echo "<script>
+    echo "<script>
             abreMask('<img src=../imagens/ok.png> Orçamento cadastrado com sucesso.<br>Aguarde o breve atendimento de nossa equipe.<br><br>
             <input value=\" Ok \" type=\"button\" class=\"close_janela\">');
           </script>";
 } catch (Exception $e) {
-	echo "<script>
+    echo "<script>
             abreMask('<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br>
             <input value=\" Ok \" type=\"button\" onclick=\"javascript:window.history.back();\">');
           </script>";
-	echo "Erro ao enviar e-mail: {$mail->ErrorInfo}";
+    echo "Erro ao enviar e-mail: {$mail->ErrorInfo}";
 }
 ?>

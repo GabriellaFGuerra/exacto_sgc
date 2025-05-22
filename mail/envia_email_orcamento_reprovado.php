@@ -3,6 +3,9 @@ require_once __DIR__ . '/../mod_includes/php/connect.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
 
 // Função para obter data formatada em português
 function getFormattedDate(): string
@@ -54,7 +57,6 @@ function insertNotification(PDO $pdo, string $nome, string $obs): void
 	$stmt->execute([':nome' => $nome, ':obs' => $obs]);
 }
 
-
 // Variáveis vindas de outro contexto (exemplo)
 $orc_id = $_POST['orc_id'] ?? '';
 $orc_data_reprovacao = $_POST['orc_data_reprovacao'] ?? '';
@@ -63,7 +65,7 @@ $tps_nome = $_POST['tps_nome'] ?? '';
 $sto_observacao = $_POST['sto_observacao'] ?? '';
 
 // Monta corpo da notificação
-$not_nome = "Orçamento Reprovado";
+$not_nome = $_ENV['MAIL_SUBJECT'] ?? "Orçamento Reprovado";
 $not_obs = "
 	<p>
 		<b>N° Orçamento:</b> $orc_id<br>
@@ -85,15 +87,15 @@ $mail = new PHPMailer(true);
 
 try {
 	$mail->isSMTP();
-	$mail->Host = 'mail.sistemaexacto.com.br';
+	$mail->Host = $_ENV['MAIL_HOST'];
 	$mail->SMTPAuth = true;
-	$mail->Username = 'autenticacao@sistemaexacto.com.br';
-	$mail->Password = 'info2012mogi';
-	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-	$mail->Port = 587;
+	$mail->Username = $_ENV['MAIL_USERNAME'];
+	$mail->Password = $_ENV['MAIL_PASSWORD'];
+	$mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
+	$mail->Port = $_ENV['MAIL_PORT'];
 
-	$mail->setFrom('noreply@sistemaexacto.com.br', 'ExactoAdm');
-	$mail->addReplyTo('autenticacao@sistemaexacto.com.br', 'ExactoAdm');
+	$mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']);
+	$mail->addReplyTo($_ENV['MAIL_REPLYTO'], $_ENV['MAIL_REPLYTO_NAME']);
 
 	foreach ($adminEmails as $email) {
 		$mail->addAddress($email);
@@ -101,7 +103,7 @@ try {
 
 	$mail->isHTML(true);
 	$mail->CharSet = 'UTF-8';
-	$mail->Subject = 'Orçamento Reprovado';
+	$mail->Subject = $_ENV['MAIL_SUBJECT'] ?? 'Orçamento Reprovado';
 
 	$datap = getFormattedDate();
 
@@ -128,9 +130,9 @@ try {
 						<b>Tipo de Serviço:</b> $tps_nome<br>
 						<b>Observações:</b> <br>" . nl2br(htmlspecialchars($sto_observacao)) . "<br><br>
 						<b>Atenciosamente,<br>
-						<span class='azul'>Exa<span class='verde'>c</span>to</span> Assessoria e Administração<br>
-						(11) <span class='verde'>4791-9220</span><br>
-						<span class='azul'>www.exactoadm.com.br</span><br><br>
+						<span class='azul'>{$_ENV['MAIL_SIGNATURE_COMPANY']}</span><br>
+						{$_ENV['MAIL_SIGNATURE_PHONE']}<br>
+						<span class='azul'>{$_ENV['MAIL_SIGNATURE_SITE']}</span><br><br>
 						</b>
 						<hr>
 						<span class='rodape'>
