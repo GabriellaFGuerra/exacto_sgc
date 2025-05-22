@@ -10,30 +10,30 @@ $dotenv->load();
 // Função para obter data formatada em português
 function dataFormatada(): string
 {
-    $dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-    $meses = [
-        1 => 'Janeiro',
-        2 => 'Fevereiro',
-        3 => 'Março',
-        4 => 'Abril',
-        5 => 'Maio',
-        6 => 'Junho',
-        7 => 'Julho',
-        8 => 'Agosto',
-        9 => 'Setembro',
-        10 => 'Outubro',
-        11 => 'Novembro',
-        12 => 'Dezembro'
-    ];
-    $agora = new DateTime();
-    $diaSemana = $dias[$agora->format('w')];
-    $diaMes = $agora->format('j');
-    $mes = $meses[(int) $agora->format('n')];
-    $ano = $agora->format('Y');
-    return "$diaSemana, $diaMes de $mes de $ano";
+	$dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+	$meses = [
+		1 => 'Janeiro',
+		2 => 'Fevereiro',
+		3 => 'Março',
+		4 => 'Abril',
+		5 => 'Maio',
+		6 => 'Junho',
+		7 => 'Julho',
+		8 => 'Agosto',
+		9 => 'Setembro',
+		10 => 'Outubro',
+		11 => 'Novembro',
+		12 => 'Dezembro'
+	];
+	$agora = new DateTime();
+	$diaSemana = $dias[$agora->format('w')];
+	$diaMes = $agora->format('j');
+	$mes = $meses[(int) $agora->format('n')];
+	$ano = $agora->format('Y');
+	return "$diaSemana, $diaMes de $mes de $ano";
 }
 
-// Variáveis esperadas (exemplo, ajuste conforme necessário)
+// Variáveis esperadas
 $orc_cliente = $_POST['orc_cliente'] ?? null;
 $orc_id = $_POST['orc_id'] ?? null;
 $tps_nome = $_POST['tps_nome'] ?? '';
@@ -105,32 +105,32 @@ $body = "
 $mail = new PHPMailer(true);
 
 try {
-    // Configuração do servidor SMTP usando variáveis do .env
-    $mail->isSMTP();
-    $mail->Host = $_ENV['MAIL_HOST'];
-    $mail->SMTPAuth = true;
-    $mail->Username = $_ENV['MAIL_USERNAME'];
-    $mail->Password = $_ENV['MAIL_PASSWORD'];
-    $mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
-    $mail->Port = $_ENV['MAIL_PORT'];
+	// Configuração do servidor SMTP usando variáveis do .env
+	$mail->isSMTP();
+	$mail->Host = $_ENV['MAIL_HOST'];
+	$mail->SMTPAuth = true;
+	$mail->Username = $_ENV['MAIL_USERNAME'];
+	$mail->Password = $_ENV['MAIL_PASSWORD'];
+	$mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
+	$mail->Port = $_ENV['MAIL_PORT'];
 
-    // Remetente
-    $mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']);
-    $mail->addReplyTo($_ENV['MAIL_REPLYTO'], $_ENV['MAIL_REPLYTO_NAME']);
+	// Remetente
+	$mail->setFrom($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']);
+	$mail->addReplyTo($_ENV['MAIL_REPLYTO'], $_ENV['MAIL_REPLYTO_NAME']);
 
-    // Destinatários
-    foreach ($emails as $email) {
-        $mail->addAddress($email);
-    }
+	// Destinatários
+	foreach ($emails as $email) {
+		$mail->addAddress($email);
+	}
 
-    // Conteúdo
-    $mail->isHTML(true);
-    $mail->Subject = $_ENV['MAIL_SUBJECT'] ?? 'Orçamento Calculado';
-    $mail->Body = $body;
+	// Conteúdo
+	$mail->isHTML(true);
+	$mail->Subject = $_ENV['MAIL_SUBJECT'] ?? 'Orçamento Calculado';
+	$mail->Body = $body;
 
-    $mail->send();
+	$mail->send();
 
-    echo "
+	echo "
     <script>
         abreMask(
             '<img src=../imagens/ok.png> Orçamento cadastrado com sucesso.<br>Aguarde o breve atendimento de nossa equipe e acompanhe o andamento do seu orçamento.<br><br>'+
@@ -139,7 +139,7 @@ try {
     </script>
     ";
 } catch (Exception $e) {
-    echo "
+	echo "
     <script>
         abreMask(
             '<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br>'+
@@ -147,6 +147,6 @@ try {
         );
     </script>
     ";
-    echo "Informações do erro: {$mail->ErrorInfo}";
+	echo "Informações do erro: {$mail->ErrorInfo}";
 }
 ?>

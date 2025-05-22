@@ -40,7 +40,7 @@ function formatarDataExtenso(DateTime $data): string
 	return "{$diaSemana}, {$dia} de {$mes} de {$ano}";
 }
 
-// Variáveis esperadas (exemplo, ajuste conforme necessário)
+// Variáveis esperadas
 $orc_id = $_POST['orc_id'] ?? '';
 $orc_data_aprovacao = $_POST['orc_data_aprovacao'] ?? '';
 $cli_nome_razao = $_POST['cli_nome_razao'] ?? '';

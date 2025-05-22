@@ -57,7 +57,7 @@ function insertNotification(PDO $pdo, string $nome, string $obs): void
 	$stmt->execute([':nome' => $nome, ':obs' => $obs]);
 }
 
-// Variáveis vindas de outro contexto (exemplo)
+// Variáveis vindas de outro contexto
 $orc_id = $_POST['orc_id'] ?? '';
 $orc_data_reprovacao = $_POST['orc_data_reprovacao'] ?? '';
 $cli_nome_razao = $_POST['cli_nome_razao'] ?? '';
