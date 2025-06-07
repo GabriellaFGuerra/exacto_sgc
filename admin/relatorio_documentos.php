@@ -8,21 +8,21 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Funções utilitárias padronizadas
 function formatarData($data)
 {
-	if (!$data)
-		return '';
-	return implode("/", array_reverse(explode("-", substr($data, 0, 10))));
+    if (!$data)
+        return '';
+    return implode("/", array_reverse(explode("-", substr($data, 0, 10))));
 }
 function obterNomePeriodicidade($codigo)
 {
-	$periodicidades = [
-		6 => "Semestral",
-		12 => "Anual",
-		24 => "Bienal",
-		36 => "Trienal",
-		48 => "Quadrienal",
-		60 => "Quinquenal"
-	];
-	return $periodicidades[$codigo] ?? '';
+    $periodicidades = [
+        6 => "Semestral",
+        12 => "Anual",
+        24 => "Bienal",
+        36 => "Trienal",
+        48 => "Quadrienal",
+        60 => "Quinquenal"
+    ];
+    return $periodicidades[$codigo] ?? '';
 }
 
 // Variáveis de controle
@@ -48,22 +48,22 @@ $params = [];
 
 // Filtro por nome do cliente
 if ($nomeCliente !== '') {
-	$condicoes[] = "cli_nome_razao LIKE :nomeCliente";
-	$params['nomeCliente'] = "%$nomeCliente%";
+    $condicoes[] = "cli_nome_razao LIKE :nomeCliente";
+    $params['nomeCliente'] = "%$nomeCliente%";
 } else {
-	$condicoes[] = "1=1";
+    $condicoes[] = "1=1";
 }
 
 // Filtro por tipo de documento
 if ($tipoDocumento !== '') {
-	$condicoes[] = "doc_tipo = :tipoDocumento";
-	$params['tipoDocumento'] = $tipoDocumento;
-	$stmtTipoDoc = $pdo->prepare("SELECT tpd_nome FROM cadastro_tipos_docs WHERE tpd_id = :tpd_id");
-	$stmtTipoDoc->execute(['tpd_id' => $tipoDocumento]);
-	$nomeTipoDocumento = $stmtTipoDoc->fetchColumn() ?: "Tipo de Documento";
+    $condicoes[] = "doc_tipo = :tipoDocumento";
+    $params['tipoDocumento'] = $tipoDocumento;
+    $stmtTipoDoc = $pdo->prepare("SELECT tpd_nome FROM cadastro_tipos_docs WHERE tpd_id = :tpd_id");
+    $stmtTipoDoc->execute(['tpd_id' => $tipoDocumento]);
+    $nomeTipoDocumento = $stmtTipoDoc->fetchColumn() ?: "Tipo de Documento";
 } else {
-	$condicoes[] = "1=1";
-	$nomeTipoDocumento = "Tipo de Documento";
+    $condicoes[] = "1=1";
+    $nomeTipoDocumento = "Tipo de Documento";
 }
 
 // Filtro por data de vencimento
@@ -71,49 +71,45 @@ $dataInicioFormatada = $dataInicio ? implode('-', array_reverse(explode('/', $da
 $dataFimFormatada = $dataFim ? implode('-', array_reverse(explode('/', $dataFim))) : '';
 
 if ($dataInicioFormatada === '' && $dataFimFormatada === '') {
-	$condicoes[] = "1=1";
+    $condicoes[] = "1=1";
 } elseif ($dataInicioFormatada !== '' && $dataFimFormatada === '') {
-	$condicoes[] = "doc_data_vencimento >= :dataInicio";
-	$params['dataInicio'] = $dataInicioFormatada;
+    $condicoes[] = "doc_data_vencimento >= :dataInicio";
+    $params['dataInicio'] = $dataInicioFormatada;
 } elseif ($dataInicioFormatada === '' && $dataFimFormatada !== '') {
-	$condicoes[] = "doc_data_vencimento <= :dataFim";
-	$params['dataFim'] = $dataFimFormatada;
+    $condicoes[] = "doc_data_vencimento <= :dataFim";
+    $params['dataFim'] = $dataFimFormatada;
 } else {
-	$condicoes[] = "doc_data_vencimento BETWEEN :dataInicio AND :dataFim";
-	$params['dataInicio'] = $dataInicioFormatada;
-	$params['dataFim'] = $dataFimFormatada;
+    $condicoes[] = "doc_data_vencimento BETWEEN :dataInicio AND :dataFim";
+    $params['dataInicio'] = $dataInicioFormatada;
+    $params['dataFim'] = $dataFimFormatada;
 }
 
 // Filtro por periodicidade
 if ($periodicidade !== '') {
-	$condicoes[] = "doc_periodicidade = :periodicidade";
-	$params['periodicidade'] = $periodicidade;
-	$nomePeriodicidade = obterNomePeriodicidade($periodicidade);
+    $condicoes[] = "doc_periodicidade = :periodicidade";
+    $params['periodicidade'] = $periodicidade;
+    $nomePeriodicidade = obterNomePeriodicidade($periodicidade);
 } else {
-	$condicoes[] = "1=1";
-	$nomePeriodicidade = "Periodicidade";
+    $condicoes[] = "1=1";
+    $nomePeriodicidade = "Periodicidade";
 }
 
 // Filtro por vencido
 if ($vencido === 'Sim') {
-	$condicoes[] = "doc_data_vencimento <= :hoje";
-	$params['hoje'] = date("Y-m-d");
-	$nomeVencido = "Sim";
+    $condicoes[] = "doc_data_vencimento <= :hoje";
+    $params['hoje'] = date("Y-m-d");
+    $nomeVencido = "Sim";
 } elseif ($vencido === 'Não') {
-	$condicoes[] = "doc_data_vencimento > :hoje";
-	$params['hoje'] = date("Y-m-d");
-	$nomeVencido = "Não";
+    $condicoes[] = "doc_data_vencimento > :hoje";
+    $params['hoje'] = date("Y-m-d");
+    $nomeVencido = "Não";
 } else {
-	$condicoes[] = "1=1";
-	$nomeVencido = "Vencido";
+    $condicoes[] = "1=1";
+    $nomeVencido = "Vencido";
 }
 
 // Filtro ativo
-if ($filtroAtivo === '') {
-	$condicoes[] = "1=0";
-} else {
-	$condicoes[] = "1=1";
-}
+$condicoes[] = ($filtroAtivo === '') ? "1=0" : "1=1";
 
 // Consulta principal com paginação
 $whereSQL = implode(' AND ', $condicoes);
@@ -137,11 +133,11 @@ $params['offset'] = $offset;
 
 $stmt = $pdo->prepare($sql);
 foreach ($params as $chave => $valor) {
-	if ($chave === 'limit' || $chave === 'offset') {
-		$stmt->bindValue(":$chave", $valor, PDO::PARAM_INT);
-	} else {
-		$stmt->bindValue(":$chave", $valor);
-	}
+    if ($chave === 'limit' || $chave === 'offset') {
+        $stmt->bindValue(":$chave", $valor, PDO::PARAM_INT);
+    } else {
+        $stmt->bindValue(":$chave", $valor);
+    }
 }
 $stmt->execute();
 $documentos = $stmt->fetchAll();
@@ -158,9 +154,9 @@ $sqlTotal = "
 ";
 $stmtTotal = $pdo->prepare($sqlTotal);
 foreach ($params as $chave => $valor) {
-	if ($chave !== 'limit' && $chave !== 'offset') {
-		$stmtTotal->bindValue(":$chave", $valor);
-	}
+    if ($chave !== 'limit' && $chave !== 'offset') {
+        $stmtTotal->bindValue(":$chave", $valor);
+    }
 }
 $stmtTotal->execute();
 $totalRegistros = $stmtTotal->fetchColumn();
@@ -197,11 +193,11 @@ $logo = '../imagens/logo.png';
                     <option value='<?= htmlspecialchars($tipoDocumento) ?>'><?= htmlspecialchars($nomeTipoDocumento) ?>
                     </option>
                     <?php
-					$stmtTiposDocs = $pdo->query("SELECT tpd_id, tpd_nome FROM cadastro_tipos_docs ORDER BY tpd_nome");
-					foreach ($stmtTiposDocs as $tipoDoc) {
-						echo "<option value='{$tipoDoc['tpd_id']}'>{$tipoDoc['tpd_nome']}</option>";
-					}
-					?>
+                    $stmtTiposDocs = $pdo->query("SELECT tpd_id, tpd_nome FROM cadastro_tipos_docs ORDER BY tpd_nome");
+                    foreach ($stmtTiposDocs as $tipoDoc) {
+                        echo "<option value='{$tipoDoc['tpd_id']}'>{$tipoDoc['tpd_nome']}</option>";
+                    }
+                    ?>
                     <option value=''>Todos</option>
                 </select>
                 <input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($nomeCliente) ?>'
@@ -226,7 +222,7 @@ $logo = '../imagens/logo.png';
                     <option value=''>Todos</option>
                 </select>
                 <input type='submit' value='Filtrar'>
-                <input type='button' onclick="PrintDiv('imprimir');" value='Imprimir' />
+                <input type='button' onclick="elementPrint('imprimir');" value='Imprimir' />
             </form>
         </div>
         <div class='contentPrint' id='imprimir'>
@@ -244,11 +240,11 @@ $logo = '../imagens/logo.png';
                     <td class='titulo_tabela' align='center'>Data Cadastro</td>
                 </tr>
                 <?php
-					$contador = 0;
-					foreach ($documentos as $doc):
-						$classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
-						$contador++;
-						?>
+                    $contador = 0;
+                    foreach ($documentos as $doc):
+                        $classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
+                        $contador++;
+                        ?>
                 <tr class='<?= $classeLinha ?>'>
                     <td><?= htmlspecialchars($doc['tpd_nome'] ?? '') ?></td>
                     <td><?= htmlspecialchars($doc['cli_nome_razao'] ?? '') ?></td>
@@ -288,4 +284,18 @@ $logo = '../imagens/logo.png';
     <script src="../mod_includes/js/elementPrint.js"></script>
 </body>
 
-</html>
+<script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
+<script src="../mod_includes/js/elementPrint.js"></script>
+<script>
+if (typeof elementPrint !== 'function') {
+    function elementPrint(elementId) {
+        var printContent = document.getElementById(elementId).innerHTML;
+        var originalContent = document.body.innerHTML;
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        location.reload();
+    }
+}
+</script>
+</body>

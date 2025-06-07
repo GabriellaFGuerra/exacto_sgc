@@ -8,7 +8,8 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Função para formatar datas do formato brasileiro para o formato SQL
 function formatarData($data)
 {
-    if (!$data) return '';
+    if (!$data)
+        return '';
     $partes = explode('/', $data);
     if (count($partes) === 3) {
         return "{$partes[2]}-{$partes[1]}-{$partes[0]}";
@@ -19,7 +20,8 @@ function formatarData($data)
 // Função para formatar datas do formato SQL para BR
 function dataParaBR($data)
 {
-    if (!$data) return '';
+    if (!$data)
+        return '';
     $partes = explode('-', substr($data, 0, 10));
     return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
 }
@@ -136,6 +138,7 @@ $logo = '../imagens/logo.png';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <title><?= htmlspecialchars($tituloPagina) ?></title>
     <meta name="author" content="MogiComp">
@@ -148,32 +151,33 @@ $logo = '../imagens/logo.png';
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
+
 <body>
-<?php include '../mod_includes/php/funcoes-jquery.php'; ?>
-<?php include '../mod_topo/topo.php'; ?>
-<div class='centro'>
-    <div class='titulo'> <?= $tituloPagina ?> </div>
-    <div class='filtro'>
-        <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
-            action='relatorio_prestacao.php?pagina=relatorio_prestacao&filtro=1'>
-            <input name='fil_nome' id='fil_nome'
-                value='<?= htmlspecialchars($_REQUEST['fil_nome'] ?? '') ?>' placeholder='Cliente'>
-            <input name='fil_referencia' id='fil_referencia'
-                value='<?= htmlspecialchars($_REQUEST['fil_referencia'] ?? '') ?>' placeholder='Referência'>
-            <input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início'
-                value='<?= htmlspecialchars($_REQUEST['fil_data_inicio'] ?? '') ?>'
-                onkeypress='return mascaraData(this,event);'>
-            <input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim'
-                value='<?= htmlspecialchars($_REQUEST['fil_data_fim'] ?? '') ?>'
-                onkeypress='return mascaraData(this,event);'>
-            <input type='submit' value='Filtrar'>
-            <input type='button' onclick="PrintDiv('imprimir');" value='Imprimir' />
-        </form>
-    </div>
-    <div class='contentPrint' id='imprimir'>
-        <?php
-        if ($total_registros > 0) {
-            echo "<br>
+    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+    <?php include '../mod_topo/topo.php'; ?>
+    <div class='centro'>
+        <div class='titulo'> <?= $tituloPagina ?> </div>
+        <div class='filtro'>
+            <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
+                action='relatorio_prestacao.php?pagina=relatorio_prestacao&filtro=1'>
+                <input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($_REQUEST['fil_nome'] ?? '') ?>'
+                    placeholder='Cliente'>
+                <input name='fil_referencia' id='fil_referencia'
+                    value='<?= htmlspecialchars($_REQUEST['fil_referencia'] ?? '') ?>' placeholder='Referência'>
+                <input type='text' name='fil_data_inicio' id='fil_data_inicio' placeholder='Data Início'
+                    value='<?= htmlspecialchars($_REQUEST['fil_data_inicio'] ?? '') ?>'
+                    onkeypress='return mascaraData(this,event);'>
+                <input type='text' name='fil_data_fim' id='fil_data_fim' placeholder='Data Fim'
+                    value='<?= htmlspecialchars($_REQUEST['fil_data_fim'] ?? '') ?>'
+                    onkeypress='return mascaraData(this,event);'>
+                <input type='submit' value='Filtrar'>
+                <input type='button' onclick="elementPrint('imprimir');" value='Imprimir' />
+            </form>
+        </div>
+        <div class='contentPrint' id='imprimir'>
+            <?php
+            if ($total_registros > 0) {
+                echo "<br>
             <img src='$logo' border='0' valign='middle' class='logo' />
             <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
                 <tr>
@@ -185,19 +189,19 @@ $logo = '../imagens/logo.png';
                     <td class='titulo_tabela'>Observação</td>
                     <td class='titulo_tabela' align='center'>Data Cadastro</td>
                 </tr>";
-            $c = 0;
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $pre_id = $row['pre_id'];
-                $cli_nome_razao = htmlspecialchars($row['cli_nome_razao']);
-                $pre_referencia = htmlspecialchars($row['pre_referencia']);
-                $pre_data_envio = $row['pre_data_envio'] ? date('d/m/Y', strtotime($row['pre_data_envio'])) : '';
-                $pre_enviado_por = htmlspecialchars($row['pre_enviado_por']);
-                $pre_observacoes = htmlspecialchars($row['pre_observacoes']);
-                $pre_data_cadastro = $row['pre_data_cadastro'] ? date('d/m/Y', strtotime($row['pre_data_cadastro'])) : '';
-                $pre_hora_cadastro = $row['pre_data_cadastro'] ? date('H:i', strtotime($row['pre_data_cadastro'])) : '';
-                $classe_linha = $c % 2 == 0 ? "linhaimpar" : "linhapar";
-                $c++;
-                echo "<tr class='$classe_linha'>
+                $c = 0;
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $pre_id = $row['pre_id'];
+                    $cli_nome_razao = htmlspecialchars($row['cli_nome_razao']);
+                    $pre_referencia = htmlspecialchars($row['pre_referencia']);
+                    $pre_data_envio = $row['pre_data_envio'] ? date('d/m/Y', strtotime($row['pre_data_envio'])) : '';
+                    $pre_enviado_por = htmlspecialchars($row['pre_enviado_por']);
+                    $pre_observacoes = htmlspecialchars($row['pre_observacoes']);
+                    $pre_data_cadastro = $row['pre_data_cadastro'] ? date('d/m/Y', strtotime($row['pre_data_cadastro'])) : '';
+                    $pre_hora_cadastro = $row['pre_data_cadastro'] ? date('H:i', strtotime($row['pre_data_cadastro'])) : '';
+                    $classe_linha = $c % 2 == 0 ? "linhaimpar" : "linhapar";
+                    $c++;
+                    echo "<tr class='$classe_linha'>
                     <td>$pre_id</td>
                     <td>$cli_nome_razao</td>
                     <td>$pre_referencia</td>
@@ -206,27 +210,40 @@ $logo = '../imagens/logo.png';
                     <td>$pre_observacoes</td>
                     <td align='center'>$pre_data_cadastro<br><span class='detalhe'>$pre_hora_cadastro</span></td>
                 </tr>";
+                }
+                echo "</table>";
+                // Exibe paginação
+                $query_string = http_build_query([
+                    'pagina' => 'relatorio_prestacao',
+                    'fil_nome' => $_REQUEST['fil_nome'] ?? '',
+                    'fil_referencia' => $_REQUEST['fil_referencia'] ?? '',
+                    'fil_data_inicio' => $_REQUEST['fil_data_inicio'] ?? '',
+                    'fil_data_fim' => $_REQUEST['fil_data_fim'] ?? '',
+                    'filtro' => $_REQUEST['filtro'] ?? ''
+                ]);
+                exibirPaginacao($pagina_atual, $total_paginas, $query_string);
+            } else {
+                echo "<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.";
             }
-            echo "</table>";
-            // Exibe paginação
-            $query_string = http_build_query([
-                'pagina' => 'relatorio_prestacao',
-                'fil_nome' => $_REQUEST['fil_nome'] ?? '',
-                'fil_referencia' => $_REQUEST['fil_referencia'] ?? '',
-                'fil_data_inicio' => $_REQUEST['fil_data_inicio'] ?? '',
-                'fil_data_fim' => $_REQUEST['fil_data_fim'] ?? '',
-                'filtro' => $_REQUEST['filtro'] ?? ''
-            ]);
-            exibirPaginacao($pagina_atual, $total_paginas, $query_string);
-        } else {
-            echo "<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.";
-        }
-        ?>
-        <div class='titulo'></div>
+            ?>
+            <div class='titulo'></div>
+        </div>
     </div>
-</div>
-<?php include '../mod_rodape/rodape.php'; ?>
-<script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-<script src="../mod_includes/js/elementPrint.js"></script>
+    <?php include '../mod_rodape/rodape.php'; ?>
+    <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
+    <script src="../mod_includes/js/elementPrint.js"></script>
+    <script>
+    if (typeof elementPrint !== 'function') {
+        function elementPrint(elementId) {
+            var printContent = document.getElementById(elementId).innerHTML;
+            var originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+    }
+    </script>
 </body>
+
 </html>

@@ -145,7 +145,7 @@ require_once '../mod_includes/php/verificapermissao.php';
         <div class="titulo"><?php echo $tituloPagina; ?></div>
         <div class="filtro">
             <form name="form_filtro" id="form_filtro" enctype="multipart/form-data" method="post"
-                action="relatorio_infracoes.php?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1">
+                action="relatorio_infracoes.php?pagina=relatorio_infracoes<?php echo $autenticacao ?? ''; ?>&filtro=1">
                 <input name="fil_nome" id="fil_nome" value="<?php echo htmlspecialchars($nomeCliente); ?>"
                     placeholder="Cliente">
                 <input name="fil_proprietario" id="fil_proprietario"
@@ -171,7 +171,7 @@ require_once '../mod_includes/php/verificapermissao.php';
                 <input type="text" name="fil_data_fim" id="fil_data_fim" placeholder="Data Fim"
                     value="<?php echo $dataFimFiltro; ?>" onkeypress="return mascaraData(this,event);">
                 <input type="submit" value="Filtrar">
-                <input type="button" onclick="PrintDiv('imprimir');" value="Imprimir" />
+                <input type="button" onclick="elementPrint('imprimir');" value="Imprimir" />
             </form>
         </div>
         <div class="contentPrint" id="imprimir">
@@ -212,7 +212,7 @@ require_once '../mod_includes/php/verificapermissao.php';
                 <strong><?php echo $i; ?></strong>
                 <?php else: ?>
                 <a
-                    href="?pagina=relatorio_infracoes<?php echo ($autenticacao ?? ''); ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    href="?pagina=relatorio_infracoes<?php echo $autenticacao ?? ''; ?>&filtro=1&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
                 <?php endif; ?>
                 <?php if ($i < $totalPaginas)
                             echo ' | '; ?>
@@ -227,6 +227,18 @@ require_once '../mod_includes/php/verificapermissao.php';
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/jquery-1.3.2.min.js" type="text/javascript"></script>
     <script src="../mod_includes/js/elementPrint.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    if (typeof elementPrint !== 'function') {
+        function elementPrint(elementId) {
+            var printContent = document.getElementById(elementId).innerHTML;
+            var originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+    }
+    </script>
 </body>
 
 </html>

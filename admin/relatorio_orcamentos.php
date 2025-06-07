@@ -136,6 +136,7 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <title><?= htmlspecialchars($tituloPagina) ?></title>
     <meta name="author" content="MogiComp">
@@ -149,6 +150,7 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
     <?php include '../mod_topo/topo.php'; ?>
 </head>
+
 <body>
     <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
     <div class="centro">
@@ -183,48 +185,48 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
                 <input type="text" name="fil_data_fim" id="fil_data_fim" placeholder="Data Fim"
                     value="<?= htmlspecialchars($filtro_data_fim) ?>" onkeypress="return mascaraData(this,event);">
                 <input type="submit" value="Filtrar">
-                <input type="button" onclick="PrintDiv('imprimir');" value="Imprimir" />
+                <input type="button" onclick="elementPrint('imprimir');" value="Imprimir" />
             </form>
         </div>
         <div class="contentPrint" id="imprimir">
             <?php if ($total_registros > 0): ?>
-                <img src="<?= $logo ?>" border="0" class="logo" />
-                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-                    <tr>
-                        <td class="titulo_tabela">N° Orçamento</td>
-                        <td class="titulo_tabela">Cliente</td>
-                        <td class="titulo_tabela">Serviço</td>
-                        <td class="titulo_tabela" align="center">Status</td>
-                        <td class="titulo_tabela" align="center">Data Cadastro</td>
-                    </tr>
-                    <?php foreach ($orcamentos as $indice => $orcamento): ?>
-                        <?php
+            <img src="<?= $logo ?>" border="0" class="logo" />
+            <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                <tr>
+                    <td class="titulo_tabela">N° Orçamento</td>
+                    <td class="titulo_tabela">Cliente</td>
+                    <td class="titulo_tabela">Serviço</td>
+                    <td class="titulo_tabela" align="center">Status</td>
+                    <td class="titulo_tabela" align="center">Data Cadastro</td>
+                </tr>
+                <?php foreach ($orcamentos as $indice => $orcamento): ?>
+                <?php
                         $classe_linha = $indice % 2 == 0 ? "linhaimpar" : "linhapar";
                         $nome_servico = $orcamento['tps_nome'] ?: $orcamento['orc_tipo_servico_cliente'] . "<br><span class='detalhe'>Digitado pelo cliente</span>";
                         $data_cadastro = date('d/m/Y', strtotime($orcamento['orc_data_cadastro']));
                         $hora_cadastro = date('H:i', strtotime($orcamento['orc_data_cadastro']));
                         ?>
-                        <tr class="<?= $classe_linha ?>">
-                            <td><?= $orcamento['orc_id'] ?></td>
-                            <td><?= htmlspecialchars($orcamento['cli_nome_razao']) ?></td>
-                            <td><?= $nome_servico ?></td>
-                            <td align="center"><?= exibirStatus($orcamento['sto_status']) ?></td>
-                            <td align="center"><?= $data_cadastro ?><br><span class="detalhe"><?= $hora_cadastro ?></span></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </table>
-                <!-- Paginação -->
-                <div class="paginacao">
-                    <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-                        <?php if ($i == $pagina_atual): ?>
-                            <strong><?= $i ?></strong>
-                        <?php else: ?>
-                            <a href="?pagina=<?= $i ?>&filtro=1"><?= $i ?></a>
-                        <?php endif; ?>
-                    <?php endfor; ?>
-                </div>
+                <tr class="<?= $classe_linha ?>">
+                    <td><?= $orcamento['orc_id'] ?></td>
+                    <td><?= htmlspecialchars($orcamento['cli_nome_razao']) ?></td>
+                    <td><?= $nome_servico ?></td>
+                    <td align="center"><?= exibirStatus($orcamento['sto_status']) ?></td>
+                    <td align="center"><?= $data_cadastro ?><br><span class="detalhe"><?= $hora_cadastro ?></span></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <!-- Paginação -->
+            <div class="paginacao">
+                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                <?php if ($i == $pagina_atual): ?>
+                <strong><?= $i ?></strong>
+                <?php else: ?>
+                <a href="?pagina=<?= $i ?>&filtro=1"><?= $i ?></a>
+                <?php endif; ?>
+                <?php endfor; ?>
+            </div>
             <?php else: ?>
-                <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+            <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
             <?php endif; ?>
             <div class="titulo"></div>
         </div>
@@ -232,5 +234,18 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
     <script src="../mod_includes/js/elementPrint.js"></script>
+    <script>
+    if (typeof elementPrint !== 'function') {
+        function elementPrint(elementId) {
+            var printContent = document.getElementById(elementId).innerHTML;
+            var originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+    }
+    </script>
 </body>
+
 </html>

@@ -198,7 +198,7 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 						?>
                     </select>
                     <input type='submit' value='Filtrar'>
-                    <input type='button' onclick="PrintDiv('imprimir');" value='Imprimir' />
+                    <input type='button' onclick="elementPrint('imprimir');" value='Imprimir' />
                 </form>
             </div>
             <div class='contentPrint' id='imprimir'>
@@ -296,6 +296,18 @@ $malotes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
     <script src="../mod_includes/js/elementPrint.js"></script>
+    <script>
+    if (typeof elementPrint !== 'function') {
+        function elementPrint(elementId) {
+            var printContent = document.getElementById(elementId).innerHTML;
+            var originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+    }
+    </script>
 </body>
 
 </html>
