@@ -213,7 +213,6 @@ $mpdf = new Mpdf([
 ]);
 
 $mpdf->SetTitle('Exacto Adm | Imprimir Prestação de Contas');
-$mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200"><br><br></div>');
 $mpdf->SetHTMLFooter('
 <div class="rodape">

@@ -10,8 +10,11 @@ function formatDateToDb($date)
 {
 	if (!$date)
 		return null;
-	$parts = explode('/', $date);
-	return (count($parts) == 3) ? "{$parts[2]}-{$parts[1]}-{$parts[0]}" : $date;
+	if (strpos($date, '/') !== false) {
+		$parts = explode('/', $date);
+		return (count($parts) == 3) ? "{$parts[2]}-{$parts[1]}-{$parts[0]}" : $date;
+	}
+	return $date;
 }
 function formatDateToBr($date)
 {
@@ -42,7 +45,7 @@ function renderPagination($total, $porPagina, $paginaAtual, $queryStringBase)
 		if ($i == $paginaAtual) {
 			echo "<span style='font-weight:bold; color:#000;'>$i</span> ";
 		} else {
-			$queryString = $queryStringBase . "&pag=$i";
+			$queryString = "{$queryStringBase}&pag={$i}";
 			echo "<a href='documento_gerenciar.php?$queryString'>$i</a> ";
 		}
 	}
@@ -60,9 +63,8 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
 $page = "Documentos &raquo; <a href='documento_gerenciar.php?pagina=documento_gerenciar$autenticacao'>Gerenciar</a>";
 
 // CRUD
-if ($action === "adicionar" || $action === "editar") {
-	$doc_id = $_GET['doc_id'] ?? null;
-	$doc_cliente = $_POST['doc_cliente_id'] ?? null;
+if ($action === "adicionar") {
+	$doc_cliente = $_POST['doc_cliente'] ?? null;
 	$doc_orcamento = $_POST['doc_orcamento'] ?? null;
 	$doc_tipo = $_POST['doc_tipo'] ?? null;
 	$doc_data_emissao = formatDateToDb($_POST['doc_data_emissao'] ?? '');
@@ -95,95 +97,131 @@ if ($action === "adicionar" || $action === "editar") {
 		$doc_data_vencimento = $date->format('Y-m-d');
 	}
 
-	if ($action === "adicionar") {
-		$stmt = $pdo->prepare(
-			"INSERT INTO documento_gerenciar (
-                doc_cliente, doc_orcamento, doc_tipo, doc_data_emissao, doc_periodicidade, doc_data_vencimento, doc_observacoes
-            ) VALUES (
-                :doc_cliente, :doc_orcamento, :doc_tipo, :doc_data_emissao, :doc_periodicidade, :doc_data_vencimento, :doc_observacoes
-            )"
-		);
-		$stmt->bindValue(':doc_cliente', $doc_cliente);
-		$stmt->bindValue(':doc_orcamento', $doc_orcamento ?: null, PDO::PARAM_INT);
-		$stmt->bindValue(':doc_tipo', $doc_tipo);
-		$stmt->bindValue(':doc_data_emissao', $doc_data_emissao);
-		$stmt->bindValue(':doc_periodicidade', $doc_periodicidade);
-		$stmt->bindValue(':doc_data_vencimento', $doc_data_vencimento);
-		$stmt->bindValue(':doc_observacoes', $doc_observacoes);
+	$stmt = $pdo->prepare(
+		"INSERT INTO documento_gerenciar (
+            doc_cliente, doc_orcamento, doc_tipo, doc_data_emissao, doc_periodicidade, doc_data_vencimento, doc_observacoes
+        ) VALUES (
+            :doc_cliente, :doc_orcamento, :doc_tipo, :doc_data_emissao, :doc_periodicidade, :doc_data_vencimento, :doc_observacoes
+        )"
+	);
+	$stmt->bindValue(':doc_cliente', $doc_cliente);
+	$stmt->bindValue(':doc_orcamento', !empty($doc_orcamento) ? $doc_orcamento : null, PDO::PARAM_INT);
+	$stmt->bindValue(':doc_tipo', $doc_tipo);
+	$stmt->bindValue(':doc_data_emissao', $doc_data_emissao);
+	$stmt->bindValue(':doc_periodicidade', $doc_periodicidade);
+	$stmt->bindValue(':doc_data_vencimento', $doc_data_vencimento);
+	$stmt->bindValue(':doc_observacoes', $doc_observacoes);
 
-		if ($stmt->execute()) {
-			$ultimo_id = $pdo->lastInsertId();
-			$caminho = "../admin/docs/$ultimo_id/";
-			if (!file_exists($caminho))
-				mkdir($caminho, 0755, true);
-			$doc_anexo = $_FILES['doc_anexo']['name'] ?? [];
-			$tmp_anexo = $_FILES['doc_anexo']['tmp_name'] ?? [];
-			foreach ((array) $doc_anexo as $k => $value) {
-				if ($doc_anexo[$k] != '') {
-					$extensao = pathinfo($doc_anexo[$k], PATHINFO_EXTENSION);
-					$arquivo = $caminho . md5(mt_rand(1, 10000) . $doc_anexo[$k]) . '.' . $extensao;
-					move_uploaded_file($tmp_anexo[$k], $arquivo);
-					$stmt2 = $pdo->prepare("UPDATE documento_gerenciar SET doc_anexo = :arquivo WHERE doc_id = :id");
-					$stmt2->execute([':arquivo' => $arquivo, ':id' => $ultimo_id]);
-				}
+	if ($stmt->execute()) {
+		$ultimo_id = $pdo->lastInsertId();
+		$caminho = "../admin/docs/$ultimo_id/";
+		if (!file_exists($caminho))
+			mkdir($caminho, 0755, true);
+		$doc_anexo = $_FILES['doc_anexo']['name'] ?? [];
+		$tmp_anexo = $_FILES['doc_anexo']['tmp_name'] ?? [];
+		if (!is_array($doc_anexo))
+			$doc_anexo = [$doc_anexo];
+		if (!is_array($tmp_anexo))
+			$tmp_anexo = [$tmp_anexo];
+		foreach ($doc_anexo as $k => $value) {
+			if ($doc_anexo[$k] != '') {
+				$extensao = pathinfo($doc_anexo[$k], PATHINFO_EXTENSION);
+				$arquivo = $caminho . md5(mt_rand(1, 10000) . $doc_anexo[$k]) . '.' . $extensao;
+				move_uploaded_file($tmp_anexo[$k], $arquivo);
+				$stmt2 = $pdo->prepare("UPDATE documento_gerenciar SET doc_anexo = :arquivo WHERE doc_id = :id");
+				$stmt2->execute([':arquivo' => $arquivo, ':id' => $ultimo_id]);
 			}
-			echo "<script>abreMask('<img src=../imagens/ok.png> Cadastro efetuado com sucesso.<br><br><input value=\' Ok \' type=\'button\' class=\'close_janela\'>');</script>";
-		} else {
-			echo "<script>abreMask('<img src=../imagens/x.png> Erro ao efetuar cadastro, por favor tente novamente.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');</script>";
 		}
+		echo "<script>alert('Cadastro efetuado com sucesso.'); window.location.href='documento_gerenciar.php?pagina=documento_gerenciar';</script>";
+		exit;
+	} else {
+		$errorInfo = $stmt->errorInfo();
+		echo "<script>alert('Erro ao efetuar cadastro: {$errorInfo[2]}'); window.history.back();</script>";
+		exit;
+	}
+}
+
+if ($action === "editar") {
+	$doc_id = $_POST['doc_id'] ?? null;
+	$doc_cliente = $_POST['doc_cliente'] ?? null;
+	$doc_orcamento = $_POST['doc_orcamento'] ?? null;
+	$doc_tipo = $_POST['doc_tipo'] ?? null;
+	$doc_data_emissao = formatDateToDb($_POST['doc_data_emissao'] ?? '');
+	$doc_periodicidade = $_POST['doc_periodicidade'] ?? null;
+	$doc_observacoes = $_POST['doc_observacoes'] ?? null;
+
+	$doc_data_vencimento = null;
+	if ($doc_data_emissao && $doc_periodicidade) {
+		$date = new DateTime($doc_data_emissao);
+		switch ($doc_periodicidade) {
+			case 6:
+				$date->modify('+6 months');
+				break;
+			case 12:
+				$date->modify('+1 year');
+				break;
+			case 24:
+				$date->modify('+2 years');
+				break;
+			case 36:
+				$date->modify('+3 years');
+				break;
+			case 48:
+				$date->modify('+4 years');
+				break;
+			case 60:
+				$date->modify('+5 years');
+				break;
+		}
+		$doc_data_vencimento = $date->format('Y-m-d');
 	}
 
-	if ($action === "editar") {
-		$stmt = $pdo->prepare(
-			"UPDATE documento_gerenciar SET 
-                doc_orcamento = :doc_orcamento,
-                doc_tipo = :doc_tipo,
-                doc_data_emissao = :doc_data_emissao,
-                doc_periodicidade = :doc_periodicidade,
-                doc_data_vencimento = :doc_data_vencimento,
-                doc_observacoes = :doc_observacoes
-            WHERE doc_id = :doc_id"
-		);
-		$stmt->bindValue(':doc_orcamento', $doc_orcamento ?: null, PDO::PARAM_INT);
-		$stmt->bindValue(':doc_tipo', $doc_tipo);
-		$stmt->bindValue(':doc_data_emissao', $doc_data_emissao);
-		$stmt->bindValue(':doc_periodicidade', $doc_periodicidade);
-		$stmt->bindValue(':doc_data_vencimento', $doc_data_vencimento);
-		$stmt->bindValue(':doc_observacoes', $doc_observacoes);
-		$stmt->bindValue(':doc_id', $doc_id);
+	$stmt = $pdo->prepare(
+		"UPDATE documento_gerenciar SET
+			doc_cliente = :doc_cliente,
+			doc_orcamento = :doc_orcamento,
+			doc_tipo = :doc_tipo,
+			doc_data_emissao = :doc_data_emissao,
+			doc_periodicidade = :doc_periodicidade,
+			doc_data_vencimento = :doc_data_vencimento,
+			doc_observacoes = :doc_observacoes
+		WHERE doc_id = :doc_id"
+	);
+	$stmt->bindValue(':doc_cliente', $doc_cliente);
+	$stmt->bindValue(':doc_orcamento', !empty($doc_orcamento) ? $doc_orcamento : null, PDO::PARAM_INT);
+	$stmt->bindValue(':doc_tipo', $doc_tipo);
+	$stmt->bindValue(':doc_data_emissao', $doc_data_emissao);
+	$stmt->bindValue(':doc_periodicidade', $doc_periodicidade);
+	$stmt->bindValue(':doc_data_vencimento', $doc_data_vencimento);
+	$stmt->bindValue(':doc_observacoes', $doc_observacoes);
+	$stmt->bindValue(':doc_id', $doc_id);
 
-		$erro = false;
-		if ($stmt->execute()) {
-			$ultimo_id = $doc_id;
-			$caminho = "../admin/docs/$ultimo_id/";
-			if (!file_exists($caminho))
-				mkdir($caminho, 0755, true);
-			$stmt2 = $pdo->prepare("SELECT doc_anexo FROM documento_gerenciar WHERE doc_id = :doc_id");
-			$stmt2->execute([':doc_id' => $doc_id]);
-			$anexo = $stmt2->fetchColumn();
-
-			$doc_anexo = $_FILES['doc_anexo']['name'] ?? [];
-			$tmp_anexo = $_FILES['doc_anexo']['tmp_name'] ?? [];
-			foreach ((array) $doc_anexo as $k => $value) {
-				if ($doc_anexo[$k] != '') {
-					$extensao = pathinfo($doc_anexo[$k], PATHINFO_EXTENSION);
-					$arquivo = $caminho . md5(mt_rand(1, 10000) . $doc_anexo[$k]) . '.' . $extensao;
-					move_uploaded_file($tmp_anexo[$k], $arquivo);
-					if ($anexo && file_exists($anexo))
-						unlink($anexo);
-					$stmt3 = $pdo->prepare("UPDATE documento_gerenciar SET doc_anexo = :arquivo WHERE doc_id = :doc_id");
-					if (!$stmt3->execute([':arquivo' => $arquivo, ':doc_id' => $doc_id]))
-						$erro = true;
-				}
+	if ($stmt->execute()) {
+		// Anexo (opcional)
+		$caminho = "../admin/docs/$doc_id/";
+		if (!file_exists($caminho))
+			mkdir($caminho, 0755, true);
+		$doc_anexo = $_FILES['doc_anexo']['name'] ?? [];
+		$tmp_anexo = $_FILES['doc_anexo']['tmp_name'] ?? [];
+		if (!is_array($doc_anexo))
+			$doc_anexo = [$doc_anexo];
+		if (!is_array($tmp_anexo))
+			$tmp_anexo = [$tmp_anexo];
+		foreach ($doc_anexo as $k => $value) {
+			if ($doc_anexo[$k] != '') {
+				$extensao = pathinfo($doc_anexo[$k], PATHINFO_EXTENSION);
+				$arquivo = $caminho . md5(mt_rand(1, 10000) . $doc_anexo[$k]) . '.' . $extensao;
+				move_uploaded_file($tmp_anexo[$k], $arquivo);
+				$stmt2 = $pdo->prepare("UPDATE documento_gerenciar SET doc_anexo = :arquivo WHERE doc_id = :id");
+				$stmt2->execute([':arquivo' => $arquivo, ':id' => $doc_id]);
 			}
-			if (!$erro) {
-				echo "<script>abreMask('<img src=../imagens/ok.png> Dados alterados com sucesso.<br><br><input value=\' Ok \' type=\'button\' class=\'close_janela\'>');</script>";
-			} else {
-				echo "<script>abreMask('<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');</script>";
-			}
-		} else {
-			echo "<script>abreMask('<img src=../imagens/x.png> Erro ao alterar dados, por favor tente novamente.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back();>');</script>";
 		}
+		echo "<script>alert('Documento atualizado com sucesso.'); window.location.href='documento_gerenciar.php?pagina=documento_gerenciar';</script>";
+		exit;
+	} else {
+		$errorInfo = $stmt->errorInfo();
+		echo "<script>alert('Erro ao atualizar documento: {$errorInfo[2]}'); window.history.back();</script>";
+		exit;
 	}
 }
 
@@ -191,9 +229,11 @@ if ($action === 'excluir') {
 	$doc_id = $_GET['doc_id'] ?? null;
 	$stmt = $pdo->prepare("DELETE FROM documento_gerenciar WHERE doc_id = :doc_id");
 	if ($stmt->execute([':doc_id' => $doc_id])) {
-		echo "<script>abreMask('<img src=../imagens/ok.png> Exclusão realizada com sucesso<br><br><input value=\' OK \' type=\'button\' class=\'close_janela\'>');</script>";
+		echo "<script>alert('Exclusão realizada com sucesso'); window.location.href='documento_gerenciar.php?pagina=documento_gerenciar';</script>";
+		exit;
 	} else {
-		echo "<script>abreMask('<img src=../imagens/x.png> Este item não pode ser excluído pois está relacionado com alguma tabela.<br><br><input value=\' Ok \' type=\'button\' onclick=javascript:window.history.back(); >');</script>";
+		echo "<script>alert('Este item não pode ser excluído pois está relacionado com alguma tabela.'); window.history.back();</script>";
+		exit;
 	}
 }
 
@@ -204,7 +244,7 @@ $fil_data_inicio = formatDateToDb($_REQUEST['fil_data_inicio'] ?? '');
 $fil_data_fim = formatDateToDb($_REQUEST['fil_data_fim'] ?? '');
 $fil_vencido = $_REQUEST['fil_vencido'] ?? '';
 
-$nome_query = $fil_nome ? "cli_nome_razao LIKE :fil_nome" : "1=1";
+$nome_query = $fil_nome ? "cadastro_clientes.cli_nome_razao LIKE :fil_nome" : "1=1";
 $tipo_doc_query = $fil_doc_tipo ? "doc_tipo = :fil_doc_tipo" : "1=1";
 $data_query = "1=1";
 if ($fil_data_inicio && $fil_data_fim) {
@@ -221,32 +261,30 @@ if ($fil_vencido === 'Sim') {
 	$vencido_query = "doc_data_vencimento > :hoje";
 }
 
-$where = "cli_status = 1 and cli_deletado = 1 and ucl_usuario = :usuario_id AND $nome_query AND $tipo_doc_query AND $data_query AND $vencido_query";
+// CORREÇÃO: cli_deletado = 0 (não deletado)
+$where = "cli_status = 1 and cli_deletado = 0 AND $nome_query AND $tipo_doc_query AND $data_query AND $vencido_query";
 $sql = "SELECT documento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_tipos_docs.tpd_nome, orcamento_gerenciar.orc_id, cadastro_tipos_servicos.tps_nome
     FROM documento_gerenciar
-    LEFT JOIN (cadastro_clientes
-        INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-    ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+    LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
     LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-    LEFT JOIN (orcamento_gerenciar
-        LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
-    ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+    LEFT JOIN orcamento_gerenciar ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+    LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
     WHERE $where
     ORDER BY doc_data_cadastro DESC
     LIMIT $primeiro_registro, $num_por_pagina";
 
-$params = [':usuario_id' => $_SESSION['usuario_id']];
+$params = [];
 if ($fil_nome)
 	$params[':fil_nome'] = "%$fil_nome%";
 if ($fil_doc_tipo)
 	$params[':fil_doc_tipo'] = $fil_doc_tipo;
 if ($fil_data_inicio && $fil_data_fim) {
 	$params[':fil_data_inicio'] = $fil_data_inicio;
-	$params[':fil_data_fim'] = $fil_data_fim . ' 23:59:59';
+	$params[':fil_data_fim'] = "{$fil_data_fim} 23:59:59";
 } elseif ($fil_data_inicio) {
 	$params[':fil_data_inicio'] = $fil_data_inicio;
 } elseif ($fil_data_fim) {
-	$params[':fil_data_fim'] = $fil_data_fim . ' 23:59:59';
+	$params[':fil_data_fim'] = "{$fil_data_fim} 23:59:59";
 }
 if ($fil_vencido === 'Sim' || $fil_vencido === 'Não') {
 	$params[':hoje'] = date('Y-m-d');
@@ -290,11 +328,12 @@ $rows = $query->rowCount();
                 action='documento_gerenciar.php?pagina=documento_gerenciar<?= $autenticacao ?>'>
                 <input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($fil_nome) ?>' placeholder='Cliente'>
                 <select name='fil_doc_tipo' id='fil_doc_tipo'>
-                    <option value='<?= htmlspecialchars($fil_doc_tipo) ?>'>Tipo de documento</option>
+                    <option value=''>Tipo de documento</option>
                     <?php
 						$sql_tpd = "SELECT * FROM cadastro_tipos_docs ORDER BY tpd_nome ASC";
 						foreach ($pdo->query($sql_tpd) as $row_tpd) {
-							echo "<option value='{$row_tpd['tpd_id']}'>{$row_tpd['tpd_nome']}</option>";
+							$selected = ($fil_doc_tipo == $row_tpd['tpd_id']) ? "selected" : "";
+							echo "<option value='{$row_tpd['tpd_id']}' $selected>{$row_tpd['tpd_nome']}</option>";
 						}
 						?>
                 </select>
@@ -305,7 +344,7 @@ $rows = $query->rowCount();
                     style='width:150px;' value='<?= htmlspecialchars($_REQUEST['fil_data_fim'] ?? '') ?>'
                     onkeypress='return mascaraData(this,event);'>
                 <select name='fil_vencido' id='fil_vencido' style='width:150px;'>
-                    <option value='<?= htmlspecialchars($fil_vencido) ?>'><?= htmlspecialchars($fil_vencido) ?></option>
+                    <option value=''> Exibir vencidos?</option>
                     <option value='Sim'>Sim</option>
                     <option value='Não'>Não</option>
                     <option value=''>Todos</option>
@@ -359,16 +398,15 @@ $rows = $query->rowCount();
                     <?php endif; ?>
                 </td>
                 <td align="center">
-                    <div id="normal-button-<?= $doc_id ?>" class="settings-button"><img
-                            src="../imagens/icon-cog-small.png" /></div>
-                    <div id="user-options-<?= $doc_id ?>" class="toolbar-icons" style="display: none;">
-                        <a
-                            href="documento_gerenciar.php?pagina=editar_documento_gerenciar&doc_id=<?= $doc_id . $autenticacao ?>"><img
-                                border="0" src="../imagens/icon-editar.png"></a>
-                        <a
-                            onclick="abreMask('Deseja realmente excluir o documento <b><?= $cli_nome_razao ?></b>?<br><br><input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'documento_gerenciar.php?pagina=documento_gerenciar&action=excluir&doc_id=<?= $doc_id . $autenticacao ?>\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input value=\' Não \' type=\'button\' class=\'close_janela\'>');"><img
-                                border="0" src="../imagens/icon-excluir.png"></a>
-                    </div>
+                    <a href="documento_gerenciar.php?pagina=editar_documento_gerenciar&doc_id=<?= $doc_id . $autenticacao ?>"
+                        title="Editar">
+                        <img src="../imagens/icon-editar.png" border="0" />
+                    </a>
+                    <a href="javascript:void(0);"
+                        onclick="if(confirm('Deseja realmente excluir o documento <?= $cli_nome_razao ?>?')){window.location.href='documento_gerenciar.php?pagina=documento_gerenciar&action=excluir&doc_id=<?= $doc_id . $autenticacao ?>';}"
+                        title="Excluir">
+                        <img src="../imagens/icon-excluir.png" border="0" />
+                    </a>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -376,13 +414,10 @@ $rows = $query->rowCount();
         <?php
 				// Paginação
 				$sql_total = "SELECT COUNT(*) FROM documento_gerenciar
-            LEFT JOIN (cadastro_clientes
-                INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-            ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
+            LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = documento_gerenciar.doc_cliente
             LEFT JOIN cadastro_tipos_docs ON cadastro_tipos_docs.tpd_id = documento_gerenciar.doc_tipo
-            LEFT JOIN (orcamento_gerenciar
-                LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico)
-            ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+            LEFT JOIN orcamento_gerenciar ON orcamento_gerenciar.orc_id = documento_gerenciar.doc_orcamento
+            LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
             WHERE $where";
 				$stmt_total = $pdo->prepare($sql_total);
 				$stmt_total->execute($params);
@@ -397,6 +432,96 @@ $rows = $query->rowCount();
         <br><br><br>Não há nenhum documento cadastrado.
         <?php endif; ?>
         <div class='titulo'></div>
+    </div>
+    <?php elseif ($pagina == "adicionar_documento_gerenciar"): ?>
+    <div class='centro'>
+        <div class='titulo'>Adicionar Documento</div>
+        <form method="post" enctype="multipart/form-data"
+            action="documento_gerenciar.php?pagina=documento_gerenciar&action=adicionar">
+            <table class="formulario" align="center">
+                <tr>
+                    <td>Cliente:</td>
+                    <td>
+                        <select name="doc_cliente" required>
+                            <option value="">Selecione</option>
+                            <?php
+								$sql = "SELECT cli_id, cli_nome_razao FROM cadastro_clientes WHERE cli_status = 1 AND cli_deletado = 0 ORDER BY cli_nome_razao ASC";
+								foreach ($pdo->query($sql) as $row) {
+									echo "<option value='{$row['cli_id']}'>{$row['cli_nome_razao']}</option>";
+								}
+								?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Orçamento:</td>
+                    <td>
+                        <select name="doc_orcamento">
+                            <option value="">Selecione</option>
+                            <?php
+								$sql = "SELECT orc_id FROM orcamento_gerenciar ORDER BY orc_id DESC";
+								foreach ($pdo->query($sql) as $row) {
+									echo "<option value='{$row['orc_id']}'>{$row['orc_id']}</option>";
+								}
+								?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tipo de Documento:</td>
+                    <td>
+                        <select name="doc_tipo" required>
+                            <option value="">Selecione</option>
+                            <?php
+								$sql = "SELECT tpd_id, tpd_nome FROM cadastro_tipos_docs ORDER BY tpd_nome ASC";
+								foreach ($pdo->query($sql) as $row) {
+									echo "<option value='{$row['tpd_id']}'>{$row['tpd_nome']}</option>";
+								}
+								?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Data de Emissão:</td>
+                    <td>
+                        <input type="date" name="doc_data_emissao" maxlength="10" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Periodicidade:</td>
+                    <td>
+                        <select name="doc_periodicidade" required>
+                            <option value="">Selecione</option>
+                            <option value="6">Semestral</option>
+                            <option value="12">Anual</option>
+                            <option value="24">Bienal</option>
+                            <option value="36">Trienal</option>
+                            <option value="48">Quadrienal</option>
+                            <option value="60">Quinquenal</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observações:</td>
+                    <td>
+                        <textarea name="doc_observacoes" rows="3"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Anexo:</td>
+                    <td>
+                        <input type="file" name="doc_anexo[]" multiple />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <input type="submit" value="Salvar" />
+                        <input type="button" value="Cancelar"
+                            onclick="window.location.href='documento_gerenciar.php?pagina=documento_gerenciar';" />
+                    </td>
+                </tr>
+            </table>
+        </form>
     </div>
     <?php endif; ?>
 

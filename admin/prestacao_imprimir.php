@@ -162,9 +162,11 @@ ob_start();
                                         <td colspan="2" align="center">
                                             <br>
                                             <span class="azul">Exacto Assessoria e Administração</span><br>
-                                            Rua Prof. Emilio Augusto Ferreira, 32 - Vila Oliveira, Mogi das Cruzes/SP<br>
+                                            Rua Prof. Emilio Augusto Ferreira, 32 - Vila Oliveira, Mogi das
+                                            Cruzes/SP<br>
                                             Fone: (11) <span class="verde">4791-9220</span><br>
-                                            Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span class="azul">www.exactoadm.com.br</span><br>
+                                            Email: <span class="azul">exacto@exactoadm.com.br</span> | Site: <span
+                                                class="azul">www.exactoadm.com.br</span><br>
                                         </td>
                                     </tr>
                                 </table>
@@ -205,7 +207,6 @@ $mpdf = new Mpdf([
 ]);
 
 $mpdf->SetTitle('Exacto Adm | Imprimir Prestação de Contas');
-$mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200"><br><br></div>');
 $mpdf->SetHTMLFooter('
 <div class="rodape">

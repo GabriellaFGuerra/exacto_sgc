@@ -103,7 +103,6 @@ $mpdf = new \Mpdf\Mpdf([
 ]);
 
 $mpdf->SetTitle('Exacto Adm | Imprimir Carta Deferimento/Indeferimento');
-$mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader(
     '<div class="topo2"><img src="' . htmlspecialchars($fotoCliente) . '" height="100"></div>'
 );

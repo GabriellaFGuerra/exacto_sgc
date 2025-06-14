@@ -73,45 +73,86 @@ $descricaoNotificacao = $dados['inf_desc_notificacao'];
 // Geração do HTML do PDF
 ob_start();
 ?>
+<style>
+.laudo {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+}
+
+.bordatabela {
+    border: 1px solid #333;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.bordatabela td,
+.bordatabela th {
+    border: 1px solid #333;
+    padding: 8px;
+}
+
+.label {
+    background: #f0f0f0;
+    font-weight: bold;
+}
+
+.titulo_adm {
+    margin-top: 30px;
+}
+
+.topo2 {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.rodape {
+    font-size: 12px;
+}
+
+.rod {
+    border: none;
+}
+</style>
 <div class="laudo">
-    <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
+    <table class="bordatabela" cellspacing="0" cellpadding="5">
         <tr>
             <td colspan="3" class="label" align="left">
-                <?= htmlspecialchars($cidade) ?>, <?= htmlspecialchars($data) ?>
+                <?= $cidade ?>, <?= $data ?>
             </td>
         </tr>
         <tr>
             <td align="left" valign="top">
-                <b>Proprietário(a):</b> <?= htmlspecialchars($proprietario) ?>
+                <b>Proprietário(a):</b> <?= $proprietario ?>
             </td>
             <td align="left" valign="top">
-                <b>Unidade:</b> <?= htmlspecialchars($apartamento) ?>
+                <b>Unidade:</b> <?= $apartamento ?>
             </td>
             <td align="left" valign="top">
-                <b>Bloco/Quadra:</b> <?= htmlspecialchars($bloco) ?>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="3" align="left">
-                <b>Endereço:</b> <?= htmlspecialchars($endereco) ?>
+                <b>Bloco/Quadra:</b> <?= $bloco ?>
             </td>
         </tr>
         <tr>
             <td colspan="3" align="left">
-                <b>Email:</b> <?= htmlspecialchars($email) ?>
+                <b>Endereço:</b> <?= $endereco ?>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" align="left">
+                <b>Email:</b> <?= $email ?>
             </td>
         </tr>
     </table>
     <br>
-    <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
+    <table class="bordatabela" cellspacing="0" cellpadding="5">
         <tr>
             <td align="left">
-                <b>Assunto:</b> <?= htmlspecialchars($assunto) ?>
+                <b>Assunto:</b> <?= $assunto ?>
             </td>
         </tr>
     </table>
     <br>
-    <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
+    <table class="bordatabela" cellspacing="0" cellpadding="5">
         <tr>
             <td colspan="3" class="label" align="left">
                 Descrição da irregularidade / ocorrência, data e hora:
@@ -119,12 +160,12 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($descricaoIrregularidade)) ?>
+                <?= nl2br($descricaoIrregularidade) ?>
             </td>
         </tr>
     </table>
     <br>
-    <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
+    <table class="bordatabela" cellspacing="0" cellpadding="5">
         <tr>
             <td colspan="3" class="label" align="left">
                 Descrição do(s) artigo(s) que regulam o assunto:
@@ -132,12 +173,12 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($descricaoArtigo)) ?>
+                <?= nl2br($descricaoArtigo) ?>
             </td>
         </tr>
     </table>
     <br>
-    <table class="bordatabela" cellspacing="0" cellpadding="5" width="1000">
+    <table class="bordatabela" cellspacing="0" cellpadding="5">
         <tr>
             <td colspan="3" class="label" align="left">
                 Notificação Disciplinar:
@@ -145,7 +186,7 @@ ob_start();
         </tr>
         <tr>
             <td colspan="3" align="left" valign="top">
-                <?= nl2br(htmlspecialchars($descricaoNotificacao)) ?>
+                <?= nl2br($descricaoNotificacao) ?>
             </td>
         </tr>
     </table>
@@ -163,20 +204,11 @@ $mpdf = new Mpdf([
     'format' => 'A4',
     'margin_left' => 10,
     'margin_right' => 10,
-    'margin_top' => 35,
-    'margin_bottom' => 30,
-    'margin_header' => 5,
-    'margin_footer' => 15,
-    'orientation' => 'P'
 ]);
 
-$mpdf->SetTitle('Exacto Adm | Imprimir Prestação de Contas');
-$mpdf->useOddEven = false;
-
-// Cabeçalho do PDF
 $cabecalho = '
-    <div class="topo2"><img src="' . htmlspecialchars($fotoCliente) . '" height="100"></div>
-    <div class="topo2"><br>' . htmlspecialchars($tipo) . '<br><span class="cliente">' . htmlspecialchars($nomeCliente) . '</span></div>
+    <div class="topo2"><img src="' . $fotoCliente . '" height="100"></div>
+    <div class="topo2"><br>' . $tipo . '<br><span class="cliente">' . $nomeCliente . '</span></div>
     <div class="topo2"><br>Nº. ' . str_pad($infId, 3, "0", STR_PAD_LEFT) . '/' . $ano . '</div>
 ';
 $mpdf->SetHTMLHeader($cabecalho);
@@ -190,7 +222,7 @@ $rodape = '
                     <br>
                     Atenciosamente,
                     <br>
-                    ' . htmlspecialchars($nomeCliente) . '
+                    ' . $nomeCliente . '
                 </td>
             </tr>
         </table>

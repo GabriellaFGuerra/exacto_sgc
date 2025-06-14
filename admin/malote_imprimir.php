@@ -235,7 +235,6 @@ $mpdf = new Mpdf([
 ]);
 
 $mpdf->SetTitle('Exacto Adm | Imprimir Malote');
-$mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200" alt="logo"><br><br></div>');
 $mpdf->SetHTMLFooter('<div class="rodape">
 <table align="center" class="rod" width="100%">

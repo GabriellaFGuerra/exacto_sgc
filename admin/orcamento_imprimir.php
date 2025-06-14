@@ -272,7 +272,6 @@ $mpdf = new Mpdf([
     'orientation' => 'P'
 ]);
 $mpdf->SetTitle('Exacto Adm | Imprimir Orçamento');
-$mpdf->useOddEven = false;
 $mpdf->SetHTMLHeader('<div class="topo"><img src="../imagens/logo.png" width="200"><br><br><img src="../imagens/linha.png" /></div>');
 $mpdf->SetHTMLFooter('
 <div class="rodape">

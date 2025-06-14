@@ -5,74 +5,25 @@ require_once '../mod_includes/php/connect.php';
 require_once '../mod_includes/php/verificalogin.php';
 require_once '../mod_includes/php/verificapermissao.php';
 
-// Função para formatar datas do formato brasileiro para o formato SQL
+// Funções auxiliares
 function formatarData($data)
 {
-    if (!$data)
-        return '';
+    if (!$data) return '';
     $partes = explode('/', $data);
     if (count($partes) === 3) {
         return "{$partes[2]}-{$partes[1]}-{$partes[0]}";
     }
     return $data;
 }
-
-// Função para formatar datas do formato SQL para BR
 function dataParaBR($data)
 {
-    if (!$data)
-        return '';
+    if (!$data) return '';
     $partes = explode('-', substr($data, 0, 10));
     return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
 }
-
-// Função para montar o filtro SQL e os parâmetros
-function montarFiltros(&$parametros)
-{
-    $filtros = [];
-
-    $nome = $_REQUEST['fil_nome'] ?? '';
-    $referencia = $_REQUEST['fil_referencia'] ?? '';
-    $data_inicio = $_REQUEST['fil_data_inicio'] ?? '';
-    $data_fim = $_REQUEST['fil_data_fim'] ?? '';
-    $filtro = $_REQUEST['filtro'] ?? '';
-
-    if ($nome !== '') {
-        $filtros[] = "cli_nome_razao LIKE :fil_nome";
-        $parametros[':fil_nome'] = "%$nome%";
-    }
-
-    if ($referencia !== '') {
-        $filtros[] = "pre_referencia = :fil_referencia";
-        $parametros[':fil_referencia'] = $referencia;
-    }
-
-    $data_inicio_sql = formatarData($data_inicio);
-    $data_fim_sql = formatarData($data_fim);
-
-    if ($data_inicio_sql !== '' && $data_fim_sql !== '') {
-        $filtros[] = "pre_data_cadastro BETWEEN :fil_data_inicio AND :fil_data_fim";
-        $parametros[':fil_data_inicio'] = $data_inicio_sql;
-        $parametros[':fil_data_fim'] = $data_fim_sql . " 23:59:59";
-    } elseif ($data_inicio_sql !== '') {
-        $filtros[] = "pre_data_cadastro >= :fil_data_inicio";
-        $parametros[':fil_data_inicio'] = $data_inicio_sql;
-    } elseif ($data_fim_sql !== '') {
-        $filtros[] = "pre_data_cadastro <= :fil_data_fim";
-        $parametros[':fil_data_fim'] = $data_fim_sql . " 23:59:59";
-    }
-
-    // Só mostra resultados se filtro foi enviado
-    $filtros[] = $filtro !== '' ? "1=1" : "1=0";
-
-    return implode(' AND ', $filtros);
-}
-
-// Função para exibir paginação
 function exibirPaginacao($pagina_atual, $total_paginas, $query_string)
 {
-    if ($total_paginas <= 1)
-        return;
+    if ($total_paginas <= 1) return;
     echo "<div class='paginacao'>";
     for ($i = 1; $i <= $total_paginas; $i++) {
         if ($i == $pagina_atual) {
@@ -89,9 +40,41 @@ $registros_por_pagina = 10;
 $pagina_atual = isset($_GET['pagina_atual']) ? max(1, intval($_GET['pagina_atual'])) : 1;
 $offset = ($pagina_atual - 1) * $registros_por_pagina;
 
+// Filtros
+$nome = $_REQUEST['fil_nome'] ?? '';
+$referencia = $_REQUEST['fil_referencia'] ?? '';
+$data_inicio = $_REQUEST['fil_data_inicio'] ?? '';
+$data_fim = $_REQUEST['fil_data_fim'] ?? '';
+
 // Monta filtros e parâmetros
+$filtros = [];
 $parametros = [':usuario_id' => $_SESSION['usuario_id']];
-$filtros_sql = montarFiltros($parametros);
+
+if ($nome !== '') {
+    $filtros[] = "cli_nome_razao LIKE :fil_nome";
+    $parametros[':fil_nome'] = "%$nome%";
+}
+if ($referencia !== '') {
+    $filtros[] = "pre_referencia = :fil_referencia";
+    $parametros[':fil_referencia'] = $referencia;
+}
+$data_inicio_sql = formatarData($data_inicio);
+$data_fim_sql = formatarData($data_fim);
+
+if ($data_inicio_sql !== '' && $data_fim_sql !== '') {
+    $filtros[] = "pre_data_cadastro BETWEEN :fil_data_inicio AND :fil_data_fim";
+    $parametros[':fil_data_inicio'] = $data_inicio_sql . " 00:00:00";
+    $parametros[':fil_data_fim'] = $data_fim_sql . " 23:59:59";
+} elseif ($data_inicio_sql !== '') {
+    $filtros[] = "pre_data_cadastro >= :fil_data_inicio";
+    $parametros[':fil_data_inicio'] = $data_inicio_sql . " 00:00:00";
+} elseif ($data_fim_sql !== '') {
+    $filtros[] = "pre_data_cadastro <= :fil_data_fim";
+    $parametros[':fil_data_fim'] = $data_fim_sql . " 23:59:59";
+}
+
+// Se nenhum filtro for aplicado, mostra todos os registros
+$filtros_sql = $filtros ? implode(' AND ', $filtros) : '1=1';
 
 // Consulta para contar total de registros
 $sql_total = "
@@ -145,8 +128,8 @@ $logo = '../imagens/logo.png';
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/funcoes.js"></script>
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/funcoes.js"></script>
     <link href="../mod_includes/js/toolbar/jquery.toolars.css" rel="stylesheet" />
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
@@ -158,8 +141,8 @@ $logo = '../imagens/logo.png';
     <div class='centro'>
         <div class='titulo'> <?= $tituloPagina ?> </div>
         <div class='filtro'>
-            <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
-                action='relatorio_prestacao.php?pagina=relatorio_prestacao&filtro=1'>
+            <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='get'
+                action='relatorio_prestacao.php?pagina=relatorio_prestacao'>
                 <input name='fil_nome' id='fil_nome' value='<?= htmlspecialchars($_REQUEST['fil_nome'] ?? '') ?>'
                     placeholder='Cliente'>
                 <input name='fil_referencia' id='fil_referencia'
@@ -218,19 +201,17 @@ $logo = '../imagens/logo.png';
                     'fil_nome' => $_REQUEST['fil_nome'] ?? '',
                     'fil_referencia' => $_REQUEST['fil_referencia'] ?? '',
                     'fil_data_inicio' => $_REQUEST['fil_data_inicio'] ?? '',
-                    'fil_data_fim' => $_REQUEST['fil_data_fim'] ?? '',
-                    'filtro' => $_REQUEST['filtro'] ?? ''
+                    'fil_data_fim' => $_REQUEST['fil_data_fim'] ?? ''
                 ]);
                 exibirPaginacao($pagina_atual, $total_paginas, $query_string);
             } else {
-                echo "<br><br><br>Selecione acima os filtros que deseja para gerar o relatório.";
+                echo "<br><br><br>Não há prestações de contas para os filtros selecionados.";
             }
             ?>
             <div class='titulo'></div>
         </div>
     </div>
     <?php include '../mod_rodape/rodape.php'; ?>
-    <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
     <script src="../mod_includes/js/elementPrint.js"></script>
     <script>
     if (typeof elementPrint !== 'function') {
@@ -245,5 +226,4 @@ $logo = '../imagens/logo.png';
     }
     </script>
 </body>
-
 </html>

@@ -17,7 +17,6 @@ $filtro_tipo_servico = $_REQUEST['fil_tipo_servico'] ?? '';
 $filtro_data_inicio = $_REQUEST['fil_data_inicio'] ?? '';
 $filtro_data_fim = $_REQUEST['fil_data_fim'] ?? '';
 $filtro_status = $_REQUEST['fil_status'] ?? '';
-$filtro_ativo = $_REQUEST['filtro'] ?? '';
 
 // Montagem dos filtros SQL
 $where = [];
@@ -64,17 +63,12 @@ if ($filtro_status !== '') {
     $params[':status'] = $filtro_status;
 }
 
-// Filtro ativo
-if ($filtro_ativo === '') {
-    $where[] = "1 = 0"; // Não mostra nada até filtrar
-}
-
 // Monta a cláusula WHERE final
 $where_sql = count($where) ? 'AND ' . implode(' AND ', $where) : '';
 
 // Consulta principal com paginação
 $sql = "
-    SELECT SQL_CALC_FOUND_ROWS *
+    SELECT SQL_CALC_FOUND_ROWS orcamento_gerenciar.*, cadastro_clientes.cli_nome_razao, cadastro_tipos_servicos.tps_nome, h1.sto_status
     FROM orcamento_gerenciar
     LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = orcamento_gerenciar.orc_cliente
     LEFT JOIN cadastro_tipos_servicos ON cadastro_tipos_servicos.tps_id = orcamento_gerenciar.orc_tipo_servico
@@ -143,21 +137,20 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include "../css/style.php"; ?>
-    <script src="../mod_includes/js/funcoes.js"></script>
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+    <script src="../mod_includes/js/funcoes.js"></script>
     <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
-    <?php include '../mod_topo/topo.php'; ?>
 </head>
 
 <body>
-    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+    <?php include '../mod_topo/topo.php'; ?>
     <div class="centro">
         <div class="titulo"><?= $tituloPagina ?></div>
         <div class="filtro">
-            <form name="form_filtro" id="form_filtro" method="post"
-                action="relatorio_orcamentos.php?pagina=relatorio_orcamentos&filtro=1">
+            <form name="form_filtro" id="form_filtro" method="get"
+                action="relatorio_orcamentos.php?pagina=relatorio_orcamentos">
                 <input name="fil_orc" id="fil_orc" value="<?= htmlspecialchars($filtro_numero_orcamento) ?>"
                     placeholder="N° Orçamento">
                 <input name="fil_nome" id="fil_nome" value="<?= htmlspecialchars($filtro_nome_cliente) ?>"
@@ -202,7 +195,7 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
                 <?php foreach ($orcamentos as $indice => $orcamento): ?>
                 <?php
                         $classe_linha = $indice % 2 == 0 ? "linhaimpar" : "linhapar";
-                        $nome_servico = $orcamento['tps_nome'] ?: $orcamento['orc_tipo_servico_cliente'] . "<br><span class='detalhe'>Digitado pelo cliente</span>";
+                        $nome_servico = $orcamento['tps_nome'] ?: ($orcamento['orc_tipo_servico_cliente'] ?? '') . "<br><span class='detalhe'>Digitado pelo cliente</span>";
                         $data_cadastro = date('d/m/Y', strtotime($orcamento['orc_data_cadastro']));
                         $hora_cadastro = date('H:i', strtotime($orcamento['orc_data_cadastro']));
                         ?>
@@ -221,18 +214,17 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
                 <?php if ($i == $pagina_atual): ?>
                 <strong><?= $i ?></strong>
                 <?php else: ?>
-                <a href="?pagina=<?= $i ?>&filtro=1"><?= $i ?></a>
+                <a href="?pagina=<?= $i ?>"><?= $i ?></a>
                 <?php endif; ?>
                 <?php endfor; ?>
             </div>
             <?php else: ?>
-            <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+            <br><br><br>Não há orçamentos para os filtros selecionados.
             <?php endif; ?>
             <div class="titulo"></div>
         </div>
     </div>
     <?php include '../mod_rodape/rodape.php'; ?>
-    <script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
     <script src="../mod_includes/js/elementPrint.js"></script>
     <script>
     if (typeof elementPrint !== 'function') {
@@ -247,5 +239,4 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_orcamentos.php?pagina=re
     }
     </script>
 </body>
-
 </html>

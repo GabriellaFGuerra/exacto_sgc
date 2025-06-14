@@ -8,23 +8,23 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Funções utilitárias padronizadas
 function exibirMensagem($mensagem, $url = 'prestacao_gerenciar.php?pagina=prestacao_gerenciar')
 {
-	$msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
-	echo "<script>alert('$msg'); window.location.href = '$url';</script>";
-	exit;
+    $msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+    echo "<script>alert('$msg'); window.location.href = '$url';</script>";
+    exit;
 }
 function dataParaBanco($data)
 {
-	if (!$data)
-		return null;
-	$partes = explode('/', $data);
-	return (count($partes) === 3) ? "{$partes[2]}-{$partes[1]}-{$partes[0]}" : $data;
+    if (!$data)
+        return null;
+    $partes = explode('/', $data);
+    return (count($partes) === 3) ? "{$partes[2]}-{$partes[1]}-{$partes[0]}" : $data;
 }
 function dataParaBR($data)
 {
-	if (!$data)
-		return '';
-	$partes = explode('-', $data);
-	return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
+    if (!$data)
+        return '';
+    $partes = explode('-', $data);
+    return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
 }
 
 // Variáveis de controle padronizadas
@@ -38,94 +38,94 @@ $tituloPagina = "Prestação de Contas &raquo; <a href='prestacao_gerenciar.php?
 
 // Processamento de formulários
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	if ($acao === "adicionar") {
-		$clienteId = $_POST['pre_cliente_id'] ?? '';
-		$referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
-		$dataEnvio = dataParaBanco($_POST['pre_data_envio'] ?? '');
-		$enviadoPor = $_POST['pre_enviado_por'] ?? '';
-		$observacoes = $_POST['pre_observacoes'] ?? '';
+    if ($acao === "adicionar") {
+        $clienteId = $_POST['pre_cliente_id'] ?? '';
+        $referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
+        $dataEnvio = dataParaBanco($_POST['pre_data_envio'] ?? '');
+        $enviadoPor = $_POST['pre_enviado_por'] ?? '';
+        $observacoes = $_POST['pre_observacoes'] ?? '';
 
-		$stmt = $pdo->prepare("INSERT INTO prestacao_gerenciar (pre_cliente, pre_referencia, pre_data_envio, pre_enviado_por, pre_observacoes) VALUES (?, ?, ?, ?, ?)");
-		if ($stmt->execute([$clienteId, $referencia, $dataEnvio, $enviadoPor, $observacoes])) {
-			exibirMensagem('Cadastro efetuado com sucesso.');
-		} else {
-			exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.');
-		}
-	}
+        $stmt = $pdo->prepare("INSERT INTO prestacao_gerenciar (pre_cliente, pre_referencia, pre_data_envio, pre_enviado_por, pre_observacoes) VALUES (?, ?, ?, ?, ?)");
+        if ($stmt->execute([$clienteId, $referencia, $dataEnvio, $enviadoPor, $observacoes])) {
+            exibirMensagem('Cadastro efetuado com sucesso.');
+        } else {
+            exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.');
+        }
+    }
 
-	if ($acao === 'editar') {
-		$prestacaoId = $_GET['pre_id'] ?? '';
-		$referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
-		$dataEnvio = dataParaBanco($_POST['pre_data_envio'] ?? '');
-		$enviadoPor = $_POST['pre_enviado_por'] ?? '';
-		$observacoes = $_POST['pre_observacoes'] ?? '';
+    if ($acao === 'editar') {
+        $prestacaoId = $_GET['pre_id'] ?? '';
+        $referencia = ($_POST['pre_ref_mes'] ?? '') . '/' . ($_POST['pre_ref_ano'] ?? '');
+        $dataEnvio = dataParaBanco($_POST['pre_data_envio'] ?? '');
+        $enviadoPor = $_POST['pre_enviado_por'] ?? '';
+        $observacoes = $_POST['pre_observacoes'] ?? '';
 
-		$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_referencia = ?, pre_data_envio = ?, pre_enviado_por = ?, pre_observacoes = ? WHERE pre_id = ?");
-		if ($stmt->execute([$referencia, $dataEnvio, $enviadoPor, $observacoes, $prestacaoId])) {
-			exibirMensagem('Dados alterados com sucesso.');
-		} else {
-			exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
-		}
-	}
+        $stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_referencia = ?, pre_data_envio = ?, pre_enviado_por = ?, pre_observacoes = ? WHERE pre_id = ?");
+        if ($stmt->execute([$referencia, $dataEnvio, $enviadoPor, $observacoes, $prestacaoId])) {
+            exibirMensagem('Dados alterados com sucesso.');
+        } else {
+            exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
+        }
+    }
 
-	if ($acao === 'comprovante') {
-		$prestacaoId = $_GET['pre_id'] ?? '';
-		$arquivos = $_FILES['pre_comprovante'] ?? null;
-		$caminho = "../admin/prestacao_comprovante/$prestacaoId/";
-		if (!is_dir($caminho)) {
-			mkdir($caminho, 0755, true);
-		}
-		$arquivoFinal = '';
-		$erro = false;
-		if ($arquivos && is_array($arquivos['name'])) {
-			foreach ($arquivos['name'] as $indice => $nomeArquivo) {
-				if ($nomeArquivo) {
-					$extensao = pathinfo($nomeArquivo, PATHINFO_EXTENSION);
-					$nomeFinal = $caminho . md5(mt_rand(1, 10000) . $nomeArquivo) . '.' . $extensao;
-					if (move_uploaded_file($arquivos['tmp_name'][$indice], $nomeFinal)) {
-						$arquivoFinal = $nomeFinal;
-					} else {
-						$erro = true;
-					}
-				}
-			}
-			if ($arquivoFinal) {
-				$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_comprovante = ? WHERE pre_id = ?");
-				if (!$stmt->execute([$arquivoFinal, $prestacaoId])) {
-					$erro = true;
-				}
-			}
-		}
-		if (!$erro) {
-			exibirMensagem('Anexo enviado com sucesso.');
-		} else {
-			exibirMensagem('Erro ao enviar anexo.');
-		}
-	}
+    if ($acao === 'comprovante') {
+        $prestacaoId = $_GET['pre_id'] ?? '';
+        $arquivos = $_FILES['pre_comprovante'] ?? null;
+        $caminho = "../admin/prestacao_comprovante/$prestacaoId/";
+        if (!is_dir($caminho)) {
+            mkdir($caminho, 0755, true);
+        }
+        $arquivoFinal = '';
+        $erro = false;
+        if ($arquivos && is_array($arquivos['name'])) {
+            foreach ($arquivos['name'] as $indice => $nomeArquivo) {
+                if ($nomeArquivo) {
+                    $extensao = pathinfo($nomeArquivo, PATHINFO_EXTENSION);
+                    $nomeFinal = $caminho . md5(mt_rand(1, 10000) . $nomeArquivo) . '.' . $extensao;
+                    if (move_uploaded_file($arquivos['tmp_name'][$indice], $nomeFinal)) {
+                        $arquivoFinal = $nomeFinal;
+                    } else {
+                        $erro = true;
+                    }
+                }
+            }
+            if ($arquivoFinal) {
+                $stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_comprovante = ? WHERE pre_id = ?");
+                if (!$stmt->execute([$arquivoFinal, $prestacaoId])) {
+                    $erro = true;
+                }
+            }
+        }
+        if (!$erro) {
+            exibirMensagem('Anexo enviado com sucesso.');
+        } else {
+            exibirMensagem('Erro ao enviar anexo.');
+        }
+    }
 }
 
 // Exclusão
 if ($acao === 'excluir') {
-	$prestacaoId = $_GET['pre_id'] ?? '';
-	$stmt = $pdo->prepare("DELETE FROM prestacao_gerenciar WHERE pre_id = ?");
-	if ($stmt->execute([$prestacaoId])) {
-		exibirMensagem('Exclusão realizada com sucesso.');
-	} else {
-		exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
-	}
+    $prestacaoId = $_GET['pre_id'] ?? '';
+    $stmt = $pdo->prepare("DELETE FROM prestacao_gerenciar WHERE pre_id = ?");
+    if ($stmt->execute([$prestacaoId])) {
+        exibirMensagem('Exclusão realizada com sucesso.');
+    } else {
+        exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
+    }
 }
 
 // Ativação/Desativação
 if ($acao === 'ativar' || $acao === 'desativar') {
-	$prestacaoId = $_GET['pre_id'] ?? '';
-	$status = $acao === 'ativar' ? 1 : 0;
-	$stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_status = ? WHERE pre_id = ?");
-	if ($stmt->execute([$status, $prestacaoId])) {
-		$mensagem = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
-		exibirMensagem($mensagem);
-	} else {
-		exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
-	}
+    $prestacaoId = $_GET['pre_id'] ?? '';
+    $status = $acao === 'ativar' ? 1 : 0;
+    $stmt = $pdo->prepare("UPDATE prestacao_gerenciar SET pre_status = ? WHERE pre_id = ?");
+    if ($stmt->execute([$status, $prestacaoId])) {
+        $mensagem = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
+        exibirMensagem($mensagem);
+    } else {
+        exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
+    }
 }
 
 // Filtros
@@ -138,75 +138,75 @@ $filtroDataFim = $_REQUEST['fil_data_fim'] ?? '';
 $where = [];
 $params = [];
 
-$where[] = "cli_status = 1 AND cli_deletado = 1 AND ucl_usuario = ?";
-$params[] = $_SESSION['usuario_id'];
-
 if ($filtroPrestacao) {
-	$where[] = "pre_id = ?";
-	$params[] = $filtroPrestacao;
+    $where[] = "pre_id = ?";
+    $params[] = $filtroPrestacao;
 }
 if ($filtroNome) {
-	$where[] = "cli_nome_razao LIKE ?";
-	$params[] = "%$filtroNome%";
+    $where[] = "cli_nome_razao LIKE ?";
+    $params[] = "%$filtroNome%";
 }
 if ($filtroReferencia) {
-	$where[] = "pre_referencia = ?";
-	$params[] = $filtroReferencia;
+    $where[] = "pre_referencia = ?";
+    $params[] = $filtroReferencia;
 }
 if ($filtroDataInicio || $filtroDataFim) {
-	$dataInicio = $filtroDataInicio ? dataParaBanco($filtroDataInicio) : null;
-	$dataFim = $filtroDataFim ? dataParaBanco($filtroDataFim) . ' 23:59:59' : null;
-	if ($dataInicio && $dataFim) {
-		$where[] = "pre_data_cadastro BETWEEN ? AND ?";
-		$params[] = $dataInicio;
-		$params[] = $dataFim;
-	} elseif ($dataInicio) {
-		$where[] = "pre_data_cadastro >= ?";
-		$params[] = $dataInicio;
-	} elseif ($dataFim) {
-		$where[] = "pre_data_cadastro <= ?";
-		$params[] = $dataFim;
-	}
+    $dataInicio = $filtroDataInicio ? dataParaBanco($filtroDataInicio) : null;
+    $dataFim = $filtroDataFim ? dataParaBanco($filtroDataFim) . ' 23:59:59' : null;
+    if ($dataInicio && $dataFim) {
+        $where[] = "pre_data_cadastro BETWEEN ? AND ?";
+        $params[] = $dataInicio;
+        $params[] = $dataFim;
+    } elseif ($dataInicio) {
+        $where[] = "pre_data_cadastro >= ?";
+        $params[] = $dataInicio;
+    } elseif ($dataFim) {
+        $where[] = "pre_data_cadastro <= ?";
+        $params[] = $dataFim;
+    }
 }
 
-$whereSql = implode(' AND ', $where);
+// Se nenhum filtro foi aplicado, mostra todos os registros
+$whereSql = $where ? implode(' AND ', $where) : '1=1';
 
 // Listagem com paginação
 if ($pagina === "prestacao_gerenciar") {
-	$sql = "SELECT * FROM prestacao_gerenciar 
-        LEFT JOIN (cadastro_clientes 
-            INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-        ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
+    $sql = "SELECT * FROM prestacao_gerenciar 
+        LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
         WHERE $whereSql
         ORDER BY pre_data_cadastro DESC
         LIMIT $primeiroRegistro, $itensPorPagina";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute($params);
-	$prestacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($sql);
+    if (!$stmt->execute($params)) {
+        $erro = $stmt->errorInfo();
+        die('Erro ao executar SQL: ' . $erro[2]);
+    }
+    $prestacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	$sqlTotal = "SELECT COUNT(*) FROM prestacao_gerenciar 
-        LEFT JOIN (cadastro_clientes 
-            INNER JOIN cadastro_usuarios_clientes ON cadastro_usuarios_clientes.ucl_cliente = cadastro_clientes.cli_id)
-        ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
+    $sqlTotal = "SELECT COUNT(*) FROM prestacao_gerenciar 
+        LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = prestacao_gerenciar.pre_cliente
         WHERE $whereSql";
-	$stmtTotal = $pdo->prepare($sqlTotal);
-	$stmtTotal->execute($params);
-	$totalRegistros = $stmtTotal->fetchColumn();
-	$totalPaginas = ceil($totalRegistros / $itensPorPagina);
+    $stmtTotal = $pdo->prepare($sqlTotal);
+    if (!$stmtTotal->execute($params)) {
+        $erro = $stmtTotal->errorInfo();
+        die('Erro ao executar SQL: ' . $erro[2]);
+    }
+    $totalRegistros = $stmtTotal->fetchColumn();
+    $totalPaginas = ceil($totalRegistros / $itensPorPagina);
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Prestação de Contas</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include "../css/style.php"; ?>
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
     <script src="../mod_includes/js/funcoes.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+    <link href="../mod_includes/js/toolbar/jquery.toolars.css" rel="stylesheet" />
     <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
     <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
@@ -251,19 +251,19 @@ if ($pagina === "prestacao_gerenciar") {
                 <td class='titulo_tabela' align='center'>Gerenciar</td>
             </tr>
             <?php $contador = 0;
-					foreach ($prestacoes as $prestacao):
-						$preId = $prestacao['pre_id'];
-						$clienteNome = htmlspecialchars($prestacao['cli_nome_razao']);
-						$referencia = htmlspecialchars($prestacao['pre_referencia']);
-						$dataEnvio = $prestacao['pre_data_envio'] ? dataParaBR($prestacao['pre_data_envio']) : '';
-						$enviadoPor = htmlspecialchars($prestacao['pre_enviado_por']);
-						$observacoes = htmlspecialchars($prestacao['pre_observacoes']);
-						$dataCadastro = $prestacao['pre_data_cadastro'] ? dataParaBR(substr($prestacao['pre_data_cadastro'], 0, 10)) : '';
-						$horaCadastro = $prestacao['pre_data_cadastro'] ? substr($prestacao['pre_data_cadastro'], 11, 5) : '';
-						$comprovante = $prestacao['pre_comprovante'];
-						$classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
-						$contador++;
-						?>
+                    foreach ($prestacoes as $prestacao):
+                        $preId = $prestacao['pre_id'];
+                        $clienteNome = htmlspecialchars($prestacao['cli_nome_razao']);
+                        $referencia = htmlspecialchars($prestacao['pre_referencia']);
+                        $dataEnvio = $prestacao['pre_data_envio'] ? dataParaBR($prestacao['pre_data_envio']) : '';
+                        $enviadoPor = htmlspecialchars($prestacao['pre_enviado_por']);
+                        $observacoes = htmlspecialchars($prestacao['pre_observacoes']);
+                        $dataCadastro = $prestacao['pre_data_cadastro'] ? dataParaBR(substr($prestacao['pre_data_cadastro'], 0, 10)) : '';
+                        $horaCadastro = $prestacao['pre_data_cadastro'] ? substr($prestacao['pre_data_cadastro'], 11, 5) : '';
+                        $comprovante = $prestacao['pre_comprovante'];
+                        $classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
+                        $contador++;
+                        ?>
             <tr class='<?= $classeLinha ?>'>
                 <td><?= $preId ?></td>
                 <td><?= $clienteNome ?></td>
@@ -282,10 +282,10 @@ if ($pagina === "prestacao_gerenciar") {
                 </td>
                 <td align='center'>
                     <a
-                        href="prestacao_gerenciar.php?pagina=editar_prestacao_gerenciar&pre_id=<?= $preId . $autenticacao ?>"><img
+                        href="prestacao_gerenciar.php?pagina=editar_prestacao_gerenciar&pre_id=<?= "{$preId}{$autenticacao}" ?>"><img
                             border="0" src="../imagens/icon-editar.png"></a>
                     <a
-                        onclick="if(confirm('Deseja realmente excluir a prestação <?= addslashes($preId) ?>?')){window.location.href='prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=excluir&pre_id=<?= $preId . $autenticacao ?>';}"><img
+                        onclick="if(confirm('Deseja realmente excluir a prestação <?= addslashes($preId) ?>?')){window.location.href='prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=excluir&pre_id=<?= "{$preId}{$autenticacao}" ?>';}"><img
                             border="0" src="../imagens/icon-excluir.png"></a>
                 </td>
             </tr>
@@ -294,9 +294,9 @@ if ($pagina === "prestacao_gerenciar") {
         <?php if ($totalPaginas > 1): ?>
         <div class='paginacao' style='text-align:center; margin:20px 0;'>
             <?php for ($i = 1; $i <= $totalPaginas; $i++):
-							$classe = ($i == $paginaNumero) ? "pagina-ativa" : "";
-							$url = "prestacao_gerenciar.php?pagina=prestacao_gerenciar&pag=$i$autenticacao";
-							?>
+                            $classe = ($i == $paginaNumero) ? "pagina-ativa" : "";
+                            $url = "prestacao_gerenciar.php?pagina=prestacao_gerenciar&pag=$i$autenticacao";
+                            ?>
             <a class='<?= $classe ?>' href='<?= $url ?>'><?= $i ?></a>
             <?php endfor; ?>
         </div>
@@ -305,6 +305,59 @@ if ($pagina === "prestacao_gerenciar") {
         <br><br><br>Não há nenhuma prestação de conta cadastrada.
         <?php endif; ?>
         <div class='titulo'></div>
+    </div>
+    <?php endif; ?>
+    <?php if ($pagina === "adicionar_prestacao_gerenciar"): ?>
+    <div class='centro'>
+        <div class='titulo'>Adicionar Prestação de Conta</div>
+        <form method="post" enctype="multipart/form-data"
+            action="prestacao_gerenciar.php?pagina=prestacao_gerenciar&action=adicionar<?= $autenticacao ?>">
+            <table class="formulario" align="center">
+                <tr>
+                    <td>Cliente:</td>
+                    <td>
+                        <select name="pre_cliente_id" required>
+                            <option value="">Selecione</option>
+                            <?php
+                                $sql = "SELECT cli_id, cli_nome_razao FROM cadastro_clientes WHERE cli_status = 1 AND cli_deletado = 0 ORDER BY cli_nome_razao ASC";
+                                foreach ($pdo->query($sql) as $row) {
+                                    echo "<option value='{$row['cli_id']}'>{$row['cli_nome_razao']}</option>";
+                                }
+                                ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Referência:</td>
+                    <td>
+                        <input type="text" name="pre_ref_mes" placeholder="Mês" style="width:50px;" maxlength="2"
+                            required /> /
+                        <input type="text" name="pre_ref_ano" placeholder="Ano" style="width:60px;" maxlength="4"
+                            required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Data de Envio:</td>
+                    <td><input type="text" name="pre_data_envio" maxlength="10"
+                            onkeypress="return mascaraData(this,event);" required placeholder="dd/mm/aaaa" /></td>
+                </tr>
+                <tr>
+                    <td>Enviado por:</td>
+                    <td><input type="text" name="pre_enviado_por" required /></td>
+                </tr>
+                <tr>
+                    <td>Observações:</td>
+                    <td><textarea name="pre_observacoes" rows="2"></textarea></td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <input type="submit" value="Salvar" />
+                        <input type="button" value="Cancelar"
+                            onclick="window.location.href='prestacao_gerenciar.php?pagina=prestacao_gerenciar';" />
+                    </td>
+                </tr>
+            </table>
+        </form>
     </div>
     <?php endif; ?>
     <?php include '../mod_rodape/rodape.php'; ?>

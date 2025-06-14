@@ -8,8 +8,7 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Funções utilitárias padronizadas
 function formatarData($data)
 {
-    if (!$data)
-        return '';
+    if (!$data) return '';
     return implode("/", array_reverse(explode("-", substr($data, 0, 10))));
 }
 function obterNomePeriodicidade($codigo)
@@ -40,7 +39,6 @@ $dataInicio = $_REQUEST['fil_data_inicio'] ?? '';
 $dataFim = $_REQUEST['fil_data_fim'] ?? '';
 $periodicidade = $_REQUEST['fil_periodicidade'] ?? '';
 $vencido = $_REQUEST['fil_vencido'] ?? '';
-$filtroAtivo = $_REQUEST['filtro'] ?? '';
 
 // Montagem dos filtros SQL
 $condicoes = [];
@@ -50,8 +48,6 @@ $params = [];
 if ($nomeCliente !== '') {
     $condicoes[] = "cli_nome_razao LIKE :nomeCliente";
     $params['nomeCliente'] = "%$nomeCliente%";
-} else {
-    $condicoes[] = "1=1";
 }
 
 // Filtro por tipo de documento
@@ -62,7 +58,6 @@ if ($tipoDocumento !== '') {
     $stmtTipoDoc->execute(['tpd_id' => $tipoDocumento]);
     $nomeTipoDocumento = $stmtTipoDoc->fetchColumn() ?: "Tipo de Documento";
 } else {
-    $condicoes[] = "1=1";
     $nomeTipoDocumento = "Tipo de Documento";
 }
 
@@ -70,17 +65,15 @@ if ($tipoDocumento !== '') {
 $dataInicioFormatada = $dataInicio ? implode('-', array_reverse(explode('/', $dataInicio))) : '';
 $dataFimFormatada = $dataFim ? implode('-', array_reverse(explode('/', $dataFim))) : '';
 
-if ($dataInicioFormatada === '' && $dataFimFormatada === '') {
-    $condicoes[] = "1=1";
-} elseif ($dataInicioFormatada !== '' && $dataFimFormatada === '') {
-    $condicoes[] = "doc_data_vencimento >= :dataInicio";
-    $params['dataInicio'] = $dataInicioFormatada;
-} elseif ($dataInicioFormatada === '' && $dataFimFormatada !== '') {
-    $condicoes[] = "doc_data_vencimento <= :dataFim";
-    $params['dataFim'] = $dataFimFormatada;
-} else {
+if ($dataInicioFormatada !== '' && $dataFimFormatada !== '') {
     $condicoes[] = "doc_data_vencimento BETWEEN :dataInicio AND :dataFim";
     $params['dataInicio'] = $dataInicioFormatada;
+    $params['dataFim'] = $dataFimFormatada;
+} elseif ($dataInicioFormatada !== '') {
+    $condicoes[] = "doc_data_vencimento >= :dataInicio";
+    $params['dataInicio'] = $dataInicioFormatada;
+} elseif ($dataFimFormatada !== '') {
+    $condicoes[] = "doc_data_vencimento <= :dataFim";
     $params['dataFim'] = $dataFimFormatada;
 }
 
@@ -90,7 +83,6 @@ if ($periodicidade !== '') {
     $params['periodicidade'] = $periodicidade;
     $nomePeriodicidade = obterNomePeriodicidade($periodicidade);
 } else {
-    $condicoes[] = "1=1";
     $nomePeriodicidade = "Periodicidade";
 }
 
@@ -104,16 +96,13 @@ if ($vencido === 'Sim') {
     $params['hoje'] = date("Y-m-d");
     $nomeVencido = "Não";
 } else {
-    $condicoes[] = "1=1";
     $nomeVencido = "Vencido";
 }
 
-// Filtro ativo
-$condicoes[] = ($filtroAtivo === '') ? "1=0" : "1=1";
+// Se nenhum filtro foi aplicado, mostra todos os registros
+$whereSQL = $condicoes ? implode(' AND ', $condicoes) : '1=1';
 
 // Consulta principal com paginação
-$whereSQL = implode(' AND ', $condicoes);
-
 $sql = "
     SELECT documento_gerenciar.*, 
            cadastro_clientes.cli_nome_razao, 
@@ -188,7 +177,7 @@ $logo = '../imagens/logo.png';
         <div class='titulo'><?= $tituloPagina ?></div>
         <div class='filtro'>
             <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
-                action='relatorio_documentos.php?pagina=relatorio_documentos<?= $autenticacao ?>&filtro=1'>
+                action='relatorio_documentos.php?pagina=relatorio_documentos<?= $autenticacao ?>'>
                 <select name='fil_tipo_documento' id='fil_tipo_documento'>
                     <option value='<?= htmlspecialchars($tipoDocumento) ?>'><?= htmlspecialchars($nomeTipoDocumento) ?>
                     </option>
@@ -267,14 +256,14 @@ $logo = '../imagens/logo.png';
                 <?php if ($i == $paginaAtual): ?>
                 <strong><?= $i ?></strong>
                 <?php else: ?>
-                <a href="?pagina=relatorio_documentos<?= $autenticacao ?>&filtro=1&pagina_atual=<?= $i ?>"><?= $i ?></a>
+                <a href="?pagina=relatorio_documentos<?= $autenticacao ?>&pagina_atual=<?= $i ?>"><?= $i ?></a>
                 <?php endif; ?>
                 &nbsp;
                 <?php endfor; ?>
                 <?php endif; ?>
             </div>
             <?php else: ?>
-            <br><br><br>Selecione acima os filtros que deseja para gerar o relatório.
+            <br><br><br>Não há documentos para os filtros selecionados.
             <?php endif; ?>
             <div class='titulo'></div>
         </div>
@@ -284,8 +273,6 @@ $logo = '../imagens/logo.png';
     <script src="../mod_includes/js/elementPrint.js"></script>
 </body>
 
-<script src="../mod_includes/js/jquery-1.3.2.min.js"></script>
-<script src="../mod_includes/js/elementPrint.js"></script>
 <script>
 if (typeof elementPrint !== 'function') {
     function elementPrint(elementId) {
@@ -298,4 +285,4 @@ if (typeof elementPrint !== 'function') {
     }
 }
 </script>
-</body>
+</html>
