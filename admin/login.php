@@ -8,7 +8,7 @@ $titulo = $titulo ?? 'Login - Sistema de Gerenciamento de Orçamentos';
 
 <head>
     <meta charset="utf-8">
-    <title><?= htmlspecialchars($titulo) ?></title>
+    <title>Login - Sistema de Gerenciamento de Orçamentos</title>
     <meta name="author" content="MogiComp">
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>

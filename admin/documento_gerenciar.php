@@ -299,7 +299,7 @@ $rows = $query->rowCount();
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($titulo) ?></title>
+    <title>Documentos</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">

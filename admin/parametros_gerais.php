@@ -151,7 +151,7 @@ $ufs = carregarUFs($pdo);
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($pagina) ?></title>
+    <title>Parâmetros Gerais</title>
     <meta name="author" content="MogiComp">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">

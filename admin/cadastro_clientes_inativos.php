@@ -252,49 +252,49 @@ function exibirPaginacao(int $paginaAtual, int $totalPaginas, string $baseUrl): 
 <html lang="pt-br">
 
 <head>
-    <title><?php echo $titulo; ?></title>
-    <meta name="author" content="MogiComp">
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php
+	<title>Admin - Cadastro de Clientes Inativos</title>
+	<meta name="author" content="MogiComp">
+	<meta charset="utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php
 	include '../css/style.php';
 	require_once '../mod_includes/php/funcoes-jquery.php';
 	?>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <script src="../mod_includes/js/funcoes.js"></script>
-    <link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
-    <link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
-    <script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<script src="../mod_includes/js/funcoes.js"></script>
+	<link href="../mod_includes/js/toolbar/jquery.toolbars.css" rel="stylesheet" />
+	<link href="../mod_includes/js/toolbar/bootstrap.icons.css" rel="stylesheet">
+	<script src="../mod_includes/js/toolbar/jquery.toolbar.js"></script>
 </head>
 
 <body>
-    <?php include '../mod_topo/topo.php'; ?>
-    <?php if ($pagina === 'cadastro_clientes_inativos'): ?>
-    <div class="centro">
-        <div class="titulo"><?php echo $titulo; ?></div>
-        <div class="filtro">
-            <form name="form_filtro" id="form_filtro" enctype="multipart/form-data" method="post"
-                action="cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos<?php echo $autenticacao; ?>">
-                <input name="fil_nome" id="fil_nome" value="<?php echo htmlspecialchars($filtroNome); ?>"
-                    placeholder="Nome/Razão Social">
-                <input type="text" name="fil_cli_cnpj" id="fil_cli_cnpj" placeholder="C.N.P.J"
-                    value="<?php echo htmlspecialchars($filtroCnpj); ?>">
-                <input type="submit" value="Filtrar">
-            </form>
-        </div>
-        <?php if (count($clientes) > 0): ?>
-        <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-            <tr>
-                <td class="titulo_tabela">Logo</td>
-                <td class="titulo_tabela">Razão Social</td>
-                <td class="titulo_tabela">CNPJ</td>
-                <td class="titulo_tabela">Telefone</td>
-                <td class="titulo_tabela">Email</td>
-                <td class="titulo_tabela">Status</td>
-                <td class="titulo_tabela" align="center">Gerenciar</td>
-            </tr>
-            <?php foreach ($clientes as $index => $cliente): ?>
-            <?php
+	<?php include '../mod_topo/topo.php'; ?>
+	<?php if ($pagina === 'cadastro_clientes_inativos'): ?>
+		<div class="centro">
+			<div class="titulo"><?php echo $titulo; ?></div>
+			<div class="filtro">
+				<form name="form_filtro" id="form_filtro" enctype="multipart/form-data" method="post"
+					action="cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos<?php echo $autenticacao; ?>">
+					<input name="fil_nome" id="fil_nome" value="<?php echo htmlspecialchars($filtroNome); ?>"
+						placeholder="Nome/Razão Social">
+					<input type="text" name="fil_cli_cnpj" id="fil_cli_cnpj" placeholder="C.N.P.J"
+						value="<?php echo htmlspecialchars($filtroCnpj); ?>">
+					<input type="submit" value="Filtrar">
+				</form>
+			</div>
+			<?php if (count($clientes) > 0): ?>
+				<table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+					<tr>
+						<td class="titulo_tabela">Logo</td>
+						<td class="titulo_tabela">Razão Social</td>
+						<td class="titulo_tabela">CNPJ</td>
+						<td class="titulo_tabela">Telefone</td>
+						<td class="titulo_tabela">Email</td>
+						<td class="titulo_tabela">Status</td>
+						<td class="titulo_tabela" align="center">Gerenciar</td>
+					</tr>
+					<?php foreach ($clientes as $index => $cliente): ?>
+						<?php
 						$cli_id = $cliente['cli_id'];
 						$cli_nome_razao = htmlspecialchars($cliente['cli_nome_razao']);
 						$cli_cnpj = htmlspecialchars($cliente['cli_cnpj']);
@@ -304,59 +304,59 @@ function exibirPaginacao(int $paginaAtual, int $totalPaginas, string $baseUrl): 
 						$cli_status = $cliente['cli_status'];
 						$rowClass = $index % 2 === 0 ? 'linhaimpar' : 'linhapar';
 						?>
-            <script>
-            jQuery(document).ready(function($) {
-                $('#normal-button-<?php echo $cli_id; ?>').toolbar({
-                    content: '#user-options-<?php echo $cli_id; ?>',
-                    position: 'top',
-                    hideOnClick: true
-                });
-            });
-            </script>
-            <div id="user-options-<?php echo $cli_id; ?>" class="toolbar-icons" style="display: none;">
-                <a
-                    href="cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos&action=<?php echo $cli_status ? 'desativar' : 'ativar'; ?>&cli_id=<?php echo $cli_id . $autenticacao; ?>">
-                    <img border="0" src="../imagens/icon-ativa-desativa.png">
-                </a>
-                <a onclick="
+						<script>
+							jQuery(document).ready(function ($) {
+								$('#normal-button-<?php echo $cli_id; ?>').toolbar({
+									content: '#user-options-<?php echo $cli_id; ?>',
+									position: 'top',
+									hideOnClick: true
+								});
+							});
+						</script>
+						<div id="user-options-<?php echo $cli_id; ?>" class="toolbar-icons" style="display: none;">
+							<a
+								href="cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos&action=<?php echo $cli_status ? 'desativar' : 'ativar'; ?>&cli_id=<?php echo $cli_id . $autenticacao; ?>">
+								<img border="0" src="../imagens/icon-ativa-desativa.png">
+							</a>
+							<a onclick="
 					abreMask(
 						'Deseja realmente excluir o cliente <b><?php echo $cli_nome_razao; ?></b>?<br><br>'+
 						'<input value=\' Sim \' type=\'button\' onclick=javascript:window.location.href=\'cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos&action=excluir&cli_id=<?php echo $cli_id . $autenticacao; ?>\';>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
 						'<input value=\' Não \' type=\'button\' class=\'close_janela\'>' 
 					);
 				">
-                    <img border="0" src="../imagens/icon-excluir.png">
-                </a>
-            </div>
-            <tr class="<?php echo $rowClass; ?>">
-                <td><img src="<?php echo htmlspecialchars($cli_foto); ?>" width="100"></td>
-                <td><?php echo $cli_nome_razao; ?></td>
-                <td><?php echo $cli_cnpj; ?></td>
-                <td><?php echo $cli_telefone; ?></td>
-                <td><?php echo $cli_email; ?></td>
-                <td align="center">
-                    <img border="0" src="../imagens/icon-<?php echo $cli_status ? 'ativo' : 'inativo'; ?>.png"
-                        width="15" height="15">
-                </td>
-                <td align="center">
-                    <div id="normal-button-<?php echo $cli_id; ?>" class="settings-button">
-                        <img src="../imagens/icon-cog-small.png" />
-                    </div>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
+								<img border="0" src="../imagens/icon-excluir.png">
+							</a>
+						</div>
+						<tr class="<?php echo $rowClass; ?>">
+							<td><img src="<?php echo htmlspecialchars($cli_foto); ?>" width="100"></td>
+							<td><?php echo $cli_nome_razao; ?></td>
+							<td><?php echo $cli_cnpj; ?></td>
+							<td><?php echo $cli_telefone; ?></td>
+							<td><?php echo $cli_email; ?></td>
+							<td align="center">
+								<img border="0" src="../imagens/icon-<?php echo $cli_status ? 'ativo' : 'inativo'; ?>.png"
+									width="15" height="15">
+							</td>
+							<td align="center">
+								<div id="normal-button-<?php echo $cli_id; ?>" class="settings-button">
+									<img src="../imagens/icon-cog-small.png" />
+								</div>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</table>
+				<?php
 				$baseUrl = "cadastro_clientes_inativos.php?pagina=cadastro_clientes_inativos$autenticacao";
 				exibirPaginacao($paginaAtual, $totalPaginas, $baseUrl);
 				?>
-        <?php else: ?>
-        <br><br><br>Não há nenhum cliente inativo.
-        <?php endif; ?>
-        <div class="titulo"></div>
-    </div>
-    <?php endif; ?>
-    <?php include '../mod_rodape/rodape.php'; ?>
+			<?php else: ?>
+				<br><br><br>Não há nenhum cliente inativo.
+			<?php endif; ?>
+			<div class="titulo"></div>
+		</div>
+	<?php endif; ?>
+	<?php include '../mod_rodape/rodape.php'; ?>
 </body>
 
 </html>

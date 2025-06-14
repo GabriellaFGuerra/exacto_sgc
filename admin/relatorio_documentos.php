@@ -8,7 +8,8 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Funções utilitárias padronizadas
 function formatarData($data)
 {
-    if (!$data) return '';
+    if (!$data)
+        return '';
     return implode("/", array_reverse(explode("-", substr($data, 0, 10))));
 }
 function obterNomePeriodicidade($codigo)
@@ -158,7 +159,7 @@ $logo = '../imagens/logo.png';
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Relatório de Documentos</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -216,54 +217,54 @@ $logo = '../imagens/logo.png';
         </div>
         <div class='contentPrint' id='imprimir'>
             <?php if ($totalRegistros > 0): ?>
-            <br>
-            <img src='<?= $logo ?>' border='0' class='logo' />
-            <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-                <tr>
-                    <td class='titulo_tabela'>Tipo de Doc</td>
-                    <td class='titulo_tabela'>Cliente</td>
-                    <td class='titulo_tabela'>Orçamento</td>
-                    <td class='titulo_tabela' align='center'>Data Emissão</td>
-                    <td class='titulo_tabela' align='center'>Periodicidade</td>
-                    <td class='titulo_tabela' align='center'>Data Vencimento</td>
-                    <td class='titulo_tabela' align='center'>Data Cadastro</td>
-                </tr>
-                <?php
+                <br>
+                <img src='<?= $logo ?>' border='0' class='logo' />
+                <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+                    <tr>
+                        <td class='titulo_tabela'>Tipo de Doc</td>
+                        <td class='titulo_tabela'>Cliente</td>
+                        <td class='titulo_tabela'>Orçamento</td>
+                        <td class='titulo_tabela' align='center'>Data Emissão</td>
+                        <td class='titulo_tabela' align='center'>Periodicidade</td>
+                        <td class='titulo_tabela' align='center'>Data Vencimento</td>
+                        <td class='titulo_tabela' align='center'>Data Cadastro</td>
+                    </tr>
+                    <?php
                     $contador = 0;
                     foreach ($documentos as $doc):
                         $classeLinha = $contador % 2 == 0 ? "linhaimpar" : "linhapar";
                         $contador++;
                         ?>
-                <tr class='<?= $classeLinha ?>'>
-                    <td><?= htmlspecialchars($doc['tpd_nome'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($doc['cli_nome_razao'] ?? '') ?></td>
-                    <td><?= htmlspecialchars($doc['doc_id']) ?> (<?= htmlspecialchars($doc['tps_nome'] ?? '') ?>)</td>
-                    <td align='center'><?= formatarData($doc['doc_data_emissao']) ?></td>
-                    <td align='center'><?= obterNomePeriodicidade($doc['doc_periodicidade']) ?></td>
-                    <td align='center'><?= formatarData($doc['doc_data_vencimento']) ?></td>
-                    <td align='center'>
-                        <?= formatarData($doc['doc_data_cadastro']) ?>
-                        <br>
-                        <span class='detalhe'><?= substr($doc['doc_data_cadastro'], 11, 5) ?></span>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-            <!-- Paginação -->
-            <div style="text-align:center; margin:20px 0;">
-                <?php if ($totalPaginas > 1): ?>
-                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                <?php if ($i == $paginaAtual): ?>
-                <strong><?= $i ?></strong>
-                <?php else: ?>
-                <a href="?pagina=relatorio_documentos<?= $autenticacao ?>&pagina_atual=<?= $i ?>"><?= $i ?></a>
-                <?php endif; ?>
-                &nbsp;
-                <?php endfor; ?>
-                <?php endif; ?>
-            </div>
+                        <tr class='<?= $classeLinha ?>'>
+                            <td><?= htmlspecialchars($doc['tpd_nome'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($doc['cli_nome_razao'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($doc['doc_id']) ?> (<?= htmlspecialchars($doc['tps_nome'] ?? '') ?>)</td>
+                            <td align='center'><?= formatarData($doc['doc_data_emissao']) ?></td>
+                            <td align='center'><?= obterNomePeriodicidade($doc['doc_periodicidade']) ?></td>
+                            <td align='center'><?= formatarData($doc['doc_data_vencimento']) ?></td>
+                            <td align='center'>
+                                <?= formatarData($doc['doc_data_cadastro']) ?>
+                                <br>
+                                <span class='detalhe'><?= substr($doc['doc_data_cadastro'], 11, 5) ?></span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <!-- Paginação -->
+                <div style="text-align:center; margin:20px 0;">
+                    <?php if ($totalPaginas > 1): ?>
+                        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                            <?php if ($i == $paginaAtual): ?>
+                                <strong><?= $i ?></strong>
+                            <?php else: ?>
+                                <a href="?pagina=relatorio_documentos<?= $autenticacao ?>&pagina_atual=<?= $i ?>"><?= $i ?></a>
+                            <?php endif; ?>
+                            &nbsp;
+                        <?php endfor; ?>
+                    <?php endif; ?>
+                </div>
             <?php else: ?>
-            <br><br><br>Não há documentos para os filtros selecionados.
+                <br><br><br>Não há documentos para os filtros selecionados.
             <?php endif; ?>
             <div class='titulo'></div>
         </div>
@@ -274,15 +275,16 @@ $logo = '../imagens/logo.png';
 </body>
 
 <script>
-if (typeof elementPrint !== 'function') {
-    function elementPrint(elementId) {
-        var printContent = document.getElementById(elementId).innerHTML;
-        var originalContent = document.body.innerHTML;
-        document.body.innerHTML = printContent;
-        window.print();
-        document.body.innerHTML = originalContent;
-        location.reload();
+    if (typeof elementPrint !== 'function') {
+        function elementPrint(elementId) {
+            var printContent = document.getElementById(elementId).innerHTML;
+            var originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
     }
-}
 </script>
+
 </html>

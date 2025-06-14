@@ -238,52 +238,51 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 
 <head>
-    <title><?php echo htmlspecialchars($titulo); ?>
-    </title>
-    <meta name="author" content="MogiComp">
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <script src="../mod_includes/js/funcoes.js"></script>
+	<title>Admin - Cadastro de Clientes</title>
+	<meta name="author" content="MogiComp">
+	<meta charset="utf-8" />
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php include '../css/style.php'; ?>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<script src="../mod_includes/js/funcoes.js"></script>
 </head>
 
 <body>
-    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
-    <?php include '../mod_includes/php/topo.php'; ?>
-    <?php if ($pagina == "cadastro_clientes"): ?>
-    <div class='centro'>
-        <div class='titulo'>
-            <?php echo $titulo; ?>
-        </div>
-        <div id='botoes'>
-            <input value='Novo Cliente' type='button'
-                onclick="window.location.href='cadastro_clientes.php?pagina=adicionar_cadastro_clientes';" />
-        </div>
-        <div class='filtro'>
-            <form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
-                action='cadastro_clientes.php?pagina=cadastro_clientes'>
-                <input name='fil_nome' id='fil_nome' value='<?php echo htmlspecialchars($fil_nome); ?>'
-                    placeholder='Nome/Razão Social'>
-                <input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J'
-                    value='<?php echo htmlspecialchars($fil_cli_cnpj); ?>'>
-                <input type='submit' value='Filtrar'>
-            </form>
-        </div>
-        <?php if (count($clientes) > 0): ?>
-        <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-            <tr>
-                <td class='titulo_tabela'>Logo</td>
-                <td class='titulo_tabela'>Razão Social</td>
-                <td class='titulo_tabela'>CNPJ</td>
-                <td class='titulo_tabela'>Telefone</td>
-                <td class='titulo_tabela'>Email</td>
-                <td class='titulo_tabela'>Status</td>
-                <td class='titulo_tabela' align='center'>Gerenciar</td>
-            </tr>
-            <?php $c = 0;
+	<?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+	<?php include '../mod_includes/php/topo.php'; ?>
+	<?php if ($pagina == "cadastro_clientes"): ?>
+		<div class='centro'>
+			<div class='titulo'>
+				<?php echo $titulo; ?>
+			</div>
+			<div id='botoes'>
+				<input value='Novo Cliente' type='button'
+					onclick="window.location.href='cadastro_clientes.php?pagina=adicionar_cadastro_clientes';" />
+			</div>
+			<div class='filtro'>
+				<form name='form_filtro' id='form_filtro' enctype='multipart/form-data' method='post'
+					action='cadastro_clientes.php?pagina=cadastro_clientes'>
+					<input name='fil_nome' id='fil_nome' value='<?php echo htmlspecialchars($fil_nome); ?>'
+						placeholder='Nome/Razão Social'>
+					<input type='text' name='fil_cli_cnpj' id='fil_cli_cnpj' placeholder='C.N.P.J'
+						value='<?php echo htmlspecialchars($fil_cli_cnpj); ?>'>
+					<input type='submit' value='Filtrar'>
+				</form>
+			</div>
+			<?php if (count($clientes) > 0): ?>
+				<table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+					<tr>
+						<td class='titulo_tabela'>Logo</td>
+						<td class='titulo_tabela'>Razão Social</td>
+						<td class='titulo_tabela'>CNPJ</td>
+						<td class='titulo_tabela'>Telefone</td>
+						<td class='titulo_tabela'>Email</td>
+						<td class='titulo_tabela'>Status</td>
+						<td class='titulo_tabela' align='center'>Gerenciar</td>
+					</tr>
+					<?php $c = 0;
 					foreach ($clientes as $cliente): ?>
-            <?php
+						<?php
 						$cli_id = $cliente['cli_id'];
 						$cli_nome_razao = htmlspecialchars($cliente['cli_nome_razao']);
 						$cli_cnpj = htmlspecialchars($cliente['cli_cnpj']);
@@ -294,49 +293,49 @@ $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 						$c1 = $c % 2 == 0 ? "linhaimpar" : "linhapar";
 						$c++;
 						?>
-            <tr class='<?php echo $c1; ?>'>
-                <td><img src='<?php echo $cli_foto; ?>' width='100'></td>
-                <td>
-                    <?php echo $cli_nome_razao; ?>
-                </td>
-                <td>
-                    <?php echo $cli_cnpj; ?>
-                </td>
-                <td>
-                    <?php echo $cli_telefone; ?>
-                </td>
-                <td>
-                    <?php echo $cli_email; ?>
-                </td>
-                <td align="center">
-                    <?php if ($cli_status == 1): ?>
-                    <img border='0' src='../imagens/icon-ativo.png' width='15' height='15'>
-                    <?php else: ?>
-                    <img border='0' src='../imagens/icon-inativo.png' width='15' height='15'>
-                    <?php endif; ?>
-                </td>
-                <td align="center">
-                    <a
-                        href='cadastro_clientes.php?pagina=cadastro_clientes&action=<?php echo $cli_status ? "desativar" : "ativar"; ?>&cli_id=<?php echo $cli_id; ?>'><img
-                            border='0' src='../imagens/icon-ativa-desativa.png'></a>
-                    <a href='cadastro_clientes.php?pagina=editar_cadastro_clientes&cli_id=<?php echo $cli_id; ?>'><img
-                            border='0' src='../imagens/icon-editar.png'></a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table> <?php
+						<tr class='<?php echo $c1; ?>'>
+							<td><img src='<?php echo $cli_foto; ?>' width='100'></td>
+							<td>
+								<?php echo $cli_nome_razao; ?>
+							</td>
+							<td>
+								<?php echo $cli_cnpj; ?>
+							</td>
+							<td>
+								<?php echo $cli_telefone; ?>
+							</td>
+							<td>
+								<?php echo $cli_email; ?>
+							</td>
+							<td align="center">
+								<?php if ($cli_status == 1): ?>
+									<img border='0' src='../imagens/icon-ativo.png' width='15' height='15'>
+								<?php else: ?>
+									<img border='0' src='../imagens/icon-inativo.png' width='15' height='15'>
+								<?php endif; ?>
+							</td>
+							<td align="center">
+								<a
+									href='cadastro_clientes.php?pagina=cadastro_clientes&action=<?php echo $cli_status ? "desativar" : "ativar"; ?>&cli_id=<?php echo $cli_id; ?>'><img
+										border='0' src='../imagens/icon-ativa-desativa.png'></a>
+								<a href='cadastro_clientes.php?pagina=editar_cadastro_clientes&cli_id=<?php echo $cli_id; ?>'><img
+										border='0' src='../imagens/icon-editar.png'></a>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</table> <?php
 				renderPagination($totalClientes, $numPorPagina, $pag, 'cadastro_clientes.php', [
 					'fil_nome' => $fil_nome,
 					'fil_cli_cnpj' => $fil_cli_cnpj
 				]);
-				?> <?php else: ?>
-        <br><br><br>Não há nenhum cliente cadastrado.
-        <?php endif; ?>
-        <div class='titulo'></div>
-    </div>
-    <?php endif; ?>
+				?> 	<?php else: ?>
+				<br><br><br>Não há nenhum cliente cadastrado.
+			<?php endif; ?>
+			<div class='titulo'></div>
+		</div>
+	<?php endif; ?>
 
-    <?php include '../mod_rodape/rodape.php'; ?>
+	<?php include '../mod_rodape/rodape.php'; ?>
 </body>
 
 </html>

@@ -113,7 +113,7 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_infracoes.php?pagina=rel
 <html lang="pt-br">
 
 <head>
-    <title><?php echo $tituloPagina; ?></title>
+    <title>Relatório de Infrações</title>
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
@@ -163,49 +163,49 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_infracoes.php?pagina=rel
         </div>
         <div class="contentPrint" id="imprimir">
             <?php if ($totalRegistros > 0): ?>
-            <br>
-            <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-                <tr>
-                    <td class="titulo_tabela">N.</td>
-                    <td class="titulo_tabela">Tipo</td>
-                    <td class="titulo_tabela">Assunto</td>
-                    <td class="titulo_tabela">Cliente</td>
-                    <td class="titulo_tabela">Proprietário</td>
-                    <td class="titulo_tabela" align="center">Bloco/Apto</td>
-                    <td class="titulo_tabela" align="center">Data</td>
-                </tr>
-                <?php foreach ($registros as $indice => $registro): ?>
-                <?php
+                <br>
+                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                    <tr>
+                        <td class="titulo_tabela">N.</td>
+                        <td class="titulo_tabela">Tipo</td>
+                        <td class="titulo_tabela">Assunto</td>
+                        <td class="titulo_tabela">Cliente</td>
+                        <td class="titulo_tabela">Proprietário</td>
+                        <td class="titulo_tabela" align="center">Bloco/Apto</td>
+                        <td class="titulo_tabela" align="center">Data</td>
+                    </tr>
+                    <?php foreach ($registros as $indice => $registro): ?>
+                        <?php
                         $classeLinha = $indice % 2 == 0 ? 'linhaimpar' : 'linhapar';
                         $dataFormatada = $registro['inf_data'] ? implode('/', array_reverse(explode('-', $registro['inf_data']))) : '';
                         ?>
-                <tr class="<?php echo $classeLinha; ?>">
-                    <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
-                    </td>
-                    <td><?php echo htmlspecialchars($registro['inf_tipo']); ?></td>
-                    <td><?php echo htmlspecialchars($registro['inf_assunto']); ?></td>
-                    <td><?php echo htmlspecialchars($registro['cli_nome_razao']); ?></td>
-                    <td><?php echo htmlspecialchars($registro['inf_proprietario']); ?></td>
-                    <td align="center">
-                        <?php echo htmlspecialchars($registro['inf_bloco']) . '/' . htmlspecialchars($registro['inf_apto']); ?>
-                    </td>
-                    <td align="center"><?php echo $dataFormatada; ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-            <div style="text-align:center; margin-top:20px;">
-                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                <?php if ($i == $paginaAtual): ?>
-                <strong><?php echo $i; ?></strong>
-                <?php else: ?>
-                <a href="?pagina=relatorio_infracoes&pag=<?php echo $i; ?>"><?php echo $i; ?></a>
-                <?php endif; ?>
-                <?php if ($i < $totalPaginas)
+                        <tr class="<?php echo $classeLinha; ?>">
+                            <td><?php echo str_pad($registro['inf_id'], 3, '0', STR_PAD_LEFT) . '/' . $registro['inf_ano']; ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($registro['inf_tipo']); ?></td>
+                            <td><?php echo htmlspecialchars($registro['inf_assunto']); ?></td>
+                            <td><?php echo htmlspecialchars($registro['cli_nome_razao']); ?></td>
+                            <td><?php echo htmlspecialchars($registro['inf_proprietario']); ?></td>
+                            <td align="center">
+                                <?php echo htmlspecialchars($registro['inf_bloco']) . '/' . htmlspecialchars($registro['inf_apto']); ?>
+                            </td>
+                            <td align="center"><?php echo $dataFormatada; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <div style="text-align:center; margin-top:20px;">
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                        <?php if ($i == $paginaAtual): ?>
+                            <strong><?php echo $i; ?></strong>
+                        <?php else: ?>
+                            <a href="?pagina=relatorio_infracoes&pag=<?php echo $i; ?>"><?php echo $i; ?></a>
+                        <?php endif; ?>
+                        <?php if ($i < $totalPaginas)
                             echo ' | '; ?>
-                <?php endfor; ?>
-            </div>
+                    <?php endfor; ?>
+                </div>
             <?php else: ?>
-            <br><br><br>Não há infrações para os filtros selecionados.
+                <br><br><br>Não há infrações para os filtros selecionados.
             <?php endif; ?>
             <div class="titulo"></div>
         </div>
@@ -213,16 +213,16 @@ $tituloPagina = "Relatórios &raquo; <a href='relatorio_infracoes.php?pagina=rel
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/elementPrint.js"></script>
     <script>
-    if (typeof elementPrint !== 'function') {
-        function elementPrint(elementId) {
-            var printContent = document.getElementById(elementId).innerHTML;
-            var originalContent = document.body.innerHTML;
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            location.reload();
+        if (typeof elementPrint !== 'function') {
+            function elementPrint(elementId) {
+                var printContent = document.getElementById(elementId).innerHTML;
+                var originalContent = document.body.innerHTML;
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                location.reload();
+            }
         }
-    }
     </script>
 </body>
 

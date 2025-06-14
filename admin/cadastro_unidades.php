@@ -8,40 +8,40 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Função para exibir mensagens e redirecionar (padrão dos outros módulos)
 function exibirMensagem($mensagem)
 {
-	$msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
-	echo "<script>alert('$msg'); window.location.href = 'cadastro_unidades.php?pagina=cadastro_unidades&cli_id={$_GET['cli_id']}';</script>";
-	exit;
+    $msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+    echo "<script>alert('$msg'); window.location.href = 'cadastro_unidades.php?pagina=cadastro_unidades&cli_id={$_GET['cli_id']}';</script>";
+    exit;
 }
 
 // Função para buscar nome do cliente
 function getClientName($pdo, $cli_id)
 {
-	$stmt = $pdo->prepare('SELECT cli_nome_razao FROM cadastro_clientes WHERE cli_id = ?');
-	$stmt->execute([$cli_id]);
-	return $stmt->fetchColumn();
+    $stmt = $pdo->prepare('SELECT cli_nome_razao FROM cadastro_clientes WHERE cli_id = ?');
+    $stmt->execute([$cli_id]);
+    return $stmt->fetchColumn();
 }
 
 // Função para buscar lista de UFs
 function getUfOptions($pdo, $selected = '')
 {
-	$stmt = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
-	$options = "<option value=''>UF</option>";
-	foreach ($stmt as $row) {
-		$selectedAttr = $row['uf_id'] == $selected ? 'selected' : '';
-		$options .= "<option value='{$row['uf_id']}' $selectedAttr>{$row['uf_sigla']}</option>";
-	}
-	return $options;
+    $stmt = $pdo->query('SELECT * FROM end_uf ORDER BY uf_sigla');
+    $options = "<option value=''>UF</option>";
+    foreach ($stmt as $row) {
+        $selectedAttr = $row['uf_id'] == $selected ? 'selected' : '';
+        $options .= "<option value='{$row['uf_id']}' $selectedAttr>{$row['uf_sigla']}</option>";
+    }
+    return $options;
 }
 
 // Função para buscar nome do município
 function getMunicipioOption($pdo, $mun_id)
 {
-	if (!$mun_id)
-		return "<option value=''>Município</option>";
-	$stmt = $pdo->prepare('SELECT mun_nome FROM end_municipios WHERE mun_id = ?');
-	$stmt->execute([$mun_id]);
-	$mun_nome = $stmt->fetchColumn();
-	return "<option value='$mun_id'>$mun_nome</option>";
+    if (!$mun_id)
+        return "<option value=''>Município</option>";
+    $stmt = $pdo->prepare('SELECT mun_nome FROM end_municipios WHERE mun_id = ?');
+    $stmt->execute([$mun_id]);
+    $mun_nome = $stmt->fetchColumn();
+    return "<option value='$mun_id'>$mun_nome</option>";
 }
 
 // Variáveis principais
@@ -58,99 +58,99 @@ $page = "Cadastros &raquo; <a href='cadastro_clientes.php?pagina=cadastro_client
 
 // CRUD Actions
 if ($action === 'adicionar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$fields = [
-		'uni_nome_razao',
-		'uni_cnpj',
-		'uni_cep',
-		'uni_uf',
-		'uni_municipio',
-		'uni_bairro',
-		'uni_endereco',
-		'uni_numero',
-		'uni_comp',
-		'uni_responsavel',
-		'uni_telefone',
-		'uni_celular',
-		'uni_email',
-		'uni_status'
-	];
-	$data = [];
-	foreach ($fields as $f)
-		$data[$f] = $_POST[$f] ?? '';
+    $fields = [
+        'uni_nome_razao',
+        'uni_cnpj',
+        'uni_cep',
+        'uni_uf',
+        'uni_municipio',
+        'uni_bairro',
+        'uni_endereco',
+        'uni_numero',
+        'uni_comp',
+        'uni_responsavel',
+        'uni_telefone',
+        'uni_celular',
+        'uni_email',
+        'uni_status'
+    ];
+    $data = [];
+    foreach ($fields as $f)
+        $data[$f] = $_POST[$f] ?? '';
 
-	$sql = 'INSERT INTO cadastro_unidades (
+    $sql = 'INSERT INTO cadastro_unidades (
         uni_cliente, uni_nome_razao, uni_cnpj, uni_cep, uni_uf, uni_municipio, uni_bairro,
         uni_endereco, uni_numero, uni_comp, uni_responsavel, uni_telefone, uni_celular, uni_email, uni_status
     ) VALUES (
         :cli_id, :uni_nome_razao, :uni_cnpj, :uni_cep, :uni_uf, :uni_municipio, :uni_bairro,
         :uni_endereco, :uni_numero, :uni_comp, :uni_responsavel, :uni_telefone, :uni_celular, :uni_email, :uni_status
     )';
-	$stmt = $pdo->prepare($sql);
-	$params = array_merge(['cli_id' => $cli_id], $data);
-	if ($stmt->execute($params)) {
-		exibirMensagem('Cadastro efetuado com sucesso.');
-	} else {
-		exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.');
-	}
+    $stmt = $pdo->prepare($sql);
+    $params = array_merge(['cli_id' => $cli_id], $data);
+    if ($stmt->execute($params)) {
+        exibirMensagem('Cadastro efetuado com sucesso.');
+    } else {
+        exibirMensagem('Erro ao efetuar cadastro, por favor tente novamente.');
+    }
 }
 
 if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$uni_id = $_GET['uni_id'] ?? null;
-	$fields = [
-		'uni_nome_razao',
-		'uni_cnpj',
-		'uni_cep',
-		'uni_uf',
-		'uni_municipio',
-		'uni_bairro',
-		'uni_endereco',
-		'uni_numero',
-		'uni_comp',
-		'uni_responsavel',
-		'uni_telefone',
-		'uni_celular',
-		'uni_email',
-		'uni_status'
-	];
-	$data = [];
-	foreach ($fields as $f)
-		$data[$f] = $_POST[$f] ?? '';
+    $uni_id = $_GET['uni_id'] ?? null;
+    $fields = [
+        'uni_nome_razao',
+        'uni_cnpj',
+        'uni_cep',
+        'uni_uf',
+        'uni_municipio',
+        'uni_bairro',
+        'uni_endereco',
+        'uni_numero',
+        'uni_comp',
+        'uni_responsavel',
+        'uni_telefone',
+        'uni_celular',
+        'uni_email',
+        'uni_status'
+    ];
+    $data = [];
+    foreach ($fields as $f)
+        $data[$f] = $_POST[$f] ?? '';
 
-	$sql = 'UPDATE cadastro_unidades SET 
+    $sql = 'UPDATE cadastro_unidades SET 
         uni_cliente = :cli_id, uni_nome_razao = :uni_nome_razao, uni_cnpj = :uni_cnpj, uni_cep = :uni_cep,
         uni_uf = :uni_uf, uni_municipio = :uni_municipio, uni_bairro = :uni_bairro, uni_endereco = :uni_endereco,
         uni_numero = :uni_numero, uni_comp = :uni_comp, uni_responsavel = :uni_responsavel, uni_telefone = :uni_telefone,
         uni_celular = :uni_celular, uni_email = :uni_email, uni_status = :uni_status
         WHERE uni_id = :uni_id';
-	$stmt = $pdo->prepare($sql);
-	$params = array_merge(['cli_id' => $cli_id, 'uni_id' => $uni_id], $data);
-	if ($stmt->execute($params)) {
-		exibirMensagem('Dados alterados com sucesso.');
-	} else {
-		exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
-	}
+    $stmt = $pdo->prepare($sql);
+    $params = array_merge(['cli_id' => $cli_id, 'uni_id' => $uni_id], $data);
+    if ($stmt->execute($params)) {
+        exibirMensagem('Dados alterados com sucesso.');
+    } else {
+        exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
+    }
 }
 
 if ($action === 'excluir') {
-	$uni_id = $_GET['uni_id'] ?? null;
-	$stmt = $pdo->prepare('DELETE FROM cadastro_unidades WHERE uni_id = ?');
-	if ($stmt->execute([$uni_id])) {
-		exibirMensagem('Exclusão realizada com sucesso');
-	} else {
-		exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
-	}
+    $uni_id = $_GET['uni_id'] ?? null;
+    $stmt = $pdo->prepare('DELETE FROM cadastro_unidades WHERE uni_id = ?');
+    if ($stmt->execute([$uni_id])) {
+        exibirMensagem('Exclusão realizada com sucesso');
+    } else {
+        exibirMensagem('Este item não pode ser excluído pois está relacionado com alguma tabela.');
+    }
 }
 
 if ($action === 'ativar' || $action === 'desativar') {
-	$uni_id = $_GET['uni_id'] ?? null;
-	$status = $action === 'ativar' ? 1 : 0;
-	$stmt = $pdo->prepare('UPDATE cadastro_unidades SET uni_status = ? WHERE uni_id = ?');
-	if ($stmt->execute([$status, $uni_id])) {
-		$msg = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
-		exibirMensagem($msg);
-	} else {
-		exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
-	}
+    $uni_id = $_GET['uni_id'] ?? null;
+    $status = $action === 'ativar' ? 1 : 0;
+    $stmt = $pdo->prepare('UPDATE cadastro_unidades SET uni_status = ? WHERE uni_id = ?');
+    if ($stmt->execute([$status, $uni_id])) {
+        $msg = $status ? 'Ativação realizada com sucesso' : 'Desativação realizada com sucesso';
+        exibirMensagem($msg);
+    } else {
+        exibirMensagem('Erro ao alterar dados, por favor tente novamente.');
+    }
 }
 
 // Paginação
@@ -163,7 +163,7 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($titulo) ?></title>
+    <title>Admin - Cadastro de Unidades</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -186,24 +186,24 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
                 onclick="window.location.href='cadastro_unidades.php?pagina=adicionar_cadastro_unidades&cli_id=<?= $cli_id . $autenticacao ?>'" />
         </div>
         <?php
-			$stmtCount = $pdo->prepare('SELECT COUNT(*) FROM cadastro_unidades WHERE uni_cliente = :cli_id');
-			$stmtCount->execute(['cli_id' => $cli_id]);
-			$total_registros = $stmtCount->fetchColumn();
+            $stmtCount = $pdo->prepare('SELECT COUNT(*) FROM cadastro_unidades WHERE uni_cliente = :cli_id');
+            $stmtCount->execute(['cli_id' => $cli_id]);
+            $total_registros = $stmtCount->fetchColumn();
 
-			$sql = 'SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao
+            $sql = 'SELECT cadastro_unidades.*, cadastro_clientes.cli_nome_razao
             FROM cadastro_unidades 
             LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = cadastro_unidades.uni_cliente
             WHERE cadastro_unidades.uni_cliente = :cli_id
             ORDER BY uni_nome_razao ASC
             LIMIT :offset, :limit';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':cli_id', $cli_id, PDO::PARAM_INT);
-			$stmt->bindValue(':offset', $primeiro_registro, PDO::PARAM_INT);
-			$stmt->bindValue(':limit', $num_por_pagina, PDO::PARAM_INT);
-			$stmt->execute();
-			$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':cli_id', $cli_id, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $primeiro_registro, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $num_por_pagina, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-			if ($rows): ?>
+            if ($rows): ?>
         <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
             <tr>
                 <td class='titulo_tabela'>Razão Social</td>
@@ -216,16 +216,16 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
                 <td class='titulo_tabela' align='center'>Gerenciar</td>
             </tr>
             <?php foreach ($rows as $c => $row):
-						$uni_id = $row['uni_id'];
-						$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
-						$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
-						$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
-						$uni_telefone = htmlspecialchars($row['uni_telefone']);
-						$uni_celular = htmlspecialchars($row['uni_celular']);
-						$uni_email = htmlspecialchars($row['uni_email']);
-						$uni_status = $row['uni_status'];
-						$c1 = $c % 2 == 0 ? 'linhaimpar' : 'linhapar';
-						?>
+                        $uni_id = $row['uni_id'];
+                        $uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
+                        $uni_cnpj = htmlspecialchars($row['uni_cnpj']);
+                        $uni_responsavel = htmlspecialchars($row['uni_responsavel']);
+                        $uni_telefone = htmlspecialchars($row['uni_telefone']);
+                        $uni_celular = htmlspecialchars($row['uni_celular']);
+                        $uni_email = htmlspecialchars($row['uni_email']);
+                        $uni_status = $row['uni_status'];
+                        $c1 = $c % 2 == 0 ? 'linhaimpar' : 'linhapar';
+                        ?>
             <tr class="<?= $c1 ?>">
                 <td><?= $uni_nome_razao ?></td>
                 <td><?= $uni_cnpj ?></td>
@@ -256,13 +256,13 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
             <?php endforeach; ?>
         </table>
         <?php
-				$total_paginas = ceil($total_registros / $num_por_pagina);
-				if ($total_paginas > 1): ?>
+                $total_paginas = ceil($total_registros / $num_por_pagina);
+                if ($total_paginas > 1): ?>
         <div class='paginacao'>
             <?php for ($i = 1; $i <= $total_paginas; $i++):
-							$active = $i == $pag ? "style='font-weight:bold;'" : '';
-							$url = "cadastro_unidades.php?pag=$i&cli_id=$cli_id&pagina=cadastro_unidades$autenticacao";
-							?>
+                            $active = $i == $pag ? "style='font-weight:bold;'" : '';
+                            $url = "cadastro_unidades.php?pag=$i&cli_id=$cli_id&pagina=cadastro_unidades$autenticacao";
+                            ?>
             <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
             <?php endfor; ?>
         </div>
@@ -329,27 +329,27 @@ $primeiro_registro = ($pag - 1) * $num_por_pagina;
     <?php endif; ?>
 
     <?php if ($pagina === 'editar_cadastro_unidades'):
-		$uni_id = $_GET['uni_id'] ?? null;
-		$stmt = $pdo->prepare('SELECT * FROM cadastro_unidades WHERE uni_id = ?');
-		$stmt->execute([$uni_id]);
-		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $uni_id = $_GET['uni_id'] ?? null;
+        $stmt = $pdo->prepare('SELECT * FROM cadastro_unidades WHERE uni_id = ?');
+        $stmt->execute([$uni_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-		if ($row):
-			$uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
-			$uni_cnpj = htmlspecialchars($row['uni_cnpj']);
-			$uni_cep = htmlspecialchars($row['uni_cep']);
-			$uni_uf = $row['uni_uf'];
-			$uni_municipio = $row['uni_municipio'];
-			$uni_bairro = htmlspecialchars($row['uni_bairro']);
-			$uni_endereco = htmlspecialchars($row['uni_endereco']);
-			$uni_numero = htmlspecialchars($row['uni_numero']);
-			$uni_comp = htmlspecialchars($row['uni_comp']);
-			$uni_responsavel = htmlspecialchars($row['uni_responsavel']);
-			$uni_telefone = htmlspecialchars($row['uni_telefone']);
-			$uni_celular = htmlspecialchars($row['uni_celular']);
-			$uni_email = htmlspecialchars($row['uni_email']);
-			$uni_status = $row['uni_status'];
-			?>
+        if ($row):
+            $uni_nome_razao = htmlspecialchars($row['uni_nome_razao']);
+            $uni_cnpj = htmlspecialchars($row['uni_cnpj']);
+            $uni_cep = htmlspecialchars($row['uni_cep']);
+            $uni_uf = $row['uni_uf'];
+            $uni_municipio = $row['uni_municipio'];
+            $uni_bairro = htmlspecialchars($row['uni_bairro']);
+            $uni_endereco = htmlspecialchars($row['uni_endereco']);
+            $uni_numero = htmlspecialchars($row['uni_numero']);
+            $uni_comp = htmlspecialchars($row['uni_comp']);
+            $uni_responsavel = htmlspecialchars($row['uni_responsavel']);
+            $uni_telefone = htmlspecialchars($row['uni_telefone']);
+            $uni_celular = htmlspecialchars($row['uni_celular']);
+            $uni_email = htmlspecialchars($row['uni_email']);
+            $uni_status = $row['uni_status'];
+            ?>
     <form name='form_cadastro_unidades' id='form_cadastro_unidades' enctype='multipart/form-data' method='post'
         action='cadastro_unidades.php?pagina=editar_cadastro_unidades&action=editar&uni_id=<?= $uni_id ?>&cli_id=<?= $cli_id . $autenticacao ?>'>
         <div class='centro'>

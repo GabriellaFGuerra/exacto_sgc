@@ -44,8 +44,9 @@ $recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-    <title><?= htmlspecialchars($titulo) ?></title>
+    <title>Consultar Recurso</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8">
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -53,49 +54,53 @@ $recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
     <?php include '../mod_topo_cliente/topo.php'; ?>
 </head>
-<body>
-<?php include '../mod_includes/php/funcoes-jquery.php'; ?>
-<div class="centro">
-    <div class="titulo"><?= $titulo ?></div>
-    <?php if ($recursos): ?>
-        <?php foreach ($recursos as $recurso): ?>
-            <table align="center" cellspacing="0" width="90%">
-                <tr>
-                    <td align="left">
-                        <b>Recurso:</b>
-                        <?php if (!empty($recurso['rec_recurso'])): ?>
-                            <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank">
-                                <img src="../imagens/icon-pdf.png" alt="PDF">
-                            </a>
-                        <?php endif; ?>
-                        <p><b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?></p>
-                        <p>Mogi das Cruzes, <?= date('d/m/Y') ?></p>
-                        <p><?= htmlspecialchars($recurso['rec_assunto']) ?></p>
-                        <p><?= nl2br(htmlspecialchars($recurso['rec_descricao'])) ?></p>
-                        <div id="erro">&nbsp;</div>
-                        <input type="button" onclick="window.location.href='consultar_infracoes.php?pagina=consultar_infracoes';" value="Voltar" />
-                    </td>
-                </tr>
-            </table>
-        <?php endforeach; ?>
 
-        <!-- Paginação -->
-        <?php if ($totalPaginas > 1): ?>
-            <div class="paginacao" style="text-align:center; margin-top:20px;">
-                <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                    <?php if ($i == $paginaAtual): ?>
-                        <strong><?= $i ?></strong>
-                    <?php else: ?>
-                        <a href="?pagina=<?= $i ?>"><?= $i ?></a>
-                    <?php endif; ?>
-                    <?= $i < $totalPaginas ? ' | ' : '' ?>
-                <?php endfor; ?>
-            </div>
+<body>
+    <?php include '../mod_includes/php/funcoes-jquery.php'; ?>
+    <div class="centro">
+        <div class="titulo"><?= $titulo ?></div>
+        <?php if ($recursos): ?>
+            <?php foreach ($recursos as $recurso): ?>
+                <table align="center" cellspacing="0" width="90%">
+                    <tr>
+                        <td align="left">
+                            <b>Recurso:</b>
+                            <?php if (!empty($recurso['rec_recurso'])): ?>
+                                <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank">
+                                    <img src="../imagens/icon-pdf.png" alt="PDF">
+                                </a>
+                            <?php endif; ?>
+                            <p><b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?></p>
+                            <p>Mogi das Cruzes, <?= date('d/m/Y') ?></p>
+                            <p><?= htmlspecialchars($recurso['rec_assunto']) ?></p>
+                            <p><?= nl2br(htmlspecialchars($recurso['rec_descricao'])) ?></p>
+                            <div id="erro">&nbsp;</div>
+                            <input type="button"
+                                onclick="window.location.href='consultar_infracoes.php?pagina=consultar_infracoes';"
+                                value="Voltar" />
+                        </td>
+                    </tr>
+                </table>
+            <?php endforeach; ?>
+
+            <!-- Paginação -->
+            <?php if ($totalPaginas > 1): ?>
+                <div class="paginacao" style="text-align:center; margin-top:20px;">
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                        <?php if ($i == $paginaAtual): ?>
+                            <strong><?= $i ?></strong>
+                        <?php else: ?>
+                            <a href="?pagina=<?= $i ?>"><?= $i ?></a>
+                        <?php endif; ?>
+                        <?= $i < $totalPaginas ? ' | ' : '' ?>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <p>Recurso não encontrado.</p>
         <?php endif; ?>
-    <?php else: ?>
-        <p>Recurso não encontrado.</p>
-    <?php endif; ?>
-</div>
-<?php include '../mod_rodape/rodape.php'; ?>
+    </div>
+    <?php include '../mod_rodape/rodape.php'; ?>
 </body>
+
 </html>

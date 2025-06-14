@@ -7,7 +7,7 @@ require_once '../mod_includes/php/connect.php';
 <html lang="pt">
 
 <head>
-    <title><?php echo isset($titulo) ? htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8') : 'Login'; ?></title>
+    <title>Login</title>
     <meta name="author" content="MogiComp">
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -17,9 +17,9 @@ require_once '../mod_includes/php/connect.php';
 
 <body>
     <?php
-	require_once '../mod_includes/php/funcoes-jquery.php';
-	require_once '../mod_topo_cliente/topo_login.php';
-	?>
+    require_once '../mod_includes/php/funcoes-jquery.php';
+    require_once '../mod_topo_cliente/topo_login.php';
+    ?>
 
     <main class="centro">
         <h1 class="titulo">Bem-vindo ao Sistema de Gerenciamento de Orçamentos</h1>

@@ -8,7 +8,8 @@ require_once '../mod_includes/php/verificapermissao.php';
 // Funções auxiliares
 function formatarData($data)
 {
-    if (!$data) return '';
+    if (!$data)
+        return '';
     $partes = explode('/', $data);
     if (count($partes) === 3) {
         return "{$partes[2]}-{$partes[1]}-{$partes[0]}";
@@ -17,13 +18,15 @@ function formatarData($data)
 }
 function dataParaBR($data)
 {
-    if (!$data) return '';
+    if (!$data)
+        return '';
     $partes = explode('-', substr($data, 0, 10));
     return (count($partes) === 3) ? "{$partes[2]}/{$partes[1]}/{$partes[0]}" : $data;
 }
 function exibirPaginacao($pagina_atual, $total_paginas, $query_string)
 {
-    if ($total_paginas <= 1) return;
+    if ($total_paginas <= 1)
+        return;
     echo "<div class='paginacao'>";
     for ($i = 1; $i <= $total_paginas; $i++) {
         if ($i == $pagina_atual) {
@@ -123,7 +126,7 @@ $logo = '../imagens/logo.png';
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Relatório de Prestação de Contas</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
@@ -214,16 +217,17 @@ $logo = '../imagens/logo.png';
     <?php include '../mod_rodape/rodape.php'; ?>
     <script src="../mod_includes/js/elementPrint.js"></script>
     <script>
-    if (typeof elementPrint !== 'function') {
-        function elementPrint(elementId) {
-            var printContent = document.getElementById(elementId).innerHTML;
-            var originalContent = document.body.innerHTML;
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            location.reload();
+        if (typeof elementPrint !== 'function') {
+            function elementPrint(elementId) {
+                var printContent = document.getElementById(elementId).innerHTML;
+                var originalContent = document.body.innerHTML;
+                document.body.innerHTML = printContent;
+                window.print();
+                document.body.innerHTML = originalContent;
+                location.reload();
+            }
         }
-    }
     </script>
 </body>
+
 </html>

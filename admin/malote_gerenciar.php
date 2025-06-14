@@ -204,7 +204,7 @@ $tituloPagina = "Malotes &raquo; <a href='malote_gerenciar.php?pagina=malote_ger
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Malote</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">

@@ -69,7 +69,7 @@ function buscarModulos($pdo)
 <html lang="pt-br">
 
 <head>
-    <title><?php echo htmlspecialchars($titulo); ?></title>
+    <title>Admin - Submódulos</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php
@@ -84,12 +84,12 @@ function buscarModulos($pdo)
     <?php include '../mod_topo/topo.php'; ?>
     <div class="centro">
         <?php if ($pagina === "admin_submodulos" || $pagina == ''): ?>
-        <div class="titulo"><?php echo $titulo; ?></div>
-        <div id="botoes">
-            <input value="Novo Submódulo" type="button"
-                onclick="window.location.href='admin_submodulos.php?pagina=adicionar_admin_submodulos';" />
-        </div>
-        <?php
+            <div class="titulo"><?php echo $titulo; ?></div>
+            <div id="botoes">
+                <input value="Novo Submódulo" type="button"
+                    onclick="window.location.href='admin_submodulos.php?pagina=adicionar_admin_submodulos';" />
+            </div>
+            <?php
             $stmt = $pdo->prepare("SELECT s.*, m.mod_nome FROM admin_submodulos s INNER JOIN admin_modulos m ON m.mod_id = s.sub_modulo ORDER BY s.sub_nome ASC LIMIT :offset, :limit");
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
@@ -98,31 +98,31 @@ function buscarModulos($pdo)
 
             $totalRegistros = $pdo->query("SELECT COUNT(*) FROM admin_submodulos")->fetchColumn();
             ?>
-        <?php if ($submodulos): ?>
-        <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-            <tr>
-                <td class="titulo_tabela">Nome</td>
-                <td class="titulo_tabela">Módulo</td>
-                <td class="titulo_tabela" align="center">Gerenciar</td>
-            </tr>
-            <?php foreach ($submodulos as $sub): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($sub['sub_nome']); ?></td>
-                <td><?php echo htmlspecialchars($sub['mod_nome']); ?></td>
-                <td align="center">
-                    <a href="admin_submodulos.php?pagina=editar_admin_submodulos&sub_id=<?php echo $sub['sub_id']; ?>">
-                        <img border="0" src="../imagens/icon-editar.png" alt="Editar">
-                    </a>
-                    <a href="javascript:void(0);" onclick="
+            <?php if ($submodulos): ?>
+                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                    <tr>
+                        <td class="titulo_tabela">Nome</td>
+                        <td class="titulo_tabela">Módulo</td>
+                        <td class="titulo_tabela" align="center">Gerenciar</td>
+                    </tr>
+                    <?php foreach ($submodulos as $sub): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($sub['sub_nome']); ?></td>
+                            <td><?php echo htmlspecialchars($sub['mod_nome']); ?></td>
+                            <td align="center">
+                                <a href="admin_submodulos.php?pagina=editar_admin_submodulos&sub_id=<?php echo $sub['sub_id']; ?>">
+                                    <img border="0" src="../imagens/icon-editar.png" alt="Editar">
+                                </a>
+                                <a href="javascript:void(0);" onclick="
                         if(confirm('Deseja excluir <?php echo addslashes(htmlspecialchars($sub['sub_nome'])); ?>?')){window.location.href='admin_submodulos.php?pagina=admin_submodulos&action=excluir&sub_id=<?php echo $sub['sub_id']; ?>';}
                     ">
-                        <img border="0" src="../imagens/icon-excluir.png" alt="Excluir">
-                    </a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
+                                    <img border="0" src="../imagens/icon-excluir.png" alt="Excluir">
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <?php
                 $totalPaginas = ceil($totalRegistros / $itensPorPagina);
                 if ($totalPaginas > 1) {
                     echo "<div class='paginacao'>";
@@ -134,31 +134,31 @@ function buscarModulos($pdo)
                     echo "</div>";
                 }
                 ?>
-        <?php else: ?>
-        <br><br><br>Não há nenhum submódulo cadastrado.
-        <?php endif; ?>
+            <?php else: ?>
+                <br><br><br>Não há nenhum submódulo cadastrado.
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if ($pagina === "adicionar_admin_submodulos"):
             $modulos = buscarModulos($pdo);
             ?>
-        <div class="titulo">Adicionar Novo Submódulo</div>
-        <form method="post" action="admin_submodulos.php?pagina=adicionar_admin_submodulos&action=adicionar">
-            <label for="sub_nome">Nome do Submódulo:</label><br>
-            <input type="text" name="sub_nome" id="sub_nome" required><br><br>
-            <label for="sub_modulo">Módulo:</label><br>
-            <select name="sub_modulo" id="sub_modulo" required>
-                <option value="">Selecione</option>
-                <?php foreach ($modulos as $mod): ?>
-                <option value="<?php echo $mod['mod_id']; ?>">
-                    <?php echo htmlspecialchars($mod['mod_nome']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_submodulos.php?pagina=admin_submodulos';">
-        </form>
+            <div class="titulo">Adicionar Novo Submódulo</div>
+            <form method="post" action="admin_submodulos.php?pagina=adicionar_admin_submodulos&action=adicionar">
+                <label for="sub_nome">Nome do Submódulo:</label><br>
+                <input type="text" name="sub_nome" id="sub_nome" required><br><br>
+                <label for="sub_modulo">Módulo:</label><br>
+                <select name="sub_modulo" id="sub_modulo" required>
+                    <option value="">Selecione</option>
+                    <?php foreach ($modulos as $mod): ?>
+                        <option value="<?php echo $mod['mod_id']; ?>">
+                            <?php echo htmlspecialchars($mod['mod_nome']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select><br><br>
+                <input type="submit" value="Salvar">
+                <input type="button" value="Cancelar"
+                    onclick="window.location.href='admin_submodulos.php?pagina=admin_submodulos';">
+            </form>
         <?php endif; ?>
 
         <?php if ($pagina === "editar_admin_submodulos" && $sub_id):
@@ -171,26 +171,26 @@ function buscarModulos($pdo)
                 exibirMensagem('Submódulo não encontrado.');
             }
             ?>
-        <div class="titulo">Editar Submódulo</div>
-        <form method="post"
-            action="admin_submodulos.php?pagina=editar_admin_submodulos&action=editar&sub_id=<?php echo $sub_id; ?>">
-            <label for="sub_nome">Nome do Submódulo:</label><br>
-            <input type="text" name="sub_nome" id="sub_nome" value="<?php echo htmlspecialchars($sub['sub_nome']); ?>"
-                required><br><br>
-            <label for="sub_modulo">Módulo:</label><br>
-            <select name="sub_modulo" id="sub_modulo" required>
-                <option value="">Selecione</option>
-                <?php foreach ($modulos as $mod): ?>
-                <option value="<?php echo $mod['mod_id']; ?>" <?php if ($sub['sub_modulo'] == $mod['mod_id'])
+            <div class="titulo">Editar Submódulo</div>
+            <form method="post"
+                action="admin_submodulos.php?pagina=editar_admin_submodulos&action=editar&sub_id=<?php echo $sub_id; ?>">
+                <label for="sub_nome">Nome do Submódulo:</label><br>
+                <input type="text" name="sub_nome" id="sub_nome" value="<?php echo htmlspecialchars($sub['sub_nome']); ?>"
+                    required><br><br>
+                <label for="sub_modulo">Módulo:</label><br>
+                <select name="sub_modulo" id="sub_modulo" required>
+                    <option value="">Selecione</option>
+                    <?php foreach ($modulos as $mod): ?>
+                        <option value="<?php echo $mod['mod_id']; ?>" <?php if ($sub['sub_modulo'] == $mod['mod_id'])
                                echo 'selected'; ?>>
-                    <?php echo htmlspecialchars($mod['mod_nome']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_submodulos.php?pagina=admin_submodulos';">
-        </form>
+                            <?php echo htmlspecialchars($mod['mod_nome']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select><br><br>
+                <input type="submit" value="Salvar">
+                <input type="button" value="Cancelar"
+                    onclick="window.location.href='admin_submodulos.php?pagina=admin_submodulos';">
+            </form>
         <?php endif; ?>
     </div>
     <?php include '../mod_rodape/rodape.php'; ?>

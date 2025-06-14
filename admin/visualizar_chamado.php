@@ -18,87 +18,87 @@ $tituloPagina = "Infrações &raquo; <a href='infracoes_gerenciar.php?pagina=inf
 // Função utilitária padronizada
 function exibirMensagem($mensagem, $url = 'recurso_gerenciar.php?pagina=recurso_gerenciar')
 {
-	$msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
-	echo "<script>alert('$msg'); window.location.href = '$url';</script>";
-	exit;
+    $msg = htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8');
+    echo "<script>alert('$msg'); window.location.href = '$url';</script>";
+    exit;
 }
 
 // Função para upload de arquivos de recurso
 function uploadRecurso($rec_id, $arquivos)
 {
-	$caminho = "../admin/recurso/$rec_id/";
-	if (!file_exists($caminho)) {
-		mkdir($caminho, 0755, true);
-	}
-	$arquivoFinal = '';
-	foreach ($arquivos['name'] as $key => $nome_arquivo) {
-		if (!empty($nome_arquivo)) {
-			$extensao = pathinfo($nome_arquivo, PATHINFO_EXTENSION);
-			$novo_nome = md5(mt_rand(1, 10000) . $nome_arquivo) . '.' . $extensao;
-			$destino = $caminho . $novo_nome;
-			if (move_uploaded_file($arquivos['tmp_name'][$key], $destino)) {
-				$arquivoFinal = $destino;
-			}
-		}
-	}
-	return $arquivoFinal;
+    $caminho = "../admin/recurso/$rec_id/";
+    if (!file_exists($caminho)) {
+        mkdir($caminho, 0755, true);
+    }
+    $arquivoFinal = '';
+    foreach ($arquivos['name'] as $key => $nome_arquivo) {
+        if (!empty($nome_arquivo)) {
+            $extensao = pathinfo($nome_arquivo, PATHINFO_EXTENSION);
+            $novo_nome = md5(mt_rand(1, 10000) . $nome_arquivo) . '.' . $extensao;
+            $destino = $caminho . $novo_nome;
+            if (move_uploaded_file($arquivos['tmp_name'][$key], $destino)) {
+                $arquivoFinal = $destino;
+            }
+        }
+    }
+    return $arquivoFinal;
 }
 
 // CRUD - Editar recurso
 if ($action === 'editar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-	$rec_assunto = $_POST['rec_assunto'] ?? '';
-	$rec_descricao = $_POST['rec_descricao'] ?? '';
-	$rec_status = $_POST['rec_status'] ?? '';
-	$arquivos = $_FILES['rec_recurso'] ?? ['name' => []];
+    $rec_assunto = $_POST['rec_assunto'] ?? '';
+    $rec_descricao = $_POST['rec_descricao'] ?? '';
+    $rec_status = $_POST['rec_status'] ?? '';
+    $arquivos = $_FILES['rec_recurso'] ?? ['name' => []];
 
-	// Atualiza dados principais
-	$sql = "UPDATE recurso_gerenciar 
+    // Atualiza dados principais
+    $sql = "UPDATE recurso_gerenciar 
             SET rec_assunto = :rec_assunto, rec_descricao = :rec_descricao, rec_status = :rec_status 
             WHERE rec_id = :rec_id";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute([
-		':rec_assunto' => $rec_assunto,
-		':rec_descricao' => $rec_descricao,
-		':rec_status' => $rec_status,
-		':rec_id' => $rec_id
-	]);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':rec_assunto' => $rec_assunto,
+        ':rec_descricao' => $rec_descricao,
+        ':rec_status' => $rec_status,
+        ':rec_id' => $rec_id
+    ]);
 
-	// Upload de arquivos
-	$arquivoFinal = uploadRecurso($rec_id, $arquivos);
-	if ($arquivoFinal) {
-		// Remove arquivo antigo, se existir
-		$sql = "SELECT rec_recurso FROM recurso_gerenciar WHERE rec_id = :rec_id";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute([':rec_id' => $rec_id]);
-		$anexo_atual = $stmt->fetchColumn();
-		if ($anexo_atual && file_exists($anexo_atual)) {
-			unlink($anexo_atual);
-		}
-		// Atualiza caminho do arquivo no banco
-		$sql = "UPDATE recurso_gerenciar SET rec_recurso = :arquivo WHERE rec_id = :rec_id";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute([':arquivo' => $arquivoFinal, ':rec_id' => $rec_id]);
-	}
+    // Upload de arquivos
+    $arquivoFinal = uploadRecurso($rec_id, $arquivos);
+    if ($arquivoFinal) {
+        // Remove arquivo antigo, se existir
+        $sql = "SELECT rec_recurso FROM recurso_gerenciar WHERE rec_id = :rec_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':rec_id' => $rec_id]);
+        $anexo_atual = $stmt->fetchColumn();
+        if ($anexo_atual && file_exists($anexo_atual)) {
+            unlink($anexo_atual);
+        }
+        // Atualiza caminho do arquivo no banco
+        $sql = "UPDATE recurso_gerenciar SET rec_recurso = :arquivo WHERE rec_id = :rec_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':arquivo' => $arquivoFinal, ':rec_id' => $rec_id]);
+    }
 
-	exibirMensagem('Dados alterados com sucesso.', "recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=$rec_id$autenticacao");
+    exibirMensagem('Dados alterados com sucesso.', "recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=$rec_id$autenticacao");
 }
 
 // Exibe detalhes do recurso
 if ($pagina === 'recurso_gerenciar' && $rec_id) {
-	$sql = "SELECT * FROM recurso_gerenciar 
+    $sql = "SELECT * FROM recurso_gerenciar 
             LEFT JOIN infracoes_gerenciar ON infracoes_gerenciar.inf_id = recurso_gerenciar.rec_infracao
             LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
             WHERE rec_id = :rec_id";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute([':rec_id' => $rec_id]);
-	$recurso = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':rec_id' => $rec_id]);
+    $recurso = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Visualizar Chamado</title>
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
@@ -114,115 +114,115 @@ if ($pagina === 'recurso_gerenciar' && $rec_id) {
     <?php include '../mod_topo/topo.php'; ?>
 
     <?php if ($pagina === 'recurso_gerenciar' && $recurso): ?>
-    <form name="form_recurso_gerenciar" id="form_recurso_gerenciar" enctype="multipart/form-data" method="post"
-        action="recurso_gerenciar.php?pagina=recurso_gerenciar&action=editar&rec_id=<?= htmlspecialchars($rec_id) . $autenticacao ?>">
-        <div class="centro">
-            <div class="titulo"><?= $tituloPagina ?> &raquo; Gerenciar: <?= htmlspecialchars($recurso['rec_assunto']) ?>
+        <form name="form_recurso_gerenciar" id="form_recurso_gerenciar" enctype="multipart/form-data" method="post"
+            action="recurso_gerenciar.php?pagina=recurso_gerenciar&action=editar&rec_id=<?= htmlspecialchars($rec_id) . $autenticacao ?>">
+            <div class="centro">
+                <div class="titulo"><?= $tituloPagina ?> &raquo; Gerenciar: <?= htmlspecialchars($recurso['rec_assunto']) ?>
+                </div>
+                <table align="center" cellspacing="0" width="90%">
+                    <tr>
+                        <td align="left">
+                            <b>Cliente:</b> <?= htmlspecialchars($recurso['cli_nome_razao']) ?>
+                            (<?= htmlspecialchars($recurso['cli_cnpj']) ?>)
+                            <p>
+                                <b>Recurso:</b>
+                                <?php if (!empty($recurso['rec_recurso'])): ?>
+                                    <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank"><img
+                                            src="../imagens/icon-pdf.png" border="0"></a>
+                                <?php else: ?>
+                                    Nenhum arquivo anexado.
+                                <?php endif; ?>
+                                <input type="file" name="rec_recurso[]" />
+                            <p>
+                                <b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?>
+                            <p>
+                                <textarea name="rec_descricao" rows="15" id="rec_descricao"
+                                    placeholder="Descrição"><?= htmlspecialchars($recurso['rec_descricao']) ?></textarea>
+                            <p>
+                                <select name="rec_status" id="rec_status">
+                                    <option value="<?= htmlspecialchars($recurso['rec_status']) ?>">
+                                        <?= htmlspecialchars($recurso['rec_status']) ?>
+                                    </option>
+                                    <option value="Deferido">Deferido</option>
+                                    <option value="Indeferido">Indeferido</option>
+                                </select>
+                            <p>
+                                <center>
+                                    <input type="submit" id="bt_recurso_gerenciar" value="Salvar" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="button" id="botao_cancelar"
+                                        onclick="window.location.href='infracoes_gerenciar.php?pagina=infracoes_gerenciar<?= $autenticacao ?>';"
+                                        value="Cancelar" />
+                                </center>
+                        </td>
+                    </tr>
+                </table>
+                <div class="titulo"></div>
             </div>
-            <table align="center" cellspacing="0" width="90%">
-                <tr>
-                    <td align="left">
-                        <b>Cliente:</b> <?= htmlspecialchars($recurso['cli_nome_razao']) ?>
-                        (<?= htmlspecialchars($recurso['cli_cnpj']) ?>)
-                        <p>
-                            <b>Recurso:</b>
-                            <?php if (!empty($recurso['rec_recurso'])): ?>
-                            <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank"><img
-                                    src="../imagens/icon-pdf.png" border="0"></a>
-                            <?php else: ?>
-                            Nenhum arquivo anexado.
-                            <?php endif; ?>
-                            <input type="file" name="rec_recurso[]" />
-                        <p>
-                            <b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?>
-                        <p>
-                            <textarea name="rec_descricao" rows="15" id="rec_descricao"
-                                placeholder="Descrição"><?= htmlspecialchars($recurso['rec_descricao']) ?></textarea>
-                        <p>
-                            <select name="rec_status" id="rec_status">
-                                <option value="<?= htmlspecialchars($recurso['rec_status']) ?>">
-                                    <?= htmlspecialchars($recurso['rec_status']) ?>
-                                </option>
-                                <option value="Deferido">Deferido</option>
-                                <option value="Indeferido">Indeferido</option>
-                            </select>
-                        <p>
-                            <center>
-                                <input type="submit" id="bt_recurso_gerenciar" value="Salvar" />&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="button" id="botao_cancelar"
-                                    onclick="window.location.href='infracoes_gerenciar.php?pagina=infracoes_gerenciar<?= $autenticacao ?>';"
-                                    value="Cancelar" />
-                            </center>
-                    </td>
-                </tr>
-            </table>
-            <div class="titulo"></div>
-        </div>
-    </form>
+        </form>
     <?php endif; ?>
 
     <?php
-	// Paginação para listagem de recursos
-	if ($pagina === 'recurso_listar') {
-		$sql_total = "SELECT COUNT(*) FROM recurso_gerenciar";
-		$total_registros = $pdo->query($sql_total)->fetchColumn();
+    // Paginação para listagem de recursos
+    if ($pagina === 'recurso_listar') {
+        $sql_total = "SELECT COUNT(*) FROM recurso_gerenciar";
+        $total_registros = $pdo->query($sql_total)->fetchColumn();
 
-		$sql = "SELECT * FROM recurso_gerenciar 
+        $sql = "SELECT * FROM recurso_gerenciar 
             LEFT JOIN infracoes_gerenciar ON infracoes_gerenciar.inf_id = recurso_gerenciar.rec_infracao
             LEFT JOIN cadastro_clientes ON cadastro_clientes.cli_id = infracoes_gerenciar.inf_cliente
             ORDER BY rec_id DESC
             LIMIT :offset, :limite";
-		$stmt = $pdo->prepare($sql);
-		$stmt->bindValue(':offset', $primeiroRegistro, PDO::PARAM_INT);
-		$stmt->bindValue(':limite', $itensPorPagina, PDO::PARAM_INT);
-		$stmt->execute();
-		$recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':offset', $primeiroRegistro, PDO::PARAM_INT);
+        $stmt->bindValue(':limite', $itensPorPagina, PDO::PARAM_INT);
+        $stmt->execute();
+        $recursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		?>
-    <div class='centro'>
-        <div class='titulo'>Lista de Recursos</div>
-        <?php if ($recursos): ?>
-        <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-            <tr>
-                <td class='titulo_tabela'>ID</td>
-                <td class='titulo_tabela'>Assunto</td>
-                <td class='titulo_tabela'>Cliente</td>
-                <td class='titulo_tabela'>Status</td>
-                <td class='titulo_tabela'>Gerenciar</td>
-            </tr>
-            <?php foreach ($recursos as $recurso): ?>
-            <tr>
-                <td><?= htmlspecialchars($recurso['rec_id']) ?></td>
-                <td><?= htmlspecialchars($recurso['rec_assunto']) ?></td>
-                <td><?= htmlspecialchars($recurso['cli_nome_razao']) ?></td>
-                <td><?= htmlspecialchars($recurso['rec_status']) ?></td>
-                <td>
-                    <a
-                        href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=<?= htmlspecialchars($recurso['rec_id']) . $autenticacao ?>'>Gerenciar</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
-				$totalPaginas = ceil($total_registros / $itensPorPagina);
-				if ($totalPaginas > 1): ?>
-        <div class='paginacao'>
-            <?php for ($i = 1; $i <= $totalPaginas; $i++):
-							$active = $i == $paginaAtual ? "style='font-weight:bold;'" : '';
-							$url = "recurso_gerenciar.php?pagina=recurso_listar&pag=$i$autenticacao";
-							?>
-            <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
-            <?php endfor; ?>
+        ?>
+        <div class='centro'>
+            <div class='titulo'>Lista de Recursos</div>
+            <?php if ($recursos): ?>
+                <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+                    <tr>
+                        <td class='titulo_tabela'>ID</td>
+                        <td class='titulo_tabela'>Assunto</td>
+                        <td class='titulo_tabela'>Cliente</td>
+                        <td class='titulo_tabela'>Status</td>
+                        <td class='titulo_tabela'>Gerenciar</td>
+                    </tr>
+                    <?php foreach ($recursos as $recurso): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($recurso['rec_id']) ?></td>
+                            <td><?= htmlspecialchars($recurso['rec_assunto']) ?></td>
+                            <td><?= htmlspecialchars($recurso['cli_nome_razao']) ?></td>
+                            <td><?= htmlspecialchars($recurso['rec_status']) ?></td>
+                            <td>
+                                <a
+                                    href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=<?= htmlspecialchars($recurso['rec_id']) . $autenticacao ?>'>Gerenciar</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <?php
+                $totalPaginas = ceil($total_registros / $itensPorPagina);
+                if ($totalPaginas > 1): ?>
+                    <div class='paginacao'>
+                        <?php for ($i = 1; $i <= $totalPaginas; $i++):
+                            $active = $i == $paginaAtual ? "style='font-weight:bold;'" : '';
+                            $url = "recurso_gerenciar.php?pagina=recurso_listar&pag=$i$autenticacao";
+                            ?>
+                            <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <br><br><br>Não há nenhum recurso cadastrado.
+            <?php endif; ?>
+            <div class='titulo'></div>
         </div>
-        <?php endif; ?>
-        <?php else: ?>
-        <br><br><br>Não há nenhum recurso cadastrado.
-        <?php endif; ?>
-        <div class='titulo'></div>
-    </div>
-    <?php
-	}
-	?>
+        <?php
+    }
+    ?>
     <?php include '../mod_rodape/rodape.php'; ?>
 </body>
 

@@ -136,59 +136,59 @@ if (isset($_GET['pagina']) && $_GET['pagina'] === 'adicionar_admin_usuarios') {
 		}
 	}
 	?>
-<!DOCTYPE html>
-<html lang="pt-br">
+	<!DOCTYPE html>
+	<html lang="pt-br">
 
-<head>
-    <title>Adicionar Usuário</title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <script src="../mod_includes/js/funcoes.js"></script>
-</head>
+	<head>
+		<title>Adicionar Usuário</title>
+		<meta charset="UTF-8">
+		<link rel="shortcut icon" href="../imagens/favicon.png">
+		<?php include '../css/style.php'; ?>
+		<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+		<script src="../mod_includes/js/funcoes.js"></script>
+	</head>
 
-<body>
-    <?php include '../mod_topo/topo.php'; ?>
-    <div class="centro">
-        <div class="titulo">Adicionar Usuário</div>
-        <form method="post" action="admin_usuarios.php?pagina=adicionar_admin_usuarios">
-            <label for="usu_nome">Nome:</label><br>
-            <input type="text" name="usu_nome" id="usu_nome" required><br><br>
-            <label for="usu_email">Email:</label><br>
-            <input type="email" name="usu_email" id="usu_email" required><br><br>
-            <label for="usu_setor">Setor:</label><br>
-            <select name="usu_setor" id="usu_setor" required>
-                <option value="">Selecione</option>
-                <?php foreach ($setores as $setor): ?>
-                <option value="<?php echo $setor['set_id']; ?>"><?php echo htmlspecialchars($setor['set_nome']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select><br><br>
-            <label for="usu_login">Login:</label><br>
-            <input type="text" name="usu_login" id="usu_login" required><br><br>
-            <label for="usu_senha">Senha:</label><br>
-            <input type="password" name="usu_senha" id="usu_senha" required><br><br>
-            <label for="usu_status">Status:</label><br>
-            <select name="usu_status" id="usu_status">
-                <option value="1">Ativo</option>
-                <option value="0">Inativo</option>
-            </select><br><br>
-            <label for="usu_notificacao">Recebe notificação?</label><br>
-            <select name="usu_notificacao" id="usu_notificacao">
-                <option value="1">Sim</option>
-                <option value="0">Não</option>
-            </select><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_usuarios.php?pagina=admin_usuarios';">
-        </form>
-    </div>
-    <?php include '../mod_rodape/rodape.php'; ?>
-</body>
+	<body>
+		<?php include '../mod_topo/topo.php'; ?>
+		<div class="centro">
+			<div class="titulo">Adicionar Usuário</div>
+			<form method="post" action="admin_usuarios.php?pagina=adicionar_admin_usuarios">
+				<label for="usu_nome">Nome:</label><br>
+				<input type="text" name="usu_nome" id="usu_nome" required><br><br>
+				<label for="usu_email">Email:</label><br>
+				<input type="email" name="usu_email" id="usu_email" required><br><br>
+				<label for="usu_setor">Setor:</label><br>
+				<select name="usu_setor" id="usu_setor" required>
+					<option value="">Selecione</option>
+					<?php foreach ($setores as $setor): ?>
+						<option value="<?php echo $setor['set_id']; ?>"><?php echo htmlspecialchars($setor['set_nome']); ?>
+						</option>
+					<?php endforeach; ?>
+				</select><br><br>
+				<label for="usu_login">Login:</label><br>
+				<input type="text" name="usu_login" id="usu_login" required><br><br>
+				<label for="usu_senha">Senha:</label><br>
+				<input type="password" name="usu_senha" id="usu_senha" required><br><br>
+				<label for="usu_status">Status:</label><br>
+				<select name="usu_status" id="usu_status">
+					<option value="1">Ativo</option>
+					<option value="0">Inativo</option>
+				</select><br><br>
+				<label for="usu_notificacao">Recebe notificação?</label><br>
+				<select name="usu_notificacao" id="usu_notificacao">
+					<option value="1">Sim</option>
+					<option value="0">Não</option>
+				</select><br><br>
+				<input type="submit" value="Salvar">
+				<input type="button" value="Cancelar"
+					onclick="window.location.href='admin_usuarios.php?pagina=admin_usuarios';">
+			</form>
+		</div>
+		<?php include '../mod_rodape/rodape.php'; ?>
+	</body>
 
-</html>
-<?php
+	</html>
+	<?php
 	exit;
 }
 
@@ -229,66 +229,66 @@ if (isset($_GET['pagina']) && $_GET['pagina'] === 'editar_admin_usuarios' && iss
 
 	if ($usuario):
 		?>
-<!DOCTYPE html>
-<html lang="pt-br">
+		<!DOCTYPE html>
+		<html lang="pt-br">
 
-<head>
-    <title>Editar Usuário</title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php include '../css/style.php'; ?>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <script src="../mod_includes/js/funcoes.js"></script>
-</head>
+		<head>
+			<title>Editar Usuário</title>
+			<meta charset="UTF-8">
+			<link rel="shortcut icon" href="../imagens/favicon.png">
+			<?php include '../css/style.php'; ?>
+			<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+			<script src="../mod_includes/js/funcoes.js"></script>
+		</head>
 
-<body>
-    <?php include '../mod_topo/topo.php'; ?>
-    <div class="centro">
-        <div class="titulo">Editar Usuário</div>
-        <form method="post" action="admin_usuarios.php?pagina=editar_admin_usuarios&usu_id=<?php echo $usu_id; ?>">
-            <label for="usu_nome">Nome:</label><br>
-            <input type="text" name="usu_nome" id="usu_nome"
-                value="<?php echo htmlspecialchars($usuario['usu_nome']); ?>" required><br><br>
-            <label for="usu_email">Email:</label><br>
-            <input type="email" name="usu_email" id="usu_email"
-                value="<?php echo htmlspecialchars($usuario['usu_email']); ?>" required><br><br>
-            <label for="usu_setor">Setor:</label><br>
-            <select name="usu_setor" id="usu_setor" required>
-                <option value="">Selecione</option>
-                <?php foreach ($setores as $setor): ?>
-                <option value="<?php echo $setor['set_id']; ?>" <?php if ($usuario['usu_setor'] == $setor['set_id'])
+		<body>
+			<?php include '../mod_topo/topo.php'; ?>
+			<div class="centro">
+				<div class="titulo">Editar Usuário</div>
+				<form method="post" action="admin_usuarios.php?pagina=editar_admin_usuarios&usu_id=<?php echo $usu_id; ?>">
+					<label for="usu_nome">Nome:</label><br>
+					<input type="text" name="usu_nome" id="usu_nome"
+						value="<?php echo htmlspecialchars($usuario['usu_nome']); ?>" required><br><br>
+					<label for="usu_email">Email:</label><br>
+					<input type="email" name="usu_email" id="usu_email"
+						value="<?php echo htmlspecialchars($usuario['usu_email']); ?>" required><br><br>
+					<label for="usu_setor">Setor:</label><br>
+					<select name="usu_setor" id="usu_setor" required>
+						<option value="">Selecione</option>
+						<?php foreach ($setores as $setor): ?>
+							<option value="<?php echo $setor['set_id']; ?>" <?php if ($usuario['usu_setor'] == $setor['set_id'])
 								   echo 'selected'; ?>>
-                    <?php echo htmlspecialchars($setor['set_nome']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select><br><br>
-            <label for="usu_login">Login:</label><br>
-            <input type="text" name="usu_login" id="usu_login"
-                value="<?php echo htmlspecialchars($usuario['usu_login']); ?>" required><br><br>
-            <label for="usu_status">Status:</label><br>
-            <select name="usu_status" id="usu_status">
-                <option value="1" <?php if ($usuario['usu_status'] == 1)
+								<?php echo htmlspecialchars($setor['set_nome']); ?>
+							</option>
+						<?php endforeach; ?>
+					</select><br><br>
+					<label for="usu_login">Login:</label><br>
+					<input type="text" name="usu_login" id="usu_login"
+						value="<?php echo htmlspecialchars($usuario['usu_login']); ?>" required><br><br>
+					<label for="usu_status">Status:</label><br>
+					<select name="usu_status" id="usu_status">
+						<option value="1" <?php if ($usuario['usu_status'] == 1)
 							echo 'selected'; ?>>Ativo</option>
-                <option value="0" <?php if ($usuario['usu_status'] == 0)
+						<option value="0" <?php if ($usuario['usu_status'] == 0)
 							echo 'selected'; ?>>Inativo</option>
-            </select><br><br>
-            <label for="usu_notificacao">Recebe notificação?</label><br>
-            <select name="usu_notificacao" id="usu_notificacao">
-                <option value="1" <?php if ($usuario['usu_notificacao'] == 1)
+					</select><br><br>
+					<label for="usu_notificacao">Recebe notificação?</label><br>
+					<select name="usu_notificacao" id="usu_notificacao">
+						<option value="1" <?php if ($usuario['usu_notificacao'] == 1)
 							echo 'selected'; ?>>Sim</option>
-                <option value="0" <?php if ($usuario['usu_notificacao'] == 0)
+						<option value="0" <?php if ($usuario['usu_notificacao'] == 0)
 							echo 'selected'; ?>>Não</option>
-            </select><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_usuarios.php?pagina=admin_usuarios';">
-        </form>
-    </div>
-    <?php include '../mod_rodape/rodape.php'; ?>
-</body>
+					</select><br><br>
+					<input type="submit" value="Salvar">
+					<input type="button" value="Cancelar"
+						onclick="window.location.href='admin_usuarios.php?pagina=admin_usuarios';">
+				</form>
+			</div>
+			<?php include '../mod_rodape/rodape.php'; ?>
+		</body>
 
-</html>
-<?php
+		</html>
+		<?php
 	else:
 		exibirMensagem('Usuário não encontrado.');
 	endif;
@@ -337,27 +337,27 @@ $usuarios = buscarUsuarios($pdo, $offset, USUARIOS_POR_PAGINA);
 <html lang="pt-br">
 
 <head>
-    <title><?php echo htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8'); ?></title>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="../imagens/favicon.png">
-    <?php
+	<title>Admin - Usuários</title>
+	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="../imagens/favicon.png">
+	<?php
 	include '../css/style.php';
 	require_once '../mod_includes/php/funcoes-jquery.php';
 	?>
-    <script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
-    <script src="../mod_includes/js/funcoes.js"></script>
+	<script src="../mod_includes/js/jquery-1.8.3.min.js"></script>
+	<script src="../mod_includes/js/funcoes.js"></script>
 </head>
 
 <body>
-    <?php include '../mod_topo/topo.php'; ?>
-    <?php if ($pagina === "admin_usuarios" || $pagina == ''): ?>
-    <div class="centro">
-        <div class="titulo"><?php echo $paginaTitulo; ?></div>
-        <div id="botoes">
-            <input value="Novo Usuário" type="button"
-                onclick="window.location.href='admin_usuarios.php?pagina=adicionar_admin_usuarios<?php echo $autenticacao; ?>';" />
-        </div>
-        <?php
+	<?php include '../mod_topo/topo.php'; ?>
+	<?php if ($pagina === "admin_usuarios" || $pagina == ''): ?>
+		<div class="centro">
+			<div class="titulo"><?php echo $paginaTitulo; ?></div>
+			<div id="botoes">
+				<input value="Novo Usuário" type="button"
+					onclick="window.location.href='admin_usuarios.php?pagina=adicionar_admin_usuarios<?php echo $autenticacao; ?>';" />
+			</div>
+			<?php
 			if ($usuarios) {
 				echo renderizarTabelaUsuarios($usuarios, $autenticacao);
 				$baseUrl = "admin_usuarios.php?pagina=admin_usuarios$autenticacao";
@@ -366,9 +366,9 @@ $usuarios = buscarUsuarios($pdo, $offset, USUARIOS_POR_PAGINA);
 				echo "<br><br><br>Não há nenhum usuário cadastrado.";
 			}
 			?>
-    </div>
-    <?php endif; ?>
-    <?php include '../mod_rodape/rodape.php'; ?>
+		</div>
+	<?php endif; ?>
+	<?php include '../mod_rodape/rodape.php'; ?>
 </body>
 
 </html>

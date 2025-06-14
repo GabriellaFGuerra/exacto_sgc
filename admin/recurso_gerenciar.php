@@ -141,7 +141,7 @@ if ($pagina === 'recurso_listar') {
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($tituloPagina) ?></title>
+    <title>Recursos</title>
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php include '../css/style.php'; ?>
@@ -157,112 +157,113 @@ if ($pagina === 'recurso_listar') {
     <?php include '../mod_topo/topo.php'; ?>
 
     <?php if ($pagina === 'recurso_gerenciar' && !empty($recurso)): ?>
-    <form name="form_recurso_gerenciar" id="form_recurso_gerenciar" enctype="multipart/form-data" method="post"
-        action="recurso_gerenciar.php?pagina=recurso_gerenciar&action=editar&rec_id=<?= htmlspecialchars($rec_id) . $autenticacao ?>">
-        <div class="centro">
-            <div class="titulo"><?= $tituloPagina ?> &raquo; Gerenciar: <?= htmlspecialchars($recurso['rec_assunto']) ?>
+        <form name="form_recurso_gerenciar" id="form_recurso_gerenciar" enctype="multipart/form-data" method="post"
+            action="recurso_gerenciar.php?pagina=recurso_gerenciar&action=editar&rec_id=<?= htmlspecialchars($rec_id) . $autenticacao ?>">
+            <div class="centro">
+                <div class="titulo"><?= $tituloPagina ?> &raquo; Gerenciar: <?= htmlspecialchars($recurso['rec_assunto']) ?>
+                </div>
+                <table align="center" cellspacing="0" width="90%">
+                    <tr>
+                        <td align="left">
+                            <b>Cliente:</b> <?= htmlspecialchars($recurso['cli_nome_razao']) ?>
+                            (<?= htmlspecialchars($recurso['cli_cnpj']) ?>)
+                            <p>
+                                <b>Recurso:</b>
+                                <?php if (!empty($recurso['rec_recurso'])): ?>
+                                    <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank"><img
+                                            src="../imagens/icon-pdf.png" border="0"></a>
+                                <?php else: ?>
+                                    Nenhum arquivo anexado.
+                                <?php endif; ?>
+                                <input type="file" name="rec_recurso[]" />
+                            <p>
+                                <b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?>
+                            <p>
+                                <textarea name="rec_descricao" rows="15" id="rec_descricao"
+                                    placeholder="Descrição"><?= htmlspecialchars($recurso['rec_descricao']) ?></textarea>
+                            <p>
+                                <select name="rec_status" id="rec_status">
+                                    <option value="<?= htmlspecialchars($recurso['rec_status']) ?>">
+                                        <?= htmlspecialchars($recurso['rec_status']) ?>
+                                    </option>
+                                    <option value="Deferido">Deferido</option>
+                                    <option value="Indeferido">Indeferido</option>
+                                </select>
+                            <p>
+                                <center>
+                                    <input type="submit" id="bt_recurso_gerenciar" value="Salvar" />&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="button" id="botao_cancelar"
+                                        onclick="window.location.href='infracoes_gerenciar.php?pagina=infracoes_gerenciar<?= $autenticacao ?>';"
+                                        value="Cancelar" />
+                                </center>
+                        </td>
+                    </tr>
+                </table>
+                <div class="titulo"></div>
             </div>
-            <table align="center" cellspacing="0" width="90%">
-                <tr>
-                    <td align="left">
-                        <b>Cliente:</b> <?= htmlspecialchars($recurso['cli_nome_razao']) ?>
-                        (<?= htmlspecialchars($recurso['cli_cnpj']) ?>)
-                        <p>
-                            <b>Recurso:</b>
-                            <?php if (!empty($recurso['rec_recurso'])): ?>
-                            <a href="<?= htmlspecialchars($recurso['rec_recurso']) ?>" target="_blank"><img
-                                    src="../imagens/icon-pdf.png" border="0"></a>
-                            <?php else: ?>
-                            Nenhum arquivo anexado.
-                            <?php endif; ?>
-                            <input type="file" name="rec_recurso[]" />
-                        <p>
-                            <b>Status:</b> <?= htmlspecialchars($recurso['rec_status']) ?>
-                        <p>
-                            <textarea name="rec_descricao" rows="15" id="rec_descricao"
-                                placeholder="Descrição"><?= htmlspecialchars($recurso['rec_descricao']) ?></textarea>
-                        <p>
-                            <select name="rec_status" id="rec_status">
-                                <option value="<?= htmlspecialchars($recurso['rec_status']) ?>">
-                                    <?= htmlspecialchars($recurso['rec_status']) ?>
-                                </option>
-                                <option value="Deferido">Deferido</option>
-                                <option value="Indeferido">Indeferido</option>
-                            </select>
-                        <p>
-                            <center>
-                                <input type="submit" id="bt_recurso_gerenciar" value="Salvar" />&nbsp;&nbsp;&nbsp;&nbsp;
-                                <input type="button" id="botao_cancelar"
-                                    onclick="window.location.href='infracoes_gerenciar.php?pagina=infracoes_gerenciar<?= $autenticacao ?>';"
-                                    value="Cancelar" />
-                            </center>
-                    </td>
-                </tr>
-            </table>
-            <div class="titulo"></div>
-        </div>
-    </form>
+        </form>
     <?php endif; ?>
 
     <?php if ($pagina === 'recurso_listar'): ?>
-    <div class='centro'>
-        <div class='titulo'>Lista de Recursos</div>
-        <div class='filtro'>
-            <form method="get" action="recurso_gerenciar.php">
-                <input type="hidden" name="pagina" value="recurso_listar">
-                <input type="text" name="fil_assunto" placeholder="Assunto"
-                    value="<?= htmlspecialchars($_REQUEST['fil_assunto'] ?? '') ?>">
-                <input type="text" name="fil_cliente" placeholder="Cliente"
-                    value="<?= htmlspecialchars($_REQUEST['fil_cliente'] ?? '') ?>">
-                <select name="fil_status">
-                    <option value="">Status</option>
-                    <option value="Deferido" <?= (isset($_REQUEST['fil_status']) && $_REQUEST['fil_status'] === 'Deferido') ? 'selected' : '' ?>>Deferido</option>
-                    <option value="Indeferido" <?= (isset($_REQUEST['fil_status']) && $_REQUEST['fil_status'] === 'Indeferido') ? 'selected' : '' ?>>Indeferido</option>
-                </select>
-                <button type="submit">Filtrar</button>
-            </form>
+        <div class='centro'>
+            <div class='titulo'>Lista de Recursos</div>
+            <div class='filtro'>
+                <form method="get" action="recurso_gerenciar.php">
+                    <input type="hidden" name="pagina" value="recurso_listar">
+                    <input type="text" name="fil_assunto" placeholder="Assunto"
+                        value="<?= htmlspecialchars($_REQUEST['fil_assunto'] ?? '') ?>">
+                    <input type="text" name="fil_cliente" placeholder="Cliente"
+                        value="<?= htmlspecialchars($_REQUEST['fil_cliente'] ?? '') ?>">
+                    <select name="fil_status">
+                        <option value="">Status</option>
+                        <option value="Deferido" <?= (isset($_REQUEST['fil_status']) && $_REQUEST['fil_status'] === 'Deferido') ? 'selected' : '' ?>>Deferido</option>
+                        <option value="Indeferido" <?= (isset($_REQUEST['fil_status']) && $_REQUEST['fil_status'] === 'Indeferido') ? 'selected' : '' ?>>Indeferido</option>
+                    </select>
+                    <button type="submit">Filtrar</button>
+                </form>
+            </div>
+            <?php if (!empty($recursos)): ?>
+                <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
+                    <tr>
+                        <td class='titulo_tabela'>ID</td>
+                        <td class='titulo_tabela'>Assunto</td>
+                        <td class='titulo_tabela'>Cliente</td>
+                        <td class='titulo_tabela'>Status</td>
+                        <td class='titulo_tabela'>Gerenciar</td>
+                    </tr>
+                    <?php foreach ($recursos as $recurso): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($recurso['rec_id']) ?></td>
+                            <td><?= htmlspecialchars($recurso['rec_assunto']) ?></td>
+                            <td><?= htmlspecialchars($recurso['cli_nome_razao']) ?></td>
+                            <td><?= htmlspecialchars($recurso['rec_status']) ?></td>
+                            <td>
+                                <a
+                                    href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=<?= htmlspecialchars($recurso['rec_id']) . $autenticacao ?>'>Gerenciar</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <?php
+                $totalPaginas = ceil($total_registros / $itensPorPagina);
+                if ($totalPaginas > 1): ?>
+                    <div class='paginacao'>
+                        <?php for ($i = 1; $i <= $totalPaginas; $i++):
+                            $active = $i == $paginaAtual ? "style='font-weight:bold;'" : '';
+                            $url = "recurso_gerenciar.php?pagina=recurso_listar&pag=$i$autenticacao";
+                            ?>
+                            <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <br><br><br>Não há nenhum recurso cadastrado.
+            <?php endif; ?>
+            <div class='titulo'></div>
         </div>
-        <?php if (!empty($recursos)): ?>
-        <table align='center' width='100%' border='0' cellspacing='0' cellpadding='10' class='bordatabela'>
-            <tr>
-                <td class='titulo_tabela'>ID</td>
-                <td class='titulo_tabela'>Assunto</td>
-                <td class='titulo_tabela'>Cliente</td>
-                <td class='titulo_tabela'>Status</td>
-                <td class='titulo_tabela'>Gerenciar</td>
-            </tr>
-            <?php foreach ($recursos as $recurso): ?>
-            <tr>
-                <td><?= htmlspecialchars($recurso['rec_id']) ?></td>
-                <td><?= htmlspecialchars($recurso['rec_assunto']) ?></td>
-                <td><?= htmlspecialchars($recurso['cli_nome_razao']) ?></td>
-                <td><?= htmlspecialchars($recurso['rec_status']) ?></td>
-                <td>
-                    <a
-                        href='recurso_gerenciar.php?pagina=recurso_gerenciar&rec_id=<?= htmlspecialchars($recurso['rec_id']) . $autenticacao ?>'>Gerenciar</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
-            $totalPaginas = ceil($total_registros / $itensPorPagina);
-            if ($totalPaginas > 1): ?>
-        <div class='paginacao'>
-            <?php for ($i = 1; $i <= $totalPaginas; $i++):
-                $active = $i == $paginaAtual ? "style='font-weight:bold;'" : '';
-                $url = "recurso_gerenciar.php?pagina=recurso_listar&pag=$i$autenticacao";
-                ?>
-            <a href="<?= $url ?>" <?= $active ?>><?= $i ?></a>
-            <?php endfor; ?>
-        </div>
-        <?php endif; ?>
-        <?php else: ?>
-        <br><br><br>Não há nenhum recurso cadastrado.
-        <?php endif; ?>
-        <div class='titulo'></div>
-    </div>
     <?php endif; ?>
 
     <?php include '../mod_rodape/rodape.php'; ?>
 </body>
+
 </html>

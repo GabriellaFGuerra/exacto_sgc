@@ -61,7 +61,7 @@ if ($action === 'excluir' && $mod_id) {
 <html lang="pt-br">
 
 <head>
-    <title><?php echo htmlspecialchars($titulo); ?></title>
+    <title>Admin - Módulos</title>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="../imagens/favicon.png">
     <?php
@@ -76,12 +76,12 @@ if ($action === 'excluir' && $mod_id) {
     <?php include "../mod_topo/topo.php"; ?>
     <div class="centro">
         <?php if ($pagina === "admin_modulos" || $pagina == ''): ?>
-        <div class="titulo"><?php echo $titulo; ?></div>
-        <div id="botoes">
-            <input value="Novo Módulo" type="button"
-                onclick="window.location.href='admin_modulos.php?pagina=adicionar_admin_modulos';" />
-        </div>
-        <?php
+            <div class="titulo"><?php echo $titulo; ?></div>
+            <div id="botoes">
+                <input value="Novo Módulo" type="button"
+                    onclick="window.location.href='admin_modulos.php?pagina=adicionar_admin_modulos';" />
+            </div>
+            <?php
             $stmt = $pdo->prepare("SELECT * FROM admin_modulos ORDER BY mod_nome ASC LIMIT :offset, :limit");
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
@@ -90,29 +90,29 @@ if ($action === 'excluir' && $mod_id) {
 
             $totalRegistros = $pdo->query("SELECT COUNT(*) FROM admin_modulos")->fetchColumn();
             ?>
-        <?php if ($modulos): ?>
-        <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
-            <tr>
-                <td class="titulo_tabela">Nome</td>
-                <td class="titulo_tabela" align="center">Gerenciar</td>
-            </tr>
-            <?php foreach ($modulos as $modulo): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($modulo['mod_nome']); ?></td>
-                <td align="center">
-                    <a href="admin_modulos.php?pagina=editar_admin_modulos&mod_id=<?php echo $modulo['mod_id']; ?>">
-                        <img border="0" src="../imagens/icon-editar.png" alt="Editar">
-                    </a>
-                    <a href="javascript:void(0);" onclick="
+            <?php if ($modulos): ?>
+                <table align="center" width="100%" border="0" cellspacing="0" cellpadding="10" class="bordatabela">
+                    <tr>
+                        <td class="titulo_tabela">Nome</td>
+                        <td class="titulo_tabela" align="center">Gerenciar</td>
+                    </tr>
+                    <?php foreach ($modulos as $modulo): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($modulo['mod_nome']); ?></td>
+                            <td align="center">
+                                <a href="admin_modulos.php?pagina=editar_admin_modulos&mod_id=<?php echo $modulo['mod_id']; ?>">
+                                    <img border="0" src="../imagens/icon-editar.png" alt="Editar">
+                                </a>
+                                <a href="javascript:void(0);" onclick="
                         if(confirm('Deseja excluir <?php echo addslashes(htmlspecialchars($modulo['mod_nome'])); ?>?')){window.location.href='admin_modulos.php?pagina=admin_modulos&action=excluir&mod_id=<?php echo $modulo['mod_id']; ?>';}
                     ">
-                        <img border="0" src="../imagens/icon-excluir.png" alt="Excluir">
-                    </a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
+                                    <img border="0" src="../imagens/icon-excluir.png" alt="Excluir">
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+                <?php
                 $totalPaginas = ceil($totalRegistros / $itensPorPagina);
                 if ($totalPaginas > 1) {
                     echo "<div class='paginacao'>";
@@ -124,20 +124,20 @@ if ($action === 'excluir' && $mod_id) {
                     echo "</div>";
                 }
                 ?>
-        <?php else: ?>
-        <br><br><br>Não há nenhum módulo cadastrado.
-        <?php endif; ?>
+            <?php else: ?>
+                <br><br><br>Não há nenhum módulo cadastrado.
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if ($pagina === "adicionar_admin_modulos"): ?>
-        <div class="titulo">Adicionar Novo Módulo</div>
-        <form method="post" action="admin_modulos.php?pagina=adicionar_admin_modulos&action=adicionar">
-            <label for="mod_nome">Nome do Módulo:</label><br>
-            <input type="text" name="mod_nome" id="mod_nome" required><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_modulos.php?pagina=admin_modulos';">
-        </form>
+            <div class="titulo">Adicionar Novo Módulo</div>
+            <form method="post" action="admin_modulos.php?pagina=adicionar_admin_modulos&action=adicionar">
+                <label for="mod_nome">Nome do Módulo:</label><br>
+                <input type="text" name="mod_nome" id="mod_nome" required><br><br>
+                <input type="submit" value="Salvar">
+                <input type="button" value="Cancelar"
+                    onclick="window.location.href='admin_modulos.php?pagina=admin_modulos';">
+            </form>
         <?php endif; ?>
 
         <?php if ($pagina === "editar_admin_modulos" && $mod_id):
@@ -149,16 +149,16 @@ if ($action === 'excluir' && $mod_id) {
                 exibirMensagem('Módulo não encontrado.');
             }
             ?>
-        <div class="titulo">Editar Módulo</div>
-        <form method="post"
-            action="admin_modulos.php?pagina=editar_admin_modulos&action=editar&mod_id=<?php echo $mod_id; ?>">
-            <label for="mod_nome">Nome do Módulo:</label><br>
-            <input type="text" name="mod_nome" id="mod_nome"
-                value="<?php echo htmlspecialchars($modulo['mod_nome']); ?>" required><br><br>
-            <input type="submit" value="Salvar">
-            <input type="button" value="Cancelar"
-                onclick="window.location.href='admin_modulos.php?pagina=admin_modulos';">
-        </form>
+            <div class="titulo">Editar Módulo</div>
+            <form method="post"
+                action="admin_modulos.php?pagina=editar_admin_modulos&action=editar&mod_id=<?php echo $mod_id; ?>">
+                <label for="mod_nome">Nome do Módulo:</label><br>
+                <input type="text" name="mod_nome" id="mod_nome"
+                    value="<?php echo htmlspecialchars($modulo['mod_nome']); ?>" required><br><br>
+                <input type="submit" value="Salvar">
+                <input type="button" value="Cancelar"
+                    onclick="window.location.href='admin_modulos.php?pagina=admin_modulos';">
+            </form>
         <?php endif; ?>
     </div>
     <?php include '../mod_rodape/rodape.php'; ?>

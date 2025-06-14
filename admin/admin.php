@@ -85,7 +85,7 @@ $titulo = 'Administrativo - Página Inicial';
 <html lang="pt-br">
 
 <head>
-    <title><?= htmlspecialchars($titulo) ?></title>
+    <title>Admin - Página Inicial</title>
     <meta name="author" content="MogiComp">
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="../imagens/favicon.png">
